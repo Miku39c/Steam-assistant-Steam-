@@ -959,7 +959,7 @@ class UI {
 			//console.log(layui.layer);
 
 			//向世界问个好
-			layer.msg('Hello World');
+			//layer.msg('Hello World');
 			//layer.alert('见到你真的很高兴', {icon: 6});
 			//layui.layer.alert("text");
 			
