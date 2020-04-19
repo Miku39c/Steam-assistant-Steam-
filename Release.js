@@ -6,7 +6,7 @@
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      0.2.3.0
+// @version      1.2.3.0
 // @require      https://cdnjs.cloudflare.com/ajax/libs/echarts/4.3.0/echarts.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js
 // @author       Miku39
