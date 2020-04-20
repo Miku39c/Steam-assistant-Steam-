@@ -504,26 +504,30 @@ class friendActivity{
 		this.jsName = "g_BlotterNextLoadURL";
 		this.friendActivityElementsBlockId = "blotter_block";
 		
+		this.isYun = false;
+		
 		//游戏评测
 		this.UserEvaluationUp = "UserReviewVoteUp"; //用户评价 是 的函数名
 		this.UserEvaluationDown = "UserReviewVoteDown"; //用户评价 否 的函数名
 		this.UserEvaluationHappy = "UserReviewVoteTag"; //用户评价 欢乐 的函数名
 		//上传载图、收藏载图
 		//指南添加到收藏夹、发表指南
-		//创意工坊物品添加到收藏夹、创意工坊合集添加到收藏夹、发布创意工坊物品
-		//艺术作品添加到收藏夹、发布艺术作品、
-		//上传视频、
+		//创意工坊物品添加到收藏夹、创意工坊合集添加到收藏夹、发布创意工坊物品 (发布创意工坊合集?? 没有找到相关动态)
+		//艺术作品添加到收藏夹、发布艺术作品
+		//添加视频、收藏视频
 		this.captureUp = "VoteUp"; //用户评价 赞 的函数名
 		this.captureDown = "VoteDown"; //用户评价 否 的函数名
 		this.captureShare = "ShowSharePublishedFilePopup"; //用户操作 分享 的函数名
 		//购买游戏或者DLC
-		this.bus = "VoteUpCommentThread('UserReceivedNewGame"; //用户评价 赞 的函数名
+		this.bus = "VoteUpCommentThread"; //用户评价 赞 的函数名 "VoteUpCommentThread('UserReceivedNewGame"
 		//发布状态或者游戏状态
-		this.status = "VoteUpCommentThread('UserStatusPublished"; //用户评价 赞 的函数名
+		this.status = "VoteUpCommentThread"; //用户评价 赞 的函数名 "VoteUpCommentThread('UserStatusPublished"
 		
 		//组通知(可留言)，其他的比如 安排活动、选择新的周最佳玩家、晋升一名成员为管理员、添加了一条留言 没有看到过
-		this.groupNotificationUp = "RateAnnouncement( 'https://steamcommunity.com/groups/wearefanatical/announcements/rate/', '3415360277957401578', true, 4264294 );"; //用户评价 赞
-		this.groupNotificationDown = "RateAnnouncement( 'https://steamcommunity.com/groups/wearefanatical/announcements/rate/', '3415360277957401578', false, 4264294 );"; //用户评价 否
+		this.groupNotificationUp = "RateAnnouncement"; //用户评价 赞
+		this.groupNotificationDown = "RateAnnouncement"; //用户评价 否
+		
+		this.g_bRecoredUpvote = false;
 		
 		//青睐之光物品发布一则通知?、创意工坊物品发布一则通知? 没有看到过
 		//商店鉴赏家 推荐一款新的游戏?(进入页面可留言) 但是不能操作
@@ -563,6 +567,385 @@ class friendActivity{
 			this.Url = this.steamCommunityUrl + this.customUrl + this.profileID_Url;
 		}
 	}
+	
+	LogUpvote(){
+		//if ( !this.g_bRecoredUpvote )
+		//{
+			//this.g_bRecoredUpvote = true;
+			$J.post( 'https://steamcommunity.com/actions/LogFriendActivityUpvote', {sessionID: g_sessionID} );
+		//}
+	}
+	
+	VoteUp(item_id){ //有些东西点不了赞
+			var options = {
+				method: 'post',
+				postBody: 'id=' + item_id + '&sessionid=' + g_sessionID,
+				onComplete: (function(item_id){
+					return function(transport)
+					{
+						console.log("VoteUp() 点赞完成!",transport.responseText);
+					}
+				}(item_id))
+			};
+			
+			new Ajax.Request(
+				'https://steamcommunity.com/sharedfiles/voteup',
+				options
+			);
+			this.LogUpvote();
+	}
+	
+	//home页面 InitializeCommentThread
+	
+	//rgCommentData['pagesize']
+	//var CCommentThread = Class.create
+	//initialize: function( type, name, rgCommentData, url, nQuoteBoxHeight )
+	
+	//function InitializeCommentThread( type, name, rgCommentData, url, nQuoteBoxHeight )
+	//this.m_cPageSize
+	VoteUpCommentThread(commentthreadid){ //这个函数有不确定性
+			let iprefix = commentthreadid.indexOf('_');
+			var prefixUrl = commentthreadid.slice(0,iprefix);
+			let iowner = commentthreadid.indexOf('_',iprefix+1);
+			var ownerUrl = commentthreadid.slice(iprefix+1,iowner);
+			var featureUrl = commentthreadid.slice(iowner+1);
+			
+			this.LogUpvote();
+			
+			var GetActionURL  = function(action){
+				var url = "https://steamcommunity.com/comment/" + prefixUrl + "/" + action + "/";
+				url += ownerUrl + '/';
+				url += featureUrl + '/';
+				return url;
+			}
+			
+			var countValue = 3;
+			
+			switch (prefixUrl){
+				case 'UserReceivedNewGame': //购买游戏或者DLC
+					countValue = 3;
+					break;
+				case 'PublishedFile_Public': //没有测试过是否有这个
+					debugger
+					countValue = 3;
+					break;
+				case 'UserStatusPublished': //发布状态或者游戏状态
+					countValue = 6;
+					break;
+				default:
+					debugger
+					break;
+			}
+			
+			var params = {
+			vote: 1,
+			count: countValue,
+			sessionid: g_sessionID,
+			feature2: -1,
+			newestfirstpagination: true,
+			};
+			
+			new Ajax.Request( GetActionURL( 'voteup' ), {
+				method: 'post',
+				parameters: params,
+				onSuccess: ()=>{console.log("VoteUpCommentThread() 点赞成功!",countValue,commentthreadid)},
+				onFailure:  ()=>{console.log("VoteUpCommentThread() 点赞失败! 与网络通信时出错。请稍后再试。",countValue,commentthreadid)},
+				onComplete: ()=>{console.log("VoteUpCommentThread() 点赞完毕! 用时",countValue,commentthreadid)}
+			} );
+		}
+		
+		UserReviewVoteUp(id)
+		{
+			debugger
+			this.UserReview_Rate( id, true, 'https://steamcommunity.com',
+				function( rgResults,recommendationID ) {
+					console.log("UserReviewVoteUp() 点赞成功~",rgResults,recommendationID);
+				}
+			);
+		}
+		
+		UserReview_Rate(recommendationID, bRateUp, baseURL, callback)
+		{
+			$J.post( baseURL + '/userreviews/rate/' + recommendationID,{
+						'rateup' : bRateUp,
+						'sessionid' : g_sessionID
+			}).done( function( results,recommendationID ) {
+				if ( results.success == 1 )
+				{
+					callback( results );
+				}
+				else if ( results.success == 21 )
+				{
+					ShowAlertDialog( '错误', '您必须先登录以执行该操作。' );
+				}
+				else if ( results.success == 15 )
+				{
+					ShowAlertDialog( '错误', '您的帐户没有足够的权限执行此操作。' );
+				}
+				else if ( results.success == 24 )
+				{
+					ShowAlertDialog( '错误', '您的帐户不符合使用该功能的要求。<a class="whiteLink" href="https://help.steampowered.com/zh-cn/wizard/HelpWithLimitedAccount" target="_blank" rel="noreferrer">访问 Steam 客服</a>了解更多信息。' );
+				}
+				else
+				{
+					ShowAlertDialog( '错误', '在尝试处理您的请求的过程中出现了错误：' + results.success );
+				}
+			} );
+		}
+		
+	RateAnnouncement(strArguments){
+		//解析参数并填充
+		var rateURL, gid, bVoteUp, clanID;
+		strArguments = strArguments.replace(/'/g, ""); //去除字符串中出现的所有单引号
+		strArguments = strArguments.replace(/\s+/g,""); //去除字符串所有的空格
+		var arr = strArguments.split(','); //划分为参数
+		rateURL = arr[0];
+		gid = arr[1];
+		if(arr[2]=="true")
+			bVoteUp = true;
+		else bVoteUp = false;
+		clanID = parseInt(arr[3]);
+		
+		rateURL = rateURL + gid;
+		$J.post( rateURL, {
+				'voteup' : bVoteUp,
+				'clanid' : clanID,
+				'sessionid' : g_sessionID
+			}
+		).done( function( json ) {
+			console.log("RateAnnouncement() 点赞成功.",json);
+		} )
+		.fail( function( jqxhr ) {
+			var responseJSON = jqxhr.responseText.evalJSON();
+			switch ( responseJSON.success )
+			{
+				case 21:
+					ShowAlertDialog( '错误', '您必须登录才能执行该操作。' );
+					break;
+				case 24:
+					ShowAlertDialog( '错误',
+						'您的帐户不符合使用该功能的要求。<a class="whiteLink" href="https://help.steampowered.com/zh-cn/wizard/HelpWithLimitedAccount" target="_blank" rel="noreferrer">访问 Steam 客服</a>了解更多信息。'
+					);
+					break;
+				case 15:
+					ShowAlertDialog( '错误', '您没有执行该操作的权限。' );
+					break;
+				default:
+					ShowAlertDialog( '错误', '在处理您的请求时遇到错误：' + responseJSON.success );
+					break;
+			}
+		} );
+		return false;
+	}
+	
+	//g_BlotterNextLoadURL
+	//StartLoadingBlotter( g_BlotterNextLoadURL );
+	async Run(){ //开始点赞
+		var documentData;
+		var arrData;
+		var nextLoadURL;
+		
+		var url = this.Url + this.friendActivitUrl;
+		this.isYun = true;
+		console.log("开始点赞...",url);
+		var i = 0;
+		while(this.isYun)
+		{
+			i++;
+			if(i==1){
+				documentData = await getResourceByURL(url,true);
+				//console.log("url:",this.Url,"data:",documentData);
+				var index = documentData.indexOf(this.startElementsId);
+				var endindex = documentData.lastIndexOf(this.endElementsId);
+				var Data = documentData.slice(index,endindex);
+				var jsindex = documentData.indexOf(this.jsName,endindex);
+				var jsendindex = documentData.indexOf(';',jsindex);
+				var jsData = documentData.slice(jsindex,jsendindex);
+				nextLoadURL = jsData.slice(jsData.indexOf('\'')+1,jsData.lastIndexOf('\''));
+				//console.log("Data:",Data,"nextLoadURL:",nextLoadURL);
+				arrData = Data.split(this.friendActivityElementsBlockId);
+			}
+			else
+			{
+				documentData = await getResourceByURL(url,false); //获取原始数据
+				//console.log("url:",this.Url,"data:",documentData);
+				//console.log(documentData);
+				
+				// load more data
+				//var response = documentData.responseJSON;
+				var response = JSON.parse(documentData.responseText);
+				if ( response && response.success == true && response.blotter_html ){
+					// append the new day, having it fade in quickly 补充新的一天，让它迅速消失
+					
+					// Scan each blotter response for an event ID we've seen before, so we can prune them out 扫描每个吸纸器响应以获取我们之前见过的事件ID，以便我们将其删节
+					var html = response.blotter_html;
+					arrData = html.split(this.friendActivityElementsBlockId);
+					
+					//var newDiv = new Element ( 'div' );
+					//newDiv.update( html );
+					//newDiv.setOpacity(0);
+					//$('blotter_content').appendChild( newDiv );
+					
+					//Blotter_RecordAppImpressions();
+					//ApplyAdultContentPreferences();
+					
+					//new Effect.Appear( newDiv, { duration: .75 }  );
+					
+					//g_BlotterNextLoadURL = response.next_request;
+					nextLoadURL = response.next_request;
+					//Blotter_InfiniteScrollingCheckForMoreContent();
+					//Blotter_AddHighlightSliders();
+				}
+				else if ( !response ){
+					// print out any error for now 现在打印出任何错误
+					console.log("错误:",transport.responseText);
+					//$('blotter_content').insert( { bottom: transport.responseText } );
+				}
+			}
+			// debugger
+			for (let i = 0; i < arrData.length; i++) {
+				//console.log(arrData[i]);
+				
+				var k = arrData[i].lastIndexOf(this.bus); //VoteUpCommentThread('UserReceivedNewGame
+				if(k>0)
+				{
+					var startk = arrData[i].indexOf('(',k);
+					var endk = arrData[i].indexOf(')',startk);
+					var code = arrData[i].slice(startk+1,endk);
+					code = code.replace(/'/g, ""); //去除字符串中出现的所有单引号
+					code = code.replace(/^\s*|\s*$/g,""); //去除字符串内两头的空格
+					console.log("code",code);
+					debugger
+					this.VoteUpCommentThread(code); //点赞
+					await sleep(10); //延迟0.01秒
+					continue;
+				}
+				
+				// var l = arrData[i].lastIndexOf(this.status); //VoteUpCommentThread('UserStatusPublished
+				// if(l>0)
+				// {
+				// 	var startl = arrData[i].indexOf('(',l);
+				// 	var endl = arrData[i].indexOf(')',startl);
+				// 	var code = arrData[i].slice(startl+1,endl);
+				// 	code = code.replace(/'/g, ""); //去除字符串中出现的所有单引号
+				// 	code = code.replace(/^\s*|\s*$/g,""); //去除字符串内两头的空格
+				// 	console.log("code",code);
+				// 	debugger
+				// 	this.VoteUpCommentThread(code); //点赞
+				// 	await sleep(10); //延迟0.01秒
+				// 	continue;
+				// }
+				
+				var o = arrData[i].lastIndexOf(this.UserEvaluationUp); //UserReviewVoteUp
+				if(o>0)
+				{
+					var starto = arrData[i].indexOf('(',o);
+					var endo = arrData[i].indexOf(')',starto);
+					var code = arrData[i].slice(starto+1,endo);
+					code = code.replace(/'/g, ""); //去除字符串中出现的所有单引号
+					code = code.replace(/^\s*|\s*$/g,""); //去除字符串内两头的空格
+					debugger
+					//console.log("code",code);
+					this.UserReviewVoteUp(code); //点赞
+					await sleep(10); //延迟0.01秒
+					continue;
+				}
+				
+				var j = arrData[i].indexOf(this.captureUp); //VoteUp
+				if(j>0)
+				{
+					var startj = arrData[i].indexOf('(',j);
+					var endj = arrData[i].indexOf(')',startj);
+					var code = arrData[i].slice(startj+1,endj);
+					console.log("code",code);
+					debugger
+					if(code.indexOf(',') == -1) //如果不是组点赞则继续点赞，否则继续往后面执行
+					{
+						this.VoteUp(parseInt(code)); //点赞
+						await sleep(10); //延迟0.01秒
+						continue;
+					}
+				}
+				
+				var getCode = (m)=>{
+					var startm = arrData[i].indexOf('(',m);
+					var endm = arrData[i].indexOf(')',startm);
+					var code = arrData[i].slice(startm+1,endm);
+					//console.log("code",code);
+					
+					var iId = arrData[i].indexOf('id',endm);
+					var startId = arrData[i].indexOf('"',iId);
+					var endId = arrData[i].indexOf('"',startId+1);
+					var idValue = arrData[i].slice(startId+1,endId);
+					//console.log("idValue",idValue);
+					if(idValue.indexOf('Up') != -1){
+						
+						return [true,code];
+					}
+					else if(idValue.indexOf('Down') != -1){
+						return [false,code];
+					}
+					else{
+						console.log("组点赞出错!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+						console.log("组点赞出错!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+					}
+				}
+				
+				var m = arrData[i].indexOf(this.groupNotificationUp); //RateAnnouncement
+				if(m>0)
+				{
+					//查找设置
+					var ret = getCode(m);
+					debugger
+					if(ret[0]==true){
+						this.RateAnnouncement(ret[1]); //点赞
+						await sleep(10); //延迟0.01秒
+					}
+					else{
+						this.RateAnnouncement(ret[1]); //踩
+						await sleep(10); //延迟0.01秒
+					}
+					continue;
+				}
+				
+			}
+			debugger
+			url = nextLoadURL;
+			//console.log(url,"点赞完毕! 加载下一个url:", nextLoadURL);
+			var index = url.indexOf("?start=")+1;
+			var endindex = url.indexOf("&",index);
+			if(endindex == -1)
+				endindex = url.length;
+			var time = url.slice(index + "?start".length,endindex);
+			time = parseInt(time);
+			var date = new Date(time*1000);
+			var year = date.getFullYear();
+			var mon = date.getMonth()+1;
+			var day = date.getDate();
+			var hours = date.getHours();
+			var minu = date.getMinutes();
+			var sec = date.getSeconds();
+			var str = year+'-'+mon+'-'+day+' '+hours+':'+minu+':'+sec;
+			console.log(url,"点赞完毕! 下一次点赞的内容时间是:", str + " startoffset:",url.slice(url.lastIndexOf("startoffset=") + "startoffset=".length));
+		} //while
+		var time = url.slice(url.indexOf("=")+1);
+		time = parseInt(time);
+		var date = new Date(time*1000);
+		var year = date.getFullYear();
+		var mon = date.getMonth()+1;
+		var day = date.getDate();
+		var hours = date.getHours();
+		var minu = date.getMinutes();
+		var sec = date.getSeconds();
+		var str = year+'-'+mon+'-'+day+' '+hours+':'+minu+':'+sec;
+		
+		console.log("点赞完毕! 已将"+ str +"这个时间线之后的动态全部点赞完毕!~");
+	}
+	Stop(){
+		console.log("开始停止点赞...");
+		this.isYun = false;
+	}
+	
 	async setfriendActivityOption(){
 		var url = this.Url + this.friendActivitOptionUrl;
 		jQuery.post(url, {
@@ -634,176 +1017,7 @@ class friendActivity{
 		
 	}
 	
-	VoteUp(item_id){
-			var options = {
-				method: 'post',
-				postBody: 'id=' + item_id + '&sessionid=' + g_sessionID,
-				onComplete: (function(item_id){
-					return function(transport)
-					{
-						console.log("点赞完成!");
-					}
-				}(item_id))
-			};
-			new Ajax.Request(
-				'https://steamcommunity.com/sharedfiles/voteup',
-				options
-			);
-			//$J.post( 'https://steamcommunity.com/actions/LogFriendActivityUpvote', {sessionID: g_sessionID} );
-	}
-	
-	VoteUpCommentThread(commentthreadid){ //这个函数有不确定性
-			let iprefix = commentthreadid.indexOf('_');
-			var prefixUrl = commentthreadid.slice(0,iprefix);
-			let iowner = commentthreadid.indexOf('_',iprefix+1);
-			var ownerUrl = commentthreadid.slice(iprefix+1,iowner);
-			var featureUrl = commentthreadid.slice(iowner+1);
-			
-			//$J.post( 'https://steamcommunity.com/actions/LogFriendActivityUpvote', {sessionID: g_sessionID} );
-			
-			var GetActionURL  = function(action){
-				var url = "https://steamcommunity.com/comment/UserReceivedNewGame/" + action + "/";
-				url += ownerUrl + '/';
-				url += featureUrl + '/';
-				return url;
-			}
-			
-			var params = {
-			vote: 1,
-			count: 3,
-			sessionid: g_sessionID,
-			feature2: -1,
-			newestfirstpagination: true,
-			};
-			
-			new Ajax.Request( GetActionURL( 'voteup' ), {
-				method: 'post',
-				parameters: params,
-				onSuccess: ()=>{console.log("点赞成功!")},
-				onFailure:  ()=>{console.log("点赞失败! 与网络通信时出错。请稍后再试。")},
-				onComplete: ()=>{console.log("点赞完毕! 用时")}
-			} );
-		}
-		
-		UserReviewVoteUp( id )
-		{
-			UserReview_Rate( id, true, 'https://steamcommunity.com',
-				function( rgResults ) {
-					console.log("点赞成功~");
-				}
-			);
-		}
-		
-		UserReview_Rate( recommendationID, bRateUp, baseURL, callback )
-		{
-			$J.post( baseURL + '/userreviews/rate/' + recommendationID,{
-						'rateup' : bRateUp,
-						'sessionid' : g_sessionID
-			}).done( function( results ) {
-				if ( results.success == 1 )
-				{
-					callback( results );
-				}
-				else if ( results.success == 21 )
-				{
-					ShowAlertDialog( '错误', '您必须先登录以执行该操作。' );
-				}
-				else if ( results.success == 15 )
-				{
-					ShowAlertDialog( '错误', '您的帐户没有足够的权限执行此操作。' );
-				}
-				else if ( results.success == 24 )
-				{
-					ShowAlertDialog( '错误', '您的帐户不符合使用该功能的要求。<a class="whiteLink" href="https://help.steampowered.com/zh-cn/wizard/HelpWithLimitedAccount" target="_blank" rel="noreferrer">访问 Steam 客服</a>了解更多信息。' );
-				}
-				else
-				{
-					ShowAlertDialog( '错误', '在尝试处理您的请求的过程中出现了错误：' + results.success );
-				}
-			} );
-		}
-		
-	
-	async Run(){ //开始点赞
-		var url = this.Url + this.friendActivitUrl;
-		console.log("开始点赞...",url);
-		var documentData = await getResourceByURL(url);
-		//console.log("url:",this.Url,"data:",documentData);
-		var index = documentData.indexOf(this.startElementsId);
-		var endindex = documentData.lastIndexOf(this.endElementsId);
-		var Data = documentData.slice(index,endindex);
-		var jsindex = documentData.indexOf(this.jsName,endindex);
-		var jsendindex = documentData.indexOf(';',jsindex);
-		var jsData = documentData.slice(jsindex,jsendindex);
-		var nextLoadURL = jsData.slice(jsData.indexOf('\'')+1,jsData.lastIndexOf('\''));
-		console.log("Data:",Data,"nextLoadURL:",nextLoadURL);
-		var arrData = Data.split(this.friendActivityElementsBlockId);
-		debugger
-		for (let i = 1; i < arrData.length; i++) {
-			//console.log(arrData[i]);
-			
-			var k = arrData[i].lastIndexOf(this.bus);
-			if(k>0)
-			{
-				var startk = arrData[i].indexOf('(',k);
-				var endk = arrData[i].indexOf(')',startk);
-				var code = arrData[i].slice(startk+1,endk);
-				console.log("code",code);
-				continue;
-			}
-			
-			var l = arrData[i].lastIndexOf(this.status);
-			if(l>0)
-			{
-				var startl = arrData[i].indexOf('(',k);
-				var endl = arrData[i].indexOf(')',startl);
-				var code = arrData[i].slice(startl+1,endl);
-				console.log("code",code);
-				continue;
-			}
-			
-			var j = arrData[i].lastIndexOf(this.captureUp);
-			if(j>0)
-			{
-				var startj = arrData[i].indexOf('(',j);
-				var endj = arrData[i].indexOf(')',startj);
-				var code = arrData[i].slice(startj+1,endj);
-				console.log("code",code);
-				continue;
-			}
-			
-			var o = arrData[i].lastIndexOf(this.UserEvaluationUp);
-			if(o>0)
-			{
-				var starto = arrData[i].indexOf('(',o);
-				var endo = arrData[i].indexOf(')',starto);
-				var code = arrData[i].slice(starto+1,endo);
-				console.log("code",code);
-				continue;
-			}
-			
-			var m = arrData[i].lastIndexOf(this.groupNotificationUp);
-			if(m>0)
-			{
-				var startm = arrData[i].indexOf('(',k);
-				var endm = arrData[i].indexOf(')',startm);
-				var code = arrData[i].slice(startm+1,endm);
-				console.log("code",code);
-				continue;
-			}
-			
-		}
-		
-		
-		console.log("点赞完毕!");
-	}
-	Stop(){
-		console.log("开始停止点赞...");
-		
-		console.log("点赞已停止!");
-	}
 	setGetActivityInfo(){ //设置动态的内容为指定的数据
-		
 		
 	}
 	setGetActivityAll(){ //设置动态内容为默认(全部)

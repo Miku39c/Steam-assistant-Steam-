@@ -90,7 +90,7 @@ function loadjscssFile_media(filePath,id, filetype) { //动态加载一个js/css
 	}
 }
 
-async function getResourceByURL(resourceURL){ //获取URL对应的资源数据
+async function getResourceByURL(resourceURL,retDataMode){ //获取URL对应的资源数据
 	var retData;
 	var waitStatus = true;
 	
@@ -106,7 +106,10 @@ async function getResourceByURL(resourceURL){ //获取URL对应的资源数据
 			if (response.status === 200) {
 				console.log('getResourceByURL()请求成功!');
 				
-				retData = response.responseText;
+				if(retDataMode == true)
+					retData = response.responseText;
+				else
+					retData = response;
 				
 				//returnData = ; //存储数据
 				waitStatus = false; //不等待

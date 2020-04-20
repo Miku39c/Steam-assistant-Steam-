@@ -422,13 +422,13 @@ class UI {
 		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
 		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
 		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
-		//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css");
+		//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
 		//addNewStyle('layui_style',cssData);
 		//console.log(layui.layer);
 
 		//1.基本环境-加载js到页面上，方便调试
 		//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
-		var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js");
+		var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true);
 		//console.log("数据获取成果",jsData);
 		addNewScript('layui_Script', jsData);
 
