@@ -6,7 +6,7 @@
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.1
+// @version      1.2.3.2
 // @require      https://cdnjs.cloudflare.com/ajax/libs/echarts/4.3.0/echarts.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js
 // @author       Miku39
@@ -44,6 +44,10 @@
 // @noframes
 // @run-at document-idle
 // ==/UserScript==
+
+var delay = 4; // 设置你的留言时间间隔,单位秒
+var strNoOperate = "(不留言)"; //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
+var strRemarkPlaceholder = "{name}"; //设置你的称呼占位符: 同上
 
 //-------------------------------------------------------------------------------------------------------------
 // 实用函数集
@@ -694,7 +698,7 @@ class Log {
 	//log.debug(getArgumentsAllValueByDebug,"111");
 	debug($funcName, $strDebugInfo) {
 		//var This = this;
-		////debugger;
+		//debugger;
 		let fontStyle =
 			'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 		let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
@@ -702,7 +706,7 @@ class Log {
 		let arr;
 		if (typeof $funcName == 'function') { //
 			if (this.isDEBUG) {
-				//debugger;
+				debugger;
 				console.log($funcName);
 				$funcName = '.' + $funcName.name;
 
@@ -1615,11 +1619,11 @@ class friendActivity{
 	}
 	
 	LogUpvote(){
-		//if ( !this.g_bRecoredUpvote )
-		//{
-			//this.g_bRecoredUpvote = true;
+		if ( !this.g_bRecoredUpvote )
+		{
+			this.g_bRecoredUpvote = true;
 			$J.post( 'https://steamcommunity.com/actions/LogFriendActivityUpvote', {sessionID: g_sessionID} );
-		//}
+		}
 	}
 	
 	VoteUp(item_id){ //有些东西点不了赞
@@ -1629,7 +1633,25 @@ class friendActivity{
 				onComplete: (function(item_id){
 					return function(transport)
 					{
-						console.log("VoteUp() 点赞完成!",transport.responseText);
+						var response = JSON.parse(transport.responseText);
+						switch (response.success){
+							case 1:
+							//debugger
+							//console.log("VoteUp() 已经点过赞了!",transport.responseText);
+								break;
+							case 10:
+							//debugger
+							//console.log("VoteUp() 点赞完成??",transport.responseText);
+								break;
+							case 15:
+							//debugger
+							console.log("VoteUp() 点赞错误!!!",transport.responseText);
+								break;
+							default:
+							//debugger
+							console.log("VoteUp() ????????????????????????????????????????????????????????????",transport.responseText);
+								break;
+						}
 					}
 				}(item_id))
 			};
@@ -1672,14 +1694,14 @@ class friendActivity{
 					countValue = 3;
 					break;
 				case 'PublishedFile_Public': //没有测试过是否有这个
-					//debugger
+					debugger
 					countValue = 3;
 					break;
 				case 'UserStatusPublished': //发布状态或者游戏状态
 					countValue = 6;
 					break;
 				default:
-					//debugger
+					debugger
 					break;
 			}
 			
@@ -1694,9 +1716,15 @@ class friendActivity{
 			new Ajax.Request( GetActionURL( 'voteup' ), {
 				method: 'post',
 				parameters: params,
-				onSuccess: ()=>{console.log("VoteUpCommentThread() 点赞成功!",countValue,commentthreadid)},
-				onFailure:  ()=>{console.log("VoteUpCommentThread() 点赞失败! 与网络通信时出错。请稍后再试。",countValue,commentthreadid)},
-				onComplete: ()=>{console.log("VoteUpCommentThread() 点赞完毕! 用时",countValue,commentthreadid)}
+				onSuccess: ()=>{
+					//console.log("VoteUpCommentThread() 点赞成功!",countValue,commentthreadid)
+					},
+				onFailure:  ()=>{
+					console.log("VoteUpCommentThread() 点赞失败! 与网络通信时出错。请稍后再试。",countValue,commentthreadid)
+					},
+				onComplete: ()=>{
+					//console.log("VoteUpCommentThread() 点赞完毕! 用时",countValue,commentthreadid)
+					}
 			} );
 		}
 		
@@ -1705,7 +1733,7 @@ class friendActivity{
 			//debugger
 			this.UserReview_Rate( id, true, 'https://steamcommunity.com',
 				function( rgResults,recommendationID ) {
-					console.log("UserReviewVoteUp() 点赞成功~",rgResults,recommendationID);
+					//console.log("UserReviewVoteUp() 点赞成功~",rgResults,recommendationID);
 				}
 			);
 		}
@@ -1759,7 +1787,7 @@ class friendActivity{
 				'sessionid' : g_sessionID
 			}
 		).done( function( json ) {
-			console.log("RateAnnouncement() 点赞成功.",json);
+			//console.log("RateAnnouncement() 点赞成功.",json);
 		} )
 		.fail( function( jqxhr ) {
 			var responseJSON = jqxhr.responseText.evalJSON();
@@ -1801,8 +1829,8 @@ class friendActivity{
 			if(i==1){
 				documentData = await getResourceByURL(url,true);
 				//console.log("url:",this.Url,"data:",documentData);
-				var index = documentData.indexOf(this.startElementsId);
-				var endindex = documentData.lastIndexOf(this.endElementsId);
+				var index = documentData.indexOf(this.startElementsId); //开始区域 blotter_content
+				var endindex = documentData.lastIndexOf(this.endElementsId); //结束区域 blotter_throbber
 				var Data = documentData.slice(index,endindex);
 				var jsindex = documentData.indexOf(this.jsName,endindex);
 				var jsendindex = documentData.indexOf(';',jsindex);
@@ -1811,11 +1839,17 @@ class friendActivity{
 				//console.log("Data:",Data,"nextLoadURL:",nextLoadURL);
 				arrData = Data.split(this.friendActivityElementsBlockId);
 			}
+			//else if ( !response ){
+			//	// print out any error for now 现在打印出任何错误
+			//	console.log("错误:",transport.responseText);
+			//	//$('blotter_content').insert( { bottom: transport.responseText } );
+			//}
 			else
 			{
 				documentData = await getResourceByURL(url,false); //获取原始数据
 				//console.log("url:",this.Url,"data:",documentData);
 				//console.log(documentData);
+				this.g_bRecoredUpvote = false;
 				
 				// load more data
 				//var response = documentData.responseJSON;
@@ -1839,16 +1873,12 @@ class friendActivity{
 					
 					//g_BlotterNextLoadURL = response.next_request;
 					nextLoadURL = response.next_request;
+					//debugger
 					//Blotter_InfiniteScrollingCheckForMoreContent();
 					//Blotter_AddHighlightSliders();
 				}
-				else if ( !response ){
-					// print out any error for now 现在打印出任何错误
-					console.log("错误:",transport.responseText);
-					//$('blotter_content').insert( { bottom: transport.responseText } );
-				}
 			}
-			// //debugger
+			// debugger
 			for (let i = 0; i < arrData.length; i++) {
 				//console.log(arrData[i]);
 				
@@ -1860,10 +1890,10 @@ class friendActivity{
 					var code = arrData[i].slice(startk+1,endk);
 					code = code.replace(/'/g, ""); //去除字符串中出现的所有单引号
 					code = code.replace(/^\s*|\s*$/g,""); //去除字符串内两头的空格
-					console.log("code",code);
+					//console.log("code",code);
 					//debugger
 					this.VoteUpCommentThread(code); //点赞
-					await sleep(10); //延迟0.01秒
+					await sleep(50); //延迟0.01秒
 					continue;
 				}
 				
@@ -1876,9 +1906,9 @@ class friendActivity{
 				// 	code = code.replace(/'/g, ""); //去除字符串中出现的所有单引号
 				// 	code = code.replace(/^\s*|\s*$/g,""); //去除字符串内两头的空格
 				// 	console.log("code",code);
-				// 	//debugger
+				// 	debugger
 				// 	this.VoteUpCommentThread(code); //点赞
-				// 	await sleep(10); //延迟0.01秒
+				// 	await sleep(50); //延迟0.01秒
 				// 	continue;
 				// }
 				
@@ -1891,9 +1921,9 @@ class friendActivity{
 					code = code.replace(/'/g, ""); //去除字符串中出现的所有单引号
 					code = code.replace(/^\s*|\s*$/g,""); //去除字符串内两头的空格
 					//debugger
-					//console.log("code",code);
+					////console.log("code",code);
 					this.UserReviewVoteUp(code); //点赞
-					await sleep(10); //延迟0.01秒
+					await sleep(50); //延迟0.01秒
 					continue;
 				}
 				
@@ -1903,12 +1933,12 @@ class friendActivity{
 					var startj = arrData[i].indexOf('(',j);
 					var endj = arrData[i].indexOf(')',startj);
 					var code = arrData[i].slice(startj+1,endj);
-					console.log("code",code);
+					//console.log("code",code);
 					//debugger
 					if(code.indexOf(',') == -1) //如果不是组点赞则继续点赞，否则继续往后面执行
 					{
 						this.VoteUp(parseInt(code)); //点赞
-						await sleep(10); //延迟0.01秒
+						await sleep(50); //延迟0.01秒
 						continue;
 					}
 				}
@@ -1917,7 +1947,7 @@ class friendActivity{
 					var startm = arrData[i].indexOf('(',m);
 					var endm = arrData[i].indexOf(')',startm);
 					var code = arrData[i].slice(startm+1,endm);
-					//console.log("code",code);
+					////console.log("code",code);
 					
 					var iId = arrData[i].indexOf('id',endm);
 					var startId = arrData[i].indexOf('"',iId);
@@ -1933,7 +1963,6 @@ class friendActivity{
 					}
 					else{
 						console.log("组点赞出错!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-						console.log("组点赞出错!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 					}
 				}
 				
@@ -1945,11 +1974,11 @@ class friendActivity{
 					//debugger
 					if(ret[0]==true){
 						this.RateAnnouncement(ret[1]); //点赞
-						await sleep(10); //延迟0.01秒
+						await sleep(50); //延迟0.01秒
 					}
 					else{
 						this.RateAnnouncement(ret[1]); //踩
-						await sleep(10); //延迟0.01秒
+						await sleep(50); //延迟0.01秒
 					}
 					continue;
 				}
@@ -3525,7 +3554,6 @@ class UI {
 
 	}
 }
-
 
 async function registeredAllEvents() //注册所有的事件
 {
@@ -5516,10 +5544,6 @@ async function registeredAllEvents() //注册所有的事件
 	
 	});
 }
-
-var delay = 4; // 设置你的留言时间间隔,单位秒
-var strNoOperate = "(不留言)"; //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-var strRemarkPlaceholder = "{name}"; //设置你的称呼占位符: 同上
 
 async function Main() {
 	if (document.URL.lastIndexOf("/friends") == -1 || document.URL.indexOf("https://steamcommunity.com") == -1) {

@@ -6,7 +6,7 @@
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.1
+// @version      1.2.3.2
 // @require      https://cdnjs.cloudflare.com/ajax/libs/echarts/4.3.0/echarts.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js
 // @require      file://D:\Desktop\ͼƬ\steam\git steam\common.js
