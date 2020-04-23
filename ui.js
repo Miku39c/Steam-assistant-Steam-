@@ -4,7 +4,109 @@ class UI {
 	constructor(arg) {
 
 	}
+	
+	async loadBaseResources(){
+		let arr = [];
+		//0.基本环境-加载css
+		arr.push(new Promise(function (resolve, reject){
+			//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
+			//addNewStyle('layui_style',cssData);
+			//console.log(layui.layer);
+			//layui
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
+			//font-awesome
+			loadjscssFile("https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css", "css");
+			//覆盖layui的css
+			addNewStyle('styles_js0',
+				'a {\
+				color:#ebebeb;\
+				text-decoration: none;\
+				}\
+				a:hover {\
+				color: #aaa\
+				}'
+			); /* 覆盖layui的css样式 */
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		//1.基本环境-加载js到页面上，方便调试
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
+			var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('layui_Script', jsData);
+			//console.log("layui_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js","js");
+			var jsData = await getResourceByURL("https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('localforage_Script', jsData);
+			//console.log("localforage_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highstock/highstock.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highstock/highstock.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highstock_Script', jsData);
+			//console.log("highstock_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/exporting.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/exporting.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_exporting_Script', jsData);
+			//console.log("highcharts_exporting_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/oldie.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/oldie.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_oldie_Script', jsData);
+			//console.log("highcharts_oldie_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_networkgraph_Script', jsData);
+			//console.log("highcharts_networkgraph_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_zh_CN_Script', jsData);
+			//console.log("highcharts_zh_CN_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		// arr.push(new Promise(async function (resolve, reject){
+			
+		// }));
+		let res = await Promise.all(arr);
+		console.log("ret:",res);
+		
+	}
+	
 	async initUI() {
+		await this.loadBaseResources();
+		
 		addNewStyle('styles_js',
 			'::selection {color:#000;background: #35d5ff;}\
 						#addFriendToGroup,#unaddFriendToGroup,#setTimeInterval,#unsetTimeInterval,#setNoLeave,#unsetNoLeave,#addCustomName,#translationText,#setNationality,#unsetNationality,#NationalityGroup,#NationalitySortGroup,#OfflineTimeGroup,#ShowFriendData {font-family: "Motiva Sans", Sans-serif;font-weight: 300;\
@@ -416,26 +518,10 @@ class UI {
 				}\
 				'
 		);
-
-		//0.基本环境-加载css
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
-		//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
-		//addNewStyle('layui_style',cssData);
-		//console.log(layui.layer);
-
-		//1.基本环境-加载js到页面上，方便调试
-		//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
-		var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true);
-		//console.log("数据获取成果",jsData);
-		addNewScript('layui_Script', jsData);
-
-		loadResources();
+		
 	}
 	async createUI() {
-
+		//正常html代码
 		jQuery("#manage_friends").after(
 			'<div class="layui-tab layui-tab-brief" lay-filter="demo">\
 			  <ul class="layui-tab-title">\
@@ -567,19 +653,19 @@ class UI {
 						<div id="">这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\
 						<div class="layui-form">\
 						  <div class="layui-form-item">\
-							<div class="layui-inline">\
-						      <label class="layui-form-label">请选择日期</label>\
+							<div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
+						      <label class="layui-form-label">请选择留言</label> <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
 						      <div class="layui-input-inline">\
 						        <input type="text" class="layui-input" id="test-limit2" readonly="" placeholder="yyyy-MM-dd">\
 						      </div>\
 						    </div>\
+							<div class="layui-inline" style="position: relative;z-index: -1;">\
+							  <label class="layui-form-label">留言日期差</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
+							  <div class="layui-input-inline">\
+							    <input type="text" class="layui-input" id="test-limit1" readonly="" placeholder="yyyy-MM-dd">\
+							  </div>\
+							</div>\
 							\
-							<div class="layui-inline">\
-							   <label class="layui-form-label">请选择时间</label>\
-							    <div class="layui-input-inline">\
-							      <input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\
-							    </div>\
-						   </div>\
 						  </div>\
 						</div>\
 						<div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
@@ -592,7 +678,29 @@ class UI {
 						</div>\
 						\
 						<fieldset class="layui-elem-field layui-field-title">\
-						   <legend>好友分组:</legend>\
+						   <legend>设置自动留言计划:</legend>\
+						</fieldset>\
+						<div class="layui-form">\
+						  <div class="layui-form-item">\
+							<div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
+								<label class="layui-form-label">请选择时间</label>  <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
+								<div class="layui-input-inline">\
+									<input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\
+								</div>\
+							</div>\
+							<div class="layui-inline" style="position: relative;z-index: -1;">\
+								<label class="layui-form-label">请选择时间</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
+								<div class="layui-input-inline">\
+									<input type="text" class="layui-input" id="test15" placeholder="H时m分s秒">\
+								</div>\
+							</div>\
+						  </div>\
+						</div>\
+						\
+						<table class="layui-hide" id="test" lay-filter="test"></table> <!-- 数据表格 -->\
+						\
+						<fieldset class="layui-elem-field layui-field-title">\
+						   <legend>设置好友分组:</legend>\
 						</fieldset>\
 						<div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
 						\
@@ -681,29 +789,44 @@ class UI {
 				  <span style="margin-left: 5px;vertical-align: top;">\
 				  	<button id="ShowFriendData">显示好友详细数据(不可用)</button>\
 				  </span>\
-				  <div style="padding: 5px; background-color: #F2F2F2;">\
-				    <div class="layui-row layui-col-space15">\
-				      \
-				  	<div class="layui-col-md12">\
-				        <div class="layui-card">\
-				          <div class="layui-card-header">好友数据统计</div>\
-				          <div class="layui-card-body">\
-				            留言数据统计\
-				          </div>\
-				        </div>\
-				      </div>\
-				  	\
-				  	<div class="layui-col-md12">\
-				  	  <div class="layui-card">\
-				  	    <div class="layui-card-header">当前配置统计</div>\
-				  	    <div class="layui-card-body">\
-				  	      查看好友配置统计\
-				  	    </div>\
-				  	  </div>\
-				  	</div>\
-				  	\
-				    </div>\
+				  <div class="layui-tab" lay-filter="test1">\
+				    <ul class="layui-tab-title">\
+				      <li class="layui-this" lay-id="11" style="color:#ebebeb;">好友数据统计</li>\
+				      <li lay-id="22" style="color:#ebebeb;">留言数据统计</li>\
+				      <li lay-id="33" style="color:#ebebeb;">关系网统计</li>\
+				      <li lay-id="44" style="color:#ebebeb;">当前配置统计</li>\
+				      <li lay-id="55" style="color:#ebebeb;">查看好友配置统计</li>\
+				    </ul>\
+				    <div class="layui-tab-content">\
+						<div class="layui-tab-item layui-show">\
+							分为:\
+							数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\
+							<table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\
+							<div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							分为:\
+							按国籍的饼图(总留言数量)\
+							按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\
+							按最多留言数据的柱状图(那些好友一天留言数量排行榜/那些好友总留言数量排行榜/累计连续每天留言数量最多)\
+							数据表格(汇总所有的数据)\
+							<div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							好友关系网(仅统计共同好友)\
+							<div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							当前的配置数据和运行状态\
+							<div id="container_currConfStatistics"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\
+							<div id="container_friConfStatistics"></div>\
+						</div>\
+					  </div>\
 				  </div>\
+				  \
 			      <div id="pageDemo"></div>\
 			    </div>\
 				\
@@ -726,21 +849,31 @@ class UI {
 						<form class="layui-form" action="">\
 							<div class="layui-form-item">\
 								<label class="layui-form-label">点赞内容:</label>\
-								<div class="layui-input-block">\
-								  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\
-								  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\
-								  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\
-								  <input type="checkbox" name="like[4]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\
-								  <input type="checkbox" name="like[5]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\
-								  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\
-								  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\
-								  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友购买了游戏或者" checked=""><br>\
-								  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\
-								  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\
-								  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\
-								  <input type="checkbox" name="like[12]" lay-skin="primary" title="组发布了通知" checked=""><br>\
-								  <input type="checkbox" name="like[13]" lay-skin="primary" title="组发布了活动" checked=""><br>\
-								</div>\
+								<div class="layui-row">\
+								   <div class="layui-input-block">\
+										 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+											  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\
+											  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\
+											  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友购买了游戏或者DLC" checked=""><br>\
+											  <input type="checkbox" name="like[4]" lay-skin="primary" title="组发布了通知" checked=""><br>\
+											  <input type="checkbox" name="like[5]" lay-skin="primary" title="组发布了活动" checked=""><br>\
+										 </div>\
+										<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+											  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\
+											  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\
+											  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\
+											  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\
+											  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\
+										</div>\
+										<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+											  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\
+											  <input type="checkbox" name="like[12]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\
+											  <input type="checkbox" name="like[13]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\
+											  <input type="checkbox" name="like[14]" lay-skin="primary" title="朋友收藏了载图" checked=""><br>\
+											  <input type="checkbox" name="like[15]" lay-skin="primary" title="朋友收藏了视频" checked=""><br>\
+										</div>\
+								   </div>\
+								  </div>\
 							  </div>\
 						 </form>\
 						<fieldset class="layui-elem-field layui-field-title">\
@@ -756,7 +889,7 @@ class UI {
 							  </div>\
 						 </form>\
 						<fieldset class="layui-elem-field layui-field-title">\
-						   <legend>设置自动点赞时间线:</legend>\
+						   <legend>设置自动点赞时间区间(默认今天~之前所有的动态内容)</legend>\
 						</fieldset>\
 						<div class="layui-form">\
 						  <div class="layui-form-item">\
@@ -768,7 +901,54 @@ class UI {
 							    </div>\
 						  </div>\
 						</div>\
-							<div>今天-之前7天的动态内容:</div>\
+						<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">\
+						  <legend style="color:#66ccff;">点赞进度时间线</legend>\
+						</fieldset>\
+						<ul class="layui-timeline">\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\
+						      <p style="color:#fff;">\
+						        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\
+								<br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\
+								<br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\
+						        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\
+								<br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\
+						      </p>\
+						    </div>\
+						  </li>\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\
+						      <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\
+						      <ul style="color:#fff;">\
+						        <li>《登高》</li>\
+						        <li>《茅屋为秋风所破歌》</li>\
+						      </ul>\
+						    </div>\
+						  </li>\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\
+						      <p style="color:#fff;">\
+						        中国人民抗日战争胜利日\
+						        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\
+						        <br>铭记、感恩\
+						        <br>所有为中华民族浴血奋战的英雄将士\
+						        <br>永垂不朽\
+						      </p>\
+						    </div>\
+						  </li>\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <div class="layui-timeline-title" style="color:#66ccff;">过去</div>\
+						    </div>\
+						  </li>\
+						</ul>\
 				    </div>\
 				  </fieldset>\
 				</div>\
@@ -911,247 +1091,71 @@ class UI {
 			  </div>\
 			</div>'
 		);
-
-		jQuery('.selectBox').ySelect({
-			placeholder: '请先选择要翻译为的语言',
-			searchText: '搜索~发现新世界~',
-			showSearch: true,
-			numDisplayed: 4,
-			overflowText: '已选中 {n}项',
-			isCheck: false
-		});
-
-		//单选框选中和取消选中 https://segmentfault.com/q/1010000004945347
-		jQuery('.nameAddType').on('click', function() {
-			var ischecked = jQuery(this).data('checked');
-			if (!ischecked && this.checked) {
-				jQuery(this).data('checked', true);
-			} else {
-				jQuery(this).prop('checked', false);
-				jQuery(this).data('checked', false);
-			}
-			console.log(jQuery(this).data('checked'))
-		}).data('checked', jQuery('.nameAddType').get(0).checked);
-
-		//2.构建UI	
-		layui.use(['laydate', 'laypage', 'layer', 'table', 'carousel', 'upload', 'element', 'slider', 'colorpicker', 'form'], function() {
-			var $ = layui.$;
-			var laydate = layui.laydate //日期
-				,
-				laypage = layui.laypage //分页
-				,
-				layer = layui.layer //弹层
-				,
-				table = layui.table //表格
-				,
-				carousel = layui.carousel //轮播
-				,
-				upload = layui.upload //上传
-				,
-				element = layui.element //元素操作
-				,
-				slider = layui.slider //滑块
-				,
-				colorpicker = layui.colorpicker
-				,
-				form = layui.form;
-				;
-			//console.log(layui.layer);
-
-			//向世界问个好
-			//layer.msg('Hello World');
-			//layer.alert('见到你真的很高兴', {icon: 6});
-			//layui.layer.alert("text");
-			
-			 //请选择日期
-			  laydate.render({
-			    elem: '#test-limit2'
-				,trigger: 'click'
-			    ,min: 0
-			    ,max: 99999
-			  });
-			  //请选择时间
-			  laydate.render({
-			      elem: '#test14'
-			      ,type: 'time'
-			      ,format: 'H时m分s秒'
-			    });
-			
-			//开启全功能
-			  colorpicker.render({
-			    elem: '#test-all1'
-			    ,color: 'rgba(7, 155, 140, 1)'
-			    ,format: 'rgb'
-			    ,predefine: true
-			    ,alpha: true
-			    ,done: function(color){
-			      $('#test-all-input').val(color); //向隐藏域赋值
-			      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-			      
-			      color || this.change(color); //清空时执行 change
-			    }
-			    ,change: function(color){
-			      //给当前页面头部和左侧设置主题色
-			      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-			    }
-			  });
-			  //开启全功能
-			    colorpicker.render({
-			      elem: '#test-all2'
-			      ,color: 'rgba(7, 155, 140, 1)'
-			      ,format: 'rgb'
-			      ,predefine: true
-			      ,alpha: true
-			      ,done: function(color){
-			        $('#test-all-input').val(color); //向隐藏域赋值
-			        layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-			        
-			        color || this.change(color); //清空时执行 change
-			      }
-			      ,change: function(color){
-			        //给当前页面头部和左侧设置主题色
-			        $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-			      }
-			    });
-				//开启全功能
-				  colorpicker.render({
-				    elem: '#test-all3'
-				    ,color: 'rgba(7, 155, 140, 1)'
-				    ,format: 'rgb'
-				    ,predefine: true
-				    ,alpha: true
-				    ,done: function(color){
-				      $('#test-all-input').val(color); //向隐藏域赋值
-				      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-				      
-				      color || this.change(color); //清空时执行 change
-				    }
-				    ,change: function(color){
-				      //给当前页面头部和左侧设置主题色
-				      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-				    }
-				  });
-				//开启全功能
-				  colorpicker.render({
-				    elem: '#test-all4'
-				    ,color: 'rgba(7, 155, 140, 1)'
-				    ,format: 'rgb'
-				    ,predefine: true
-				    ,alpha: true
-				    ,done: function(color){
-				      $('#test-all-input').val(color); //向隐藏域赋值
-				      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-				      
-				      color || this.change(color); //清空时执行 change
-				    }
-				    ,change: function(color){
-				      //给当前页面头部和左侧设置主题色
-				      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-				    }
-				  });
-				//开启全功能
-				  colorpicker.render({
-				    elem: '#test-all5'
-				    ,color: 'rgba(7, 155, 140, 1)'
-				    ,format: 'rgb'
-				    ,predefine: true
-				    ,alpha: true
-				    ,done: function(color){
-				      $('#test-all-input').val(color); //向隐藏域赋值
-				      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-				      
-				      color || this.change(color); //清空时执行 change
-				    }
-				    ,change: function(color){
-				      //给当前页面头部和左侧设置主题色
-				      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-				    }
-				  });
-				  
-				  //监听折叠
-				   element.on('collapse(test)', function(data){
-				     layer.msg('展开状态：'+ data.show);
-				   });
-				  
-				  //请选择日期
-				   laydate.render({
-				     elem: '#test-limit3'
-					 ,type: 'date'
-				  	 ,trigger: 'click'
-					 ,range: '~'
-				     ,min: -7
-				     ,max: 0
-					 ,value: '2020-4-12 ~ 2020-4-19'
-					 ,isInitValue: true
-				   });
-				  
-				  //监听指定开关
-				  form.on('switch(switchTest)', async function(data){
-				      layer.msg('开关checked：'+ (this.checked ? 'true' : 'false'), {
-				        offset: '6px'
-				      });
-				      layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis);
-					  
-					  var customUrl = "miku-39";
-					  var profileID = 76561198373290430;
-					  
-					  if(gc_friAct == null)
-					  	gc_friAct = new friendActivity(profileID || customUrl);
-					  	
-					  if(this.checked == true) //打开了
-					  {
-					  	await gc_friAct.Run();
-					  }
-					  else //关闭了
-					  {
-					  	gc_friAct.Stop();
-					  }
-					  
-				    });
-				  	
-				  
-				  //但是，如果你的HTML是动态生成的，自动渲染就会失效
-				  //因此你需要在相应的地方，执行下述方法来进行渲染
-				  form.render();
-				  
-				  element.render('collapse');
-		});
-
-		//-------------------------------------------------------------------------------------------------------------------------------
-		if (opinion() == 0) { //判断页面是pc端还是移动端
-			dvWidthFix();
-		}
-		ToggleManageFriends();
-
-		console.log("GameFreeInfoHelper call...");
-		GameFreeInfoHelper(); //游戏免费信息助手
-
-		var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#commentthread_Profile_0_textarea'));
-		//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
-		//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
-
-		setTimeout(async function() {
-			Obj.LoadEmoticons();
-			CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
-				async function a() {
-					//console.log("loadDone");
-					if (!Obj.m_$Popup)
-						Obj.BuildPopup();
-					else
-						PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
-					await emojiFix();
-				}
-				a();
-			});
-		}, 0);
-		console.log("注册所有的事件...");
-		await registeredAllEvents(); //注册所有的事件
-		addRemoveFriendRemind(); /*添加删除好友提醒*/
+		
+		//好友数据统计里的置顶和是否锁定的模板
+		jQuery("#manage_friends").after(
+		'<script type="text/html" id="switchTpl">\
+		  <!-- 这里的 checked 的状态只是演示 -->\
+		  <input type="checkbox" name="front" value="{{d.id}}" lay-skin="switch" lay-text="是|否" lay-filter="frontDemo" {{ d.id == 10003 ? \'checked\' : \'\' }}>\
+		</script>\
+		\
+		<script type="text/html" id="checkboxTpl">\
+		  <!-- 这里的 checked 的状态只是演示 -->\
+		  <input type="checkbox" name="lock" value="{{d.id}}" title="锁定" lay-filter="lockDemo" {{ d.id == 10006 ? \'checked\' : \'\' }}>\
+		</script>'
+		);
+		
+		// //快捷导航栏
+		// jQuery(".responsive_page_template_content").after(
+		// 	'<div style="position: fixed;top: 30%;right: 0;">\
+		// 		 <div class="layui-input-block" style="margin-left:0; text-align: center;min-height:0;padding: 2px 0px;background: #282B33;">快捷导航栏</div>\
+		// 	<ul class="layui-nav layui-nav-tree layui-inline" lay-filter="demo" style="margin-right: 10px;">\
+		// 	  <li class="layui-nav-item layui-nav-itemed">\
+		// 		<a href="javascript:;">好友分组</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="javascript:;">选项一</a></dd>\
+		// 		  <dd><a href="javascript:;">选项二</a></dd>\
+		// 		  <dd><a href="javascript:;">选项三</a></dd>\
+		// 		  <dd><a href="">跳转项</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item">\
+		// 		<a href="javascript:;">功能模块</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="javascript:;">选项一</a></dd>\
+		// 		  <dd><a href="javascript:;">选项二</a></dd>\
+		// 		  <dd><a href="javascript:;">选项三</a></dd>\
+		// 		  <dd><a href="">跳转项</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item">\
+		// 		<a href="javascript:;">其他</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="javascript:;">返回顶部</a></dd>\
+		// 		  <dd><a href="javascript:;">返回底部</a></dd>\
+		// 		  <dd><a href="javascript:;">选项三</a></dd>\
+		// 		  <dd><a href="">跳转项</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item">\
+		// 		<a href="javascript:;">解决方案</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="">移动模块</a></dd>\
+		// 		  <dd><a href="">后台模版</a></dd>\
+		// 		  <dd><a href="">电商平台</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item"><a href="">云市场</a></li>\
+		// 	  <li class="layui-nav-item"><a href="">社区</a></li>\
+		// 	</ul>\
+		// 	</div>'
+		// );
+		UI.prototype.uiHandler(); //UI与UI事件等相关的处理程序
 	}
 	async private_saveUIConfFile() {
-
+	
 	}
 	async private_readUIConfFile() {
-
+	
 	}
 }

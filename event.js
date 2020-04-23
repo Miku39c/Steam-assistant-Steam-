@@ -1897,7 +1897,7 @@ async function registeredAllEvents() //注册所有的事件
 								//document.getElementById("result1").innerHTML = theday.getFullYear() + "年" + (1 + theday.getMonth()) + "月" + theday.getDate() + "日" + "星期" + cweekday(theday.getDay());
 								return theday.getTime(); //获取对应的时间戳
 							}
-	
+							
 							function calbHMS() { //计算时间差: 一个是当前时间，一个是相差的时间，就都转为秒数进行相减，再还原时间
 								var date = new Date();
 								var date1 = new Date();

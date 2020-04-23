@@ -950,7 +950,12 @@ class friendActivity{
 			var hours = date.getHours();
 			var minu = date.getMinutes();
 			var sec = date.getSeconds();
-			var str = year+'-'+mon+'-'+day+' '+hours+':'+minu+':'+sec;
+			//if(mon<10) mon = "0"+mon;
+			//if(day<10) day = "0"+day;
+			//if(hours<10) hours = "0"+hours;
+			//if(minu<10) minu = "0"+minu;
+			//if(sec<10) sec = "0"+sec;
+			var str = year+'-'+mon+'-'+day+' '+hours+':'+minu+':'+sec; //year+"年"+mon+"月"+day +"日"+hours +"时"+minu +"分"+sec+"秒" //date.toLocaleString()
 			console.log(url,"点赞完毕! 下一次点赞的内容时间是:", str + " startoffset:",url.slice(url.lastIndexOf("startoffset=") + "startoffset=".length));
 		} //while
 		var time = url.slice(url.indexOf("=")+1);
@@ -1050,5 +1055,65 @@ class friendActivity{
 	}
 	setFriendActivityInfo(){ //设置指定好友动态为跳过,只给指定好友点赞等等
 		
+	}
+}
+
+class SteamData{
+	constructor(arg) {
+		this.steamCommunityUrl = "https://steamcommunity.com/";
+		this.customUrl = "id/";
+		this.profileIDUrl = "profiles/";
+		this.commentUrl = "/allcomments"; //GET //https://steamcommunity.com/id/miku-39/allcomments
+		this.commentNextUrl = "https://steamcommunity.com/comment/Profile/render/"; //POST //https://steamcommunity.com/comment/Profile/render/76561198373290430/-1/
+		// start: 0
+		// totalcount: 11596
+		// count: 50
+		// sessionid: 006825ba8313e097671eb93e
+		// feature2: -1
+		
+		// {
+		// 	start: 50,
+		// 	totalcount: 11594,
+		// 	count: 50,
+		// 	sessionid: 006825ba8313e097671eb93e,
+		// 	feature2: -1
+		// }
+		
+		// start: 100
+		// totalcount: 11595
+		// count: 50
+		// sessionid: 006825ba8313e097671eb93e
+		// feature2: -1
+		
+		this.statusUrl = "https://steamcommunity.com/actions/GetNotificationCounts"; //GET
+		this.userInfoUrl = "https://steamcommunity.com/miniprofile/"; //GET //https://steamcommunity.com/miniprofile/859694761
+	}
+	getCommentData(){
+		var url = this.steamCommunityUrl + this.customUrl + 'miku-39' + this.commentUrl;
+		var currentCommentNum = 0; //当前评论数
+		var newCurrentCommentNum = 0; //在获取数据时，又出现了新的当前评论数
+		
+		for (let i = 0; i < currentCommentNum; i++) {
+			_getCommentPageData(url,i);
+			//解析数据
+			
+			//存储数据
+			
+		}
+		
+	}
+	_getCommentPageData(url,nPage){
+		var data;
+		//获取数据
+		
+		//解析数据
+		
+		//完成后
+		_updateData();
+		return data;
+	}
+	_updateData(){
+		//更新当前评论数
+		newCurrentCommentNum = 0;
 	}
 }
