@@ -1,15 +1,17 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @namespace    https://www.tampermonkey.net/2222222222222222222222222222
+// @namespace    https://steamcommunity.com/id/miku-39/
+// @namespace    https://www.tampermonkey.net/
 // @namespace    https://greasyfork.org/
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.2
-// @require      https://cdnjs.cloudflare.com/ajax/libs/echarts/4.3.0/echarts.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js
+// @version      1.2.3.3
+// @date         2020.4.23
+// @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @author       Miku39
+// @license      GPL License
 // @updateURL    https://greasyfork.org/zh-CN/scripts/397073
 // @supportURL   https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
@@ -17,6 +19,8 @@
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
 // @grant        GM_notification
+// @connect      cdnjs.cloudflare.com
+// @connect      code.highcharts.com.cn
 // @connect      www.deepl.com
 // @connect      api.deepl.com
 // @connect      translate.google.cn
@@ -42,12 +46,8 @@
 // @connect      api.mz-moe.cn            //https://mz-moe.cn/?p=23
 // @connect      www.layuicdn.com
 // @noframes
-// @run-at document-idle
+// @run-at       document-body
 // ==/UserScript==
-
-var delay = 4; // 设置你的留言时间间隔,单位秒
-var strNoOperate = "(不留言)"; //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-var strRemarkPlaceholder = "{name}"; //设置你的称呼占位符: 同上
 
 //-------------------------------------------------------------------------------------------------------------
 // 实用函数集
@@ -776,234 +776,6 @@ var log = new Log("Sophie");
 //log.debug("Arguments.getArgumentsAllValueByDebug() 111");
 //log.debug(Arguments.getArgumentsAllValueByDebug, "111");
 
-//-------------------------------------------------------------------------------------------------------------
-// 翻译API
-/*-------------------------------------------------*/
-var b = function(a, b) {
-	for (var d = 0; d < b.length - 2; d += 3) {
-		var c = b.charAt(d + 2),
-			c = "a" <= c ? c.charCodeAt(0) - 87 : Number(c),
-			c = "+" == b.charAt(d + 1) ? a >>> c : a << c;
-		a = "+" == b.charAt(d) ? a + c & 4294967295 : a ^ c
-	}
-	return a
-}
-var tk = function(a, TKK) {
-	for (var e = TKK.split("."), h = Number(e[0]) || 0, g = [], d = 0, f = 0; f < a.length; f++) {
-		var c = a.charCodeAt(f);
-		128 > c ? g[d++] = c : (2048 > c ? g[d++] = c >> 6 | 192 : (55296 == (c & 64512) && f + 1 < a.length && 56320 == (a.charCodeAt(
-			f + 1) & 64512) ? (c = 65536 + ((c & 1023) << 10) + (a.charCodeAt(++f) & 1023), g[d++] = c >> 18 | 240, g[d++] =
-			c >> 12 & 63 | 128) : g[d++] = c >> 12 | 224, g[d++] = c >> 6 & 63 | 128), g[d++] = c & 63 | 128)
-	}
-	a = h;
-	for (d = 0; d < g.length; d++) a += g[d], a = b(a, "+-a^+6");
-	a = b(a, "+-3^+b+-f");
-	a ^= Number(e[1]) || 0;
-	0 > a && (a = (a & 2147483647) + 2147483648);
-	a %= 1E6;
-	return a.toString() + "." + (a ^ h)
-}
-/*-------------------------------------------------*/
-// 翻译语言
-var auto = "auto"; //自动检测
-var zhc = "zh-CN"; //中文简体
-var zht = "zh-TW"; //中文繁体
-var en = "en"; //英语
-var jp = "ja"; //日语
-
-var waitStatus = true; //等待状态
-var waitStatus_cn = true; //等待状态
-var returnData;
-var returnData_cn;
-async function GoogleTranslateRequest(origLanguage, newLanguage, strText) {
-	waitStatus = true;
-
-	var _tkk = "439786.2762026697";
-	var _tk = tk(strText, _tkk);
-	//console.log("_tk:",_tk);
-
-	//需要拼接的url序列
-	var baseURL = "https://translate.google.cn/translate_a/single?";
-	var client = "client=" + "webapp";
-	var sl = "&sl=" + origLanguage; //待翻译的原始语言      //默认为auto,即自动检测语言
-	var tl = "&tl=" + newLanguage; //需要翻译成什么语言    //默认为zh-CN,即默认翻译为中文
-	var hl = "&hl=" + zhc;
-	var dt1 = "&dt=at&";
-	var dt2 = "dt=bd&";
-	var dt3 = "dt=ex&";
-	var dt4 = "dt=ld&";
-	var dt5 = "dt=md&";
-	var dt6 = "dt=qca&";
-	var dt7 = "dt=rw&";
-	var dt8 = "dt=rm&";
-	var dt9 = "dt=ss&";
-	var dt0 = "dt=t&";
-	var dt = "dt=gt&"; //del
-	var otf = "otf=2&"; //1
-	var ssel = "ssel=0&";
-	var tsel = "tsel=4&"; //0
-	var xid = "xid=1782844&";
-	var kc = "kc=1&"; //8 //2
-	var Tk = "tk=" + _tk;
-	var q = "&q=" + encodeURI(strText);
-
-	var requestURL = baseURL + client + sl + tl + hl + dt1 + dt2 + dt3 + dt4 + dt5 + dt6 + dt7 + dt8 + dt9 + dt0 + dt +
-		otf +
-		ssel + tsel + xid + kc + Tk + q;
-
-	//console.log("requestURL: ",requestURL);
-
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: requestURL,
-		headers: {
-			'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
-			//'Accept': 'application/atom+xml,application/xml,text/xml',
-			//"Content-Type": "application/x-www-form-urlencoded",
-		},
-		onload: function(response) {
-			if (response.status === 200) {
-				console.log('请求成功!');
-				var JSON_jsObj = JSON_processing_parsing_JsObj(response.responseText);
-				//遍历[0][0]数组就可以取得翻译后的文本,原始数据,原始数据的拼音
-				//[2]是检查出的语言
-				//遍历[5]可以取得两种翻译,原始数据和原始数据的长度
-				//遍历[8]可以得到原始语言和翻译语言
-				//for (var i = 0; i < JSON_jsObj.length; i++) {
-				//	for (var j = 0; j < JSON_jsObj[i].length; j++) {
-				//		for (var k = 0; k < JSON_jsObj[i][j].length; k++) {
-				//			
-				//		}
-				//	}
-				//}
-				var retData = "";
-				for (var j = 0; j < JSON_jsObj[0].length; j++) {
-					if (JSON_jsObj[0][j][0] != null) {
-						retData += JSON_jsObj[0][j][0]; //组合每一句翻译
-					}
-				}
-				returnData = retData; //存储数据
-				//console.log('谷歌翻译:',retData);
-				waitStatus = false; //不等待
-
-				//console.log(response);
-				//console.log(response.responseText);
-				//if(response.responseText.indexOf('[[["') == 0) //是否是指定的数据格式
-				//{
-				//	var retData = response.responseText.slice(4,response.responseText.indexOf('","',4)); //提取翻译后的文本
-				//	returnData = retData; //存储数据
-				//	//console.log('谷歌翻译:',retData);
-				//	waitStatus = false; //不等待
-				//}
-			} else {
-				console.log('请求失败!');
-				//console.log(response);
-				//console.log(response.responseText);
-			}
-		},
-		onerror: function(err) {
-			console.log('请求错误!', err);
-		}
-	});
-
-	while (waitStatus) //强制等待异步函数执行完毕后再执行
-	{
-		console.log("wait...");
-		await sleep(100); //延迟0.1秒
-	}
-	return returnData;
-	// jQuery.ajax({
-	// 	url: URL,
-	// 	type: "GET",
-	// 	dataType: "jsonp", //指定服务器返回的数据类型
-	// 	jsonp: "callback", //Jquery生成验证参数的名称
-	// 	processData: false,
-	// 	success: function (data) {
-	// 		//var result = JSON.stringify(data); //json对象转成字符串
-	// 		console.log("GET成功!",data);
-	// 	},
-	// 	error: function(XMLHttpRequest, textStatus, errorThrown) {
-	// 	alert(XMLHttpRequest.status);
-	// 	alert(XMLHttpRequest.readyState);
-	// 	alert(textStatus);
-	// 	}
-	// });
-
-
-
-	// jQuery.get(URL,function(response,status,xhr){
-	// 	if (response.success === false) {
-
-	// 		console.log("GET失败了!",response);
-	// 	} else {
-
-	// 		console.log("GET成功!",response);
-	// 	}
-	// },"json");
-
-
-	// jQuery.post(URL, {
-	// 	comment: newMgs,
-	// 	count: 6,
-	// 	sessionid: g_sessionID
-	// }, function(response) {
-	// 	if (response.success === false) {
-	// 		console.log("留言失败了!");
-	// 	} else {
-	// 		console.log("成功发表评论于");
-	// 	}
-	// }).fail(function() {
-	// 	console.log("无法发表评论于");
-	// }).always(function() {
-	// 	console.log("当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.");
-	// });
-}
-
-
-async function CNTranslateRequest(newLanguage, strText) {
-	waitStatus_cn = true;
-
-	var baseURL = "https://brushes8.com/zhong-wen-jian-ti-fan-ti-zhuan-huan";
-
-	GM_xmlhttpRequest({
-		method: 'POST',
-		url: baseURL,
-		data: "data=" + encodeURI(strText) +
-			"&dochineseconversion=" + "1" +
-			"&variant=" + newLanguage +
-			"&submit=" + encodeURI("开始转换 (Ctrl + Enter)"),
-		headers: {
-			"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-			"Content-Type": "application/x-www-form-urlencoded", //非常重要
-			"User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36",
-		},
-		onload: function(response) {
-			if (response.status === 200) {
-				console.log('请求成功!');
-				var findStr = '<label for="response">转换结果: </label><br /><textarea id="response" rows="15" cols="150">';
-				var retData = response.responseText.slice(response.responseText.lastIndexOf(findStr) + findStr.length);
-				returnData_cn = retData; //存储数据
-				//console.log('谷歌翻译:',retData);
-				waitStatus_cn = false; //不等待
-			} else {
-				console.log('请求失败!', response);
-				//console.log(response);
-				//console.log(response.responseText);
-			}
-		},
-		onerror: function(err) {
-			console.log('请求错误!', err);
-		}
-	});
-
-	while (waitStatus_cn) //强制等待异步函数执行完毕后再执行
-	{
-		console.log("wait...");
-		await sleep(100); //延迟0.1秒
-	}
-	return returnData_cn;
-}
-
 class intelligenceAI //智能AI模块
 {
 	constructor(name) { //public 构造方法
@@ -1038,7 +810,7 @@ class intelligenceAI //智能AI模块
 //var ai = new intelligenceAI();
 //ai.getWeather('北京');
 
-class SteamData
+class SteamDB
 {
 	getProfilesInfo()
 	{
@@ -1046,6 +818,83 @@ class SteamData
 	}
 	
 	
+}
+
+//-------------------------------------------------------------------------------------------------------------
+var waitStatus_getGameDiscountsInfoBysteamDB = true; //等待状态
+var returnData__getGameDiscountsInfoBysteamDB;
+async function getGameDiscountsInfoBysteamDB() //获取游戏折扣信息(SteamDB)
+{
+	waitStatus_getGameDiscountsInfoBysteamDB = true;
+	var baseURL = "https://steamdb.info/upcoming/free/";
+	var requestURL = baseURL;
+
+	//console.log("requestURL: ",requestURL);
+
+	GM_xmlhttpRequest({
+		method: 'GET',
+		url: requestURL,
+		headers: {
+			'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
+			//'Accept': 'application/atom+xml,application/xml,text/xml',
+			//"Content-Type": "application/x-www-form-urlencoded",
+		},
+		onload: function(response) {
+			if (response.status === 200) {
+				console.log('请求成功!', response.responseText);
+
+				var retData = "";
+				// for (var j = 0; j < JSON_jsObj[0].length; j++) {
+				// 	if (JSON_jsObj[0][j][0] != null) {
+				// 		retData += JSON_jsObj[0][j][0]; //组合每一句翻译
+				// 	}
+				// }
+				// returnData = retData; //存储数据
+				//console.log('谷歌翻译:',retData);
+				//waitStatus_getGameDiscountsInfoBysteamDB = false; //不等待
+
+			} else {
+				console.log('请求失败!');
+				//console.log(response);
+				//console.log(response.responseText);
+			}
+		},
+		onerror: function(err) {
+			console.log('请求错误!', err);
+		}
+	});
+
+	while (waitStatus_getGameDiscountsInfoBysteamDB) //强制等待异步函数执行完毕后再执行
+	{
+		console.log("wait...");
+		await sleep(100); //延迟0.1秒
+	}
+	return returnData;
+}
+
+function initUI(gameInfo){ //初始化UI
+	// jQuery(".friends_header_ctn").after(
+	// 	'<div id="GameFreeInfo">\
+	// 			<div id="add1_head">喜加一</div>\
+	// 			<div id="add1_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
+	// 			</div>\
+	// 			<div id="limitedTime_head">限时免费</div>\
+	// 			<div id="limitedTime_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
+	// 			</div>\
+	// 			<div id="prediction_head">预告</div>\
+	// 			<div id="prediction_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
+	// 			</div>\
+	// 	</div>'
+	// );
+	console.log("initUI success!");
+}
+
+async function GameFreeInfoHelper(){ //游戏免费信息助手
+	let data = "";
+	//data = await getGameDiscountsInfoBysteamDB();
+	initUI(data); //初始化UI
+
+	console.log("GameFreeInfoHelper success!");
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -2000,7 +1849,12 @@ class friendActivity{
 			var hours = date.getHours();
 			var minu = date.getMinutes();
 			var sec = date.getSeconds();
-			var str = year+'-'+mon+'-'+day+' '+hours+':'+minu+':'+sec;
+			//if(mon<10) mon = "0"+mon;
+			//if(day<10) day = "0"+day;
+			//if(hours<10) hours = "0"+hours;
+			//if(minu<10) minu = "0"+minu;
+			//if(sec<10) sec = "0"+sec;
+			var str = year+'-'+mon+'-'+day+' '+hours+':'+minu+':'+sec; //year+"年"+mon+"月"+day +"日"+hours +"时"+minu +"分"+sec+"秒" //date.toLocaleString()
 			console.log(url,"点赞完毕! 下一次点赞的内容时间是:", str + " startoffset:",url.slice(url.lastIndexOf("startoffset=") + "startoffset=".length));
 		} //while
 		var time = url.slice(url.indexOf("=")+1);
@@ -2103,299 +1957,65 @@ class friendActivity{
 	}
 }
 
-function addRemoveFriendRemind(){ /*添加删除好友提醒*/
-	let obj = document.getElementsByClassName("manage_action btnv6_lightblue_blue btn_medium");
-	for (let i = 0; i < obj.length; i++) {
-		let funcText = obj[i].onclick.toString();
-		if(funcText.indexOf("ExecFriendAction('remove', 'friends/all')") != -1) //是否是移除好友按钮
-		{
-			obj[i].onclick = ()=>{
-				ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友').done( function(){
-					console.log("移除好友");
-					ExecFriendAction('remove', 'friends/all');
-					}).fail( function(){
-					console.log("取消移除好友");
-					});
-			}
-			return 1;
-		}
+class SteamData{
+	constructor(arg) {
+		this.steamCommunityUrl = "https://steamcommunity.com/";
+		this.customUrl = "id/";
+		this.profileIDUrl = "profiles/";
+		this.commentUrl = "/allcomments"; //GET //https://steamcommunity.com/id/miku-39/allcomments
+		this.commentNextUrl = "https://steamcommunity.com/comment/Profile/render/"; //POST //https://steamcommunity.com/comment/Profile/render/76561198373290430/-1/
+		// start: 0
+		// totalcount: 11596
+		// count: 50
+		// sessionid: 006825ba8313e097671eb93e
+		// feature2: -1
+		
+		// {
+		// 	start: 50,
+		// 	totalcount: 11594,
+		// 	count: 50,
+		// 	sessionid: 006825ba8313e097671eb93e,
+		// 	feature2: -1
+		// }
+		
+		// start: 100
+		// totalcount: 11595
+		// count: 50
+		// sessionid: 006825ba8313e097671eb93e
+		// feature2: -1
+		
+		this.statusUrl = "https://steamcommunity.com/actions/GetNotificationCounts"; //GET
+		this.userInfoUrl = "https://steamcommunity.com/miniprofile/"; //GET //https://steamcommunity.com/miniprofile/859694761
 	}
-	return 0;
-}
-//-------------------------------------------------------------------------------------------------------------
-function loadResources()
-{
-	loadjscssFile("https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css", "css");
-	//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/css/layui.css","css");
-	
-	addNewStyle('styles_js0',
-		'a {\
-	    color:#ebebeb;\
-	    text-decoration: none;\
-	    }\
-	    a:hover {\
-	    color: #aaa\
-	    }'
-	); /* 覆盖layui的css样式 */
-}
-//-------------------------------------------------------------------------------------------------------------
-// API
-function getCityCodeByEnglishName(cityEnglishName) {
-	if (g_arrCityList == undefined)
-		return null;
-
-	for (let i = 0; i < g_arrCityList.length; i++) {
-		if (g_arrCityList[i][1].length == cityEnglishName.length &&
-			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
-			return g_arrCityList[i][0];
+	getCommentData(){
+		var url = this.steamCommunityUrl + this.customUrl + 'miku-39' + this.commentUrl;
+		var currentCommentNum = 0; //当前评论数
+		var newCurrentCommentNum = 0; //在获取数据时，又出现了新的当前评论数
+		
+		for (let i = 0; i < currentCommentNum; i++) {
+			_getCommentPageData(url,i);
+			//解析数据
+			
+			//存储数据
+			
 		}
+		
 	}
-	return null;
-}
-
-function getCityCodeByChinsesName(cityChinseshName) {
-	if (g_arrCityList == undefined)
-		return null;
-
-	for (let i = 0; i < g_arrCityList.length; i++) {
-		if (g_arrCityList[i][3].length == cityChinseshName.length &&
-			g_arrCityList[i][3].toLowerCase() == cityChinseshName.toLowerCase()) {
-			return g_arrCityList[i][0];
-		}
+	_getCommentPageData(url,nPage){
+		var data;
+		//获取数据
+		
+		//解析数据
+		
+		//完成后
+		_updateData();
+		return data;
 	}
-	return null;
-}
-
-function getCityChinsesNameByEnglishName(cityEnglishName) {
-	if (g_arrCityList == undefined)
-		return null;
-
-	for (let i = 0; i < g_arrCityList.length; i++) {
-		if (g_arrCityList[i][1].length == cityEnglishName.length &&
-			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
-			return g_arrCityList[i][3];
-		}
+	_updateData(){
+		//更新当前评论数
+		newCurrentCommentNum = 0;
 	}
-	return null;
 }
-//-------------------------------------------------------------------------------------------------------------
-//RGB
-function countRgbColor(r, g, b) //计算RGB渐变颜色
-{
-	var color;
-	//var color = '#' + to2string(r) +  'ffff';
-	//console.log(color);
-	//return color;
-	while (true) {
-		switch (RGBindex) {
-			case 0: //红
-				if (RGBr == 0 & RGBg == 0 & RGBb == 0) {
-					RGBr = 0xFF; //红
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 1;
-					continue; //重新开始
-				}
-				break;
-			case 1: //红->黄
-				if (RGBg != 0xFF) {
-					RGBg += 3; //红->黄
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 2;
-					continue; //重新开始
-				}
-				break;
-			case 2: //黄->绿
-				if (RGBr != 0x00) //黄
-				{
-					RGBr -= 3; //黄->绿
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 3;
-					continue; //重新开始
-				}
-				break;
-			case 3: //绿->蓝(天蓝)
-				if (RGBb != 0xFF) {
-					if (RGBg > 0xBF) {
-						RGBg -= 3;
-					}
-					RGBb += 3;
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 4;
-					continue; //重新开始
-				}
-				break;
-			case 4: //蓝(天蓝)->蓝(深蓝)
-				if (RGBg != 0x00) {
-					RGBg -= 3;
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 5;
-					continue; //重新开始
-				}
-				break;
-			case 5: //蓝(深蓝)->紫
-				if (RGBr < 0x80 || RGBb > 0x80) {
-					if (RGBr < 0x80) {
-						RGBr += 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					} else if (RGBb > 0x80) {
-						RGBb -= 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					}
-
-				} else {
-					RGBindex = 6;
-					continue; //重新开始
-				}
-				break;
-			case 6: //紫->红
-				if (RGBr != 0xFF || RGBb != 0x00) {
-					if (RGBr < 0xFF) {
-						RGBr += 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					} else if (RGBb > 0x00) {
-						RGBb -= 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					}
-
-				} else //继续RGB
-				{
-					RGBindex = 1;
-					continue; //重新开始
-				}
-
-				break;
-			case 7:
-				console.log("end!!!");
-				break;
-			default:
-				console.log("[countRgbColor()-switch(RGBindex):] 未定义异常!")
-				break;
-		}
-	}
-	//红 #FF0000
-	//黄 #FFFF00
-	//绿 #00FF00
-	//蓝 #00BFFF #0000FF
-	//紫 #800080
-
-}
-// function setRgb() //设置RGB渐变颜色
-// {
-// 	var loginBox = document.getElementById("LoginBaseBox");
-// 	loginBox.style.background = countRgbColor(0,0,0);
-// }
-// var tiSysCallback_runRGB = setInterval(function(){runRGB();}, 22); //[启动定时器] 每秒回调函数 // 11 16 22 30
-
-//-------------------------------------------------------------------------------------------------------------
-var waitStatus_getGameDiscountsInfoBysteamDB = true; //等待状态
-var returnData__getGameDiscountsInfoBysteamDB;
-async function getGameDiscountsInfoBysteamDB() //获取游戏折扣信息(SteamDB)
-{
-	waitStatus_getGameDiscountsInfoBysteamDB = true;
-	var baseURL = "https://steamdb.info/upcoming/free/";
-	var requestURL = baseURL;
-
-	//console.log("requestURL: ",requestURL);
-
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: requestURL,
-		headers: {
-			'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
-			//'Accept': 'application/atom+xml,application/xml,text/xml',
-			//"Content-Type": "application/x-www-form-urlencoded",
-		},
-		onload: function(response) {
-			if (response.status === 200) {
-				console.log('请求成功!', response.responseText);
-
-				var retData = "";
-				// for (var j = 0; j < JSON_jsObj[0].length; j++) {
-				// 	if (JSON_jsObj[0][j][0] != null) {
-				// 		retData += JSON_jsObj[0][j][0]; //组合每一句翻译
-				// 	}
-				// }
-				// returnData = retData; //存储数据
-				//console.log('谷歌翻译:',retData);
-				//waitStatus_getGameDiscountsInfoBysteamDB = false; //不等待
-
-			} else {
-				console.log('请求失败!');
-				//console.log(response);
-				//console.log(response.responseText);
-			}
-		},
-		onerror: function(err) {
-			console.log('请求错误!', err);
-		}
-	});
-
-	while (waitStatus_getGameDiscountsInfoBysteamDB) //强制等待异步函数执行完毕后再执行
-	{
-		console.log("wait...");
-		await sleep(100); //延迟0.1秒
-	}
-	return returnData;
-}
-
-function initUI(gameInfo){ //初始化UI
-	// jQuery(".friends_header_ctn").after(
-	// 	'<div id="GameFreeInfo">\
-	// 			<div id="add1_head">喜加一</div>\
-	// 			<div id="add1_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
-	// 			</div>\
-	// 			<div id="limitedTime_head">限时免费</div>\
-	// 			<div id="limitedTime_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
-	// 			</div>\
-	// 			<div id="prediction_head">预告</div>\
-	// 			<div id="prediction_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
-	// 			</div>\
-	// 	</div>'
-	// );
-	console.log("initUI success!");
-}
-
-async function GameFreeInfoHelper(){ //游戏免费信息助手
-	let data = "";
-	//data = await getGameDiscountsInfoBysteamDB();
-	initUI(data); //初始化UI
-
-	console.log("GameFreeInfoHelper success!");
-}
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
 
 var gc_friAct = null;
 
@@ -2403,7 +2023,109 @@ class UI {
 	constructor(arg) {
 
 	}
+	
+	async loadBaseResources(){
+		let arr = [];
+		//0.基本环境-加载css
+		arr.push(new Promise(function (resolve, reject){
+			//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
+			//addNewStyle('layui_style',cssData);
+			//console.log(layui.layer);
+			//layui
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
+			loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
+			//font-awesome
+			loadjscssFile("https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css", "css");
+			//覆盖layui的css
+			addNewStyle('styles_js0',
+				'a {\
+				color:#ebebeb;\
+				text-decoration: none;\
+				}\
+				a:hover {\
+				color: #aaa\
+				}'
+			); /* 覆盖layui的css样式 */
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		//1.基本环境-加载js到页面上，方便调试
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
+			var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('layui_Script', jsData);
+			//console.log("layui_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js","js");
+			var jsData = await getResourceByURL("https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('localforage_Script', jsData);
+			//console.log("localforage_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highstock/highstock.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highstock/highstock.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highstock_Script', jsData);
+			//console.log("highstock_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/exporting.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/exporting.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_exporting_Script', jsData);
+			//console.log("highcharts_exporting_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/oldie.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/oldie.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_oldie_Script', jsData);
+			//console.log("highcharts_oldie_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_networkgraph_Script', jsData);
+			//console.log("highcharts_networkgraph_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		arr.push(new Promise(async function (resolve, reject){
+			//loadjscssFile("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js","js");
+			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js",true);
+			//console.log("数据获取成果",jsData);
+			addNewScript('highcharts_zh_CN_Script', jsData);
+			//console.log("highcharts_zh_CN_Script success.");
+			resolve('成功') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		// arr.push(new Promise(async function (resolve, reject){
+			
+		// }));
+		let res = await Promise.all(arr);
+		console.log("ret:",res);
+		
+	}
+	
 	async initUI() {
+		await this.loadBaseResources();
+		
 		addNewStyle('styles_js',
 			'::selection {color:#000;background: #35d5ff;}\
 						#addFriendToGroup,#unaddFriendToGroup,#setTimeInterval,#unsetTimeInterval,#setNoLeave,#unsetNoLeave,#addCustomName,#translationText,#setNationality,#unsetNationality,#NationalityGroup,#NationalitySortGroup,#OfflineTimeGroup,#ShowFriendData {font-family: "Motiva Sans", Sans-serif;font-weight: 300;\
@@ -2815,26 +2537,10 @@ class UI {
 				}\
 				'
 		);
-
-		//0.基本环境-加载css
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
-		loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
-		//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
-		//addNewStyle('layui_style',cssData);
-		//console.log(layui.layer);
-
-		//1.基本环境-加载js到页面上，方便调试
-		//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
-		var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true);
-		//console.log("数据获取成果",jsData);
-		addNewScript('layui_Script', jsData);
-
-		loadResources();
+		
 	}
 	async createUI() {
-
+		//正常html代码
 		jQuery("#manage_friends").after(
 			'<div class="layui-tab layui-tab-brief" lay-filter="demo">\
 			  <ul class="layui-tab-title">\
@@ -2966,19 +2672,19 @@ class UI {
 						<div id="">这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\
 						<div class="layui-form">\
 						  <div class="layui-form-item">\
-							<div class="layui-inline">\
-						      <label class="layui-form-label">请选择日期</label>\
+							<div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
+						      <label class="layui-form-label">请选择留言</label> <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
 						      <div class="layui-input-inline">\
 						        <input type="text" class="layui-input" id="test-limit2" readonly="" placeholder="yyyy-MM-dd">\
 						      </div>\
 						    </div>\
+							<div class="layui-inline" style="position: relative;z-index: -1;">\
+							  <label class="layui-form-label">留言日期差</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
+							  <div class="layui-input-inline">\
+							    <input type="text" class="layui-input" id="test-limit1" readonly="" placeholder="yyyy-MM-dd">\
+							  </div>\
+							</div>\
 							\
-							<div class="layui-inline">\
-							   <label class="layui-form-label">请选择时间</label>\
-							    <div class="layui-input-inline">\
-							      <input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\
-							    </div>\
-						   </div>\
 						  </div>\
 						</div>\
 						<div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
@@ -2991,7 +2697,29 @@ class UI {
 						</div>\
 						\
 						<fieldset class="layui-elem-field layui-field-title">\
-						   <legend>好友分组:</legend>\
+						   <legend>设置自动留言计划:</legend>\
+						</fieldset>\
+						<div class="layui-form">\
+						  <div class="layui-form-item">\
+							<div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
+								<label class="layui-form-label">请选择时间</label>  <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
+								<div class="layui-input-inline">\
+									<input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\
+								</div>\
+							</div>\
+							<div class="layui-inline" style="position: relative;z-index: -1;">\
+								<label class="layui-form-label">请选择时间</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
+								<div class="layui-input-inline">\
+									<input type="text" class="layui-input" id="test15" placeholder="H时m分s秒">\
+								</div>\
+							</div>\
+						  </div>\
+						</div>\
+						\
+						<table class="layui-hide" id="test" lay-filter="test"></table> <!-- 数据表格 -->\
+						\
+						<fieldset class="layui-elem-field layui-field-title">\
+						   <legend>设置好友分组:</legend>\
 						</fieldset>\
 						<div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
 						\
@@ -3080,29 +2808,44 @@ class UI {
 				  <span style="margin-left: 5px;vertical-align: top;">\
 				  	<button id="ShowFriendData">显示好友详细数据(不可用)</button>\
 				  </span>\
-				  <div style="padding: 5px; background-color: #F2F2F2;">\
-				    <div class="layui-row layui-col-space15">\
-				      \
-				  	<div class="layui-col-md12">\
-				        <div class="layui-card">\
-				          <div class="layui-card-header">好友数据统计</div>\
-				          <div class="layui-card-body">\
-				            留言数据统计\
-				          </div>\
-				        </div>\
-				      </div>\
-				  	\
-				  	<div class="layui-col-md12">\
-				  	  <div class="layui-card">\
-				  	    <div class="layui-card-header">当前配置统计</div>\
-				  	    <div class="layui-card-body">\
-				  	      查看好友配置统计\
-				  	    </div>\
-				  	  </div>\
-				  	</div>\
-				  	\
-				    </div>\
+				  <div class="layui-tab" lay-filter="test1">\
+				    <ul class="layui-tab-title">\
+				      <li class="layui-this" lay-id="11" style="color:#ebebeb;">好友数据统计</li>\
+				      <li lay-id="22" style="color:#ebebeb;">留言数据统计</li>\
+				      <li lay-id="33" style="color:#ebebeb;">关系网统计</li>\
+				      <li lay-id="44" style="color:#ebebeb;">当前配置统计</li>\
+				      <li lay-id="55" style="color:#ebebeb;">查看好友配置统计</li>\
+				    </ul>\
+				    <div class="layui-tab-content">\
+						<div class="layui-tab-item layui-show">\
+							分为:\
+							数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\
+							<table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\
+							<div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							分为:\
+							按国籍的饼图(总留言数量)\
+							按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\
+							按最多留言数据的柱状图(那些好友一天留言数量排行榜/那些好友总留言数量排行榜/累计连续每天留言数量最多)\
+							数据表格(汇总所有的数据)\
+							<div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							好友关系网(仅统计共同好友)\
+							<div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							当前的配置数据和运行状态\
+							<div id="container_currConfStatistics"></div>\
+						</div>\
+						<div class="layui-tab-item">\
+							对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\
+							<div id="container_friConfStatistics"></div>\
+						</div>\
+					  </div>\
 				  </div>\
+				  \
 			      <div id="pageDemo"></div>\
 			    </div>\
 				\
@@ -3125,21 +2868,31 @@ class UI {
 						<form class="layui-form" action="">\
 							<div class="layui-form-item">\
 								<label class="layui-form-label">点赞内容:</label>\
-								<div class="layui-input-block">\
-								  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\
-								  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\
-								  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\
-								  <input type="checkbox" name="like[4]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\
-								  <input type="checkbox" name="like[5]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\
-								  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\
-								  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\
-								  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友购买了游戏或者" checked=""><br>\
-								  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\
-								  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\
-								  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\
-								  <input type="checkbox" name="like[12]" lay-skin="primary" title="组发布了通知" checked=""><br>\
-								  <input type="checkbox" name="like[13]" lay-skin="primary" title="组发布了活动" checked=""><br>\
-								</div>\
+								<div class="layui-row">\
+								   <div class="layui-input-block">\
+										 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+											  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\
+											  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\
+											  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友购买了游戏或者DLC" checked=""><br>\
+											  <input type="checkbox" name="like[4]" lay-skin="primary" title="组发布了通知" checked=""><br>\
+											  <input type="checkbox" name="like[5]" lay-skin="primary" title="组发布了活动" checked=""><br>\
+										 </div>\
+										<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+											  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\
+											  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\
+											  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\
+											  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\
+											  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\
+										</div>\
+										<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+											  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\
+											  <input type="checkbox" name="like[12]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\
+											  <input type="checkbox" name="like[13]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\
+											  <input type="checkbox" name="like[14]" lay-skin="primary" title="朋友收藏了载图" checked=""><br>\
+											  <input type="checkbox" name="like[15]" lay-skin="primary" title="朋友收藏了视频" checked=""><br>\
+										</div>\
+								   </div>\
+								  </div>\
 							  </div>\
 						 </form>\
 						<fieldset class="layui-elem-field layui-field-title">\
@@ -3155,7 +2908,7 @@ class UI {
 							  </div>\
 						 </form>\
 						<fieldset class="layui-elem-field layui-field-title">\
-						   <legend>设置自动点赞时间线:</legend>\
+						   <legend>设置自动点赞时间区间(默认今天~之前所有的动态内容)</legend>\
 						</fieldset>\
 						<div class="layui-form">\
 						  <div class="layui-form-item">\
@@ -3167,7 +2920,54 @@ class UI {
 							    </div>\
 						  </div>\
 						</div>\
-							<div>今天-之前7天的动态内容:</div>\
+						<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">\
+						  <legend style="color:#66ccff;">点赞进度时间线</legend>\
+						</fieldset>\
+						<ul class="layui-timeline">\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\
+						      <p style="color:#fff;">\
+						        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\
+								<br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\
+								<br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\
+						        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\
+								<br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\
+						      </p>\
+						    </div>\
+						  </li>\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\
+						      <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\
+						      <ul style="color:#fff;">\
+						        <li>《登高》</li>\
+						        <li>《茅屋为秋风所破歌》</li>\
+						      </ul>\
+						    </div>\
+						  </li>\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\
+						      <p style="color:#fff;">\
+						        中国人民抗日战争胜利日\
+						        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\
+						        <br>铭记、感恩\
+						        <br>所有为中华民族浴血奋战的英雄将士\
+						        <br>永垂不朽\
+						      </p>\
+						    </div>\
+						  </li>\
+						  <li class="layui-timeline-item">\
+						    <i class="layui-icon layui-timeline-axis"></i>\
+						    <div class="layui-timeline-content layui-text">\
+						      <div class="layui-timeline-title" style="color:#66ccff;">过去</div>\
+						    </div>\
+						  </li>\
+						</ul>\
 				    </div>\
 				  </fieldset>\
 				</div>\
@@ -3310,75 +3110,662 @@ class UI {
 			  </div>\
 			</div>'
 		);
+		
+		//好友数据统计里的置顶和是否锁定的模板
+		jQuery("#manage_friends").after(
+		'<script type="text/html" id="switchTpl">\
+		  <!-- 这里的 checked 的状态只是演示 -->\
+		  <input type="checkbox" name="front" value="{{d.id}}" lay-skin="switch" lay-text="是|否" lay-filter="frontDemo" {{ d.id == 10003 ? \'checked\' : \'\' }}>\
+		</script>\
+		\
+		<script type="text/html" id="checkboxTpl">\
+		  <!-- 这里的 checked 的状态只是演示 -->\
+		  <input type="checkbox" name="lock" value="{{d.id}}" title="锁定" lay-filter="lockDemo" {{ d.id == 10006 ? \'checked\' : \'\' }}>\
+		</script>'
+		);
+		
+		// //快捷导航栏
+		// jQuery(".responsive_page_template_content").after(
+		// 	'<div style="position: fixed;top: 30%;right: 0;">\
+		// 		 <div class="layui-input-block" style="margin-left:0; text-align: center;min-height:0;padding: 2px 0px;background: #282B33;">快捷导航栏</div>\
+		// 	<ul class="layui-nav layui-nav-tree layui-inline" lay-filter="demo" style="margin-right: 10px;">\
+		// 	  <li class="layui-nav-item layui-nav-itemed">\
+		// 		<a href="javascript:;">好友分组</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="javascript:;">选项一</a></dd>\
+		// 		  <dd><a href="javascript:;">选项二</a></dd>\
+		// 		  <dd><a href="javascript:;">选项三</a></dd>\
+		// 		  <dd><a href="">跳转项</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item">\
+		// 		<a href="javascript:;">功能模块</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="javascript:;">选项一</a></dd>\
+		// 		  <dd><a href="javascript:;">选项二</a></dd>\
+		// 		  <dd><a href="javascript:;">选项三</a></dd>\
+		// 		  <dd><a href="">跳转项</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item">\
+		// 		<a href="javascript:;">其他</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="javascript:;">返回顶部</a></dd>\
+		// 		  <dd><a href="javascript:;">返回底部</a></dd>\
+		// 		  <dd><a href="javascript:;">选项三</a></dd>\
+		// 		  <dd><a href="">跳转项</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item">\
+		// 		<a href="javascript:;">解决方案</a>\
+		// 		<dl class="layui-nav-child">\
+		// 		  <dd><a href="">移动模块</a></dd>\
+		// 		  <dd><a href="">后台模版</a></dd>\
+		// 		  <dd><a href="">电商平台</a></dd>\
+		// 		</dl>\
+		// 	  </li>\
+		// 	  <li class="layui-nav-item"><a href="">云市场</a></li>\
+		// 	  <li class="layui-nav-item"><a href="">社区</a></li>\
+		// 	</ul>\
+		// 	</div>'
+		// );
+		UI.prototype.uiHandler(); //UI与UI事件等相关的处理程序
+	}
+	async private_saveUIConfFile() {
+	
+	}
+	async private_readUIConfFile() {
+	
+	}
+}
 
-		jQuery('.selectBox').ySelect({
-			placeholder: '请先选择要翻译为的语言',
-			searchText: '搜索~发现新世界~',
-			showSearch: true,
-			numDisplayed: 4,
-			overflowText: '已选中 {n}项',
-			isCheck: false
-		});
-
-		//单选框选中和取消选中 https://segmentfault.com/q/1010000004945347
-		jQuery('.nameAddType').on('click', function() {
-			var ischecked = jQuery(this).data('checked');
-			if (!ischecked && this.checked) {
-				jQuery(this).data('checked', true);
-			} else {
-				jQuery(this).prop('checked', false);
-				jQuery(this).data('checked', false);
+UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程序
+	//2.构建UI
+	layui.use(['laydate', 'laypage', 'layer', 'table', 'carousel', 'upload', 'element', 'slider', 'colorpicker', 'form'], function() {
+		var $ = layui.$;
+		var laydate = layui.laydate //日期
+			,laypage = layui.laypage //分页
+			,layer = layui.layer //弹层
+			,table = layui.table //表格
+			,carousel = layui.carousel //轮播
+			,upload = layui.upload //上传
+			,element = layui.element //元素操作
+			,slider = layui.slider //滑块
+			,colorpicker = layui.colorpicker
+			,form = layui.form;
+		//console.log(layui.layer);
+	
+		//向世界问个好
+		//layer.msg('Hello World');
+		//layer.alert('见到你真的很高兴', {icon: 6});
+		//layui.layer.alert("text");
+		
+	
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 好友数据统计 图表配置
+	table.render({
+	    elem: '#friendStatistics'
+	    //,url:'/demo/table/user/'
+	    ,cellMinWidth: 80
+	    ,cols: [[
+	      {type:'numbers'}
+	      ,{type: 'checkbox'}
+	      ,{field:'Id', title:'ID', width:100, unresize: true, sort: true}
+	      ,{field:'Name', title:'名称', templet: '#usernameTpl'}
+	      ,{field:'Remark', title:'备注'}
+	      ,{field:'City', title: '国籍(城市)', minWidth:120, sort: true}
+		  ,{field:'Lever', title: '等级', minWidth:120, sort: true}
+		  ,{field:'Friends', title: '好友数量', minWidth:120, sort: true}
+		  ,{field:'Games', title: '游戏数量', minWidth:120, sort: true}
+		  ,{field:'DLCs', title: 'dlc数量', minWidth:120, sort: true}
+		  ,{field:'Workshops', title: '创意工坊数量', minWidth:120, sort: true}
+		  ,{field:'Artworks', title: '艺术作品数量', minWidth:120, sort: true}
+		  ,{field:'Activitys', title: '动态数量', minWidth:120, sort: true}
+	      ,{field:'front', title:'置顶', width:85, templet: '#switchTpl', unresize: true}
+	      ,{field:'lock', title:'是否锁定', width:110, templet: '#checkboxTpl', unresize: true}
+	    ]]
+		,data: []
+	    ,page: true
+	  });
+	
+	//加载数据
+	table.reload('friendStatistics', {
+		elem: '#friendStatistics'
+		,page: true
+		,data: [
+			{Id: "1"
+			,Name: "xxx"
+			,Remark: "xx"
+			,City: "xx"
+			,Lever: "1"
+			,Friends: "1"
+			,Games: "1"
+			,DLCs: '1'
+			,Workshops: '1'
+			,Artworks: '1'
+			,Activitys: '1'
+			},
+			{Id: "1"
+			,Name: "xxx"
+			,Remark: "xx"
+			,City: "xx"
+			,Lever: "1"
+			,Friends: "1"
+			,Games: "1"
+			,DLCs: '1'
+			,Workshops: '1'
+			,Artworks: '1'
+			,Activitys: '1'
+			},
+			{Id: "1"
+			,Name: "xxx"
+			,Remark: "xx"
+			,City: "xx"
+			,Lever: "1"
+			,Friends: "1"
+			,Games: "1"
+			,DLCs: '1'
+			,Workshops: '1'
+			,Artworks: '1'
+			,Activitys: '1'
+			},
+		]
+	});
+	
+	//监听置顶操作
+	form.on('switch(frontDemo)', function(obj){
+	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
+	});
+	
+	//监听锁定操作
+	form.on('checkbox(lockDemo)', function(obj){
+	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
+	});
+	
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 留言数据统计 图表配置
+	Highcharts.setOptions({
+			global : {
+					useUTC : false
 			}
-			console.log(jQuery(this).data('checked'))
-		}).data('checked', jQuery('.nameAddType').get(0).checked);
-
-		//2.构建UI	
-		layui.use(['laydate', 'laypage', 'layer', 'table', 'carousel', 'upload', 'element', 'slider', 'colorpicker', 'form'], function() {
-			var $ = layui.$;
-			var laydate = layui.laydate //日期
-				,
-				laypage = layui.laypage //分页
-				,
-				layer = layui.layer //弹层
-				,
-				table = layui.table //表格
-				,
-				carousel = layui.carousel //轮播
-				,
-				upload = layui.upload //上传
-				,
-				element = layui.element //元素操作
-				,
-				slider = layui.slider //滑块
-				,
-				colorpicker = layui.colorpicker
-				,
-				form = layui.form;
-				;
-			//console.log(layui.layer);
-
-			//向世界问个好
-			//layer.msg('Hello World');
-			//layer.alert('见到你真的很高兴', {icon: 6});
-			//layui.layer.alert("text");
+	});
+	// Create the chart
+	Highcharts.stockChart('container_commentStatistics', {
+			chart : {
+					events : {
+							load : function () {
+									// set up the updating of the chart each second
+									var series = this.series[0];
+									setInterval(function () {
+											var x = (new Date()).getTime(), // current time
+													y = Math.round(Math.random() * 100);
+											series.addPoint([x, y], true, true);
+									}, 1000);
+							}
+					}
+			},
+			rangeSelector: {
+					buttons: [{
+							count: 1,
+							type: 'minute',
+							text: '1M'
+					}, {
+							count: 5,
+							type: 'minute',
+							text: '5M'
+					}, {
+							type: 'all',
+							text: 'All'
+					}],
+					inputEnabled: false,
+					selected: 0
+			},
+			title : {
+					text : 'Live random data'
+			},
+			tooltip: {
+					split: false
+			},
+			exporting: {
+					enabled: false
+			},
+			series : [{
+					name : '随机数据',
+					data : (function () {
+							// generate an array of random data
+							var data = [], time = (new Date()).getTime(), i;
+							for (i = -999; i <= 0; i += 1) {
+									data.push([
+											time + i * 1000,
+											Math.round(Math.random() * 100)
+									]);
+							}
+							return data;
+					}())
+			}]
+	});
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 关系网统计 图表配置
+	// Add the nodes option through an event call. We want to start with the parent
+	// item and apply separate colors to each child element, then the same color to
+	// grandchildren.
+	Highcharts.addEvent(
+		Highcharts.seriesTypes.networkgraph,
+		'afterSetOptions',
+		function (e) {
+			var colors = Highcharts.getOptions().colors,
+				i = 0,
+				nodes = {};
+			e.options.data.forEach(function (link) {
+				if (link[0] === 'Proto Indo-European') {
+					nodes['Proto Indo-European'] = {
+						id: 'Proto Indo-European',
+						marker: {
+							radius: 20
+						}
+					};
+					nodes[link[1]] = {
+						id: link[1],
+						marker: {
+							radius: 10
+						},
+						color: colors[i++]
+					};
+				} else if (nodes[link[0]] && nodes[link[0]].color) {
+					nodes[link[1]] = {
+						id: link[1],
+						color: nodes[link[0]].color
+					};
+				}
+			});
+			e.options.nodes = Object.keys(nodes).map(function (id) {
+				return nodes[id];
+			});
+		}
+	);
+	Highcharts.chart('container_relationshipStatistics', {
+		chart: {
+			type: 'networkgraph',
+			height: '100%'
+		},
+		title: {
+			text: 'The Indo-European Laungauge Tree'
+		},
+		subtitle: {
+			text: 'A Force-Directed Network Graph in Highcharts'
+		},
+		plotOptions: {
+			networkgraph: {
+				keys: ['from', 'to'],
+				layoutAlgorithm: {
+					enableSimulation: true
+				}
+			}
+		},
+		series: [{
+			dataLabels: {
+				enabled: true
+			},
+			data: [
+				['Proto Indo-European', 'Balto-Slavic'],
+				['Proto Indo-European', 'Germanic'],
+				['Proto Indo-European', 'Celtic'],
+				['Proto Indo-European', 'Italic'],
+				['Proto Indo-European', 'Hellenic'],
+				['Proto Indo-European', 'Anatolian'],
+				['Proto Indo-European', 'Indo-Iranian'],
+				['Proto Indo-European', 'Tocharian'],
+				['Indo-Iranian', 'Dardic'],
+				['Indo-Iranian', 'Indic'],
+				['Indo-Iranian', 'Iranian'],
+				['Iranian', 'Old Persian'],
+				['Old Persian', 'Middle Persian'],
+				['Indic', 'Sanskrit'],
+				['Italic', 'Osco-Umbrian'],
+				['Italic', 'Latino-Faliscan'],
+				['Latino-Faliscan', 'Latin'],
+				['Celtic', 'Brythonic'],
+				['Celtic', 'Goidelic'],
+				['Germanic', 'North Germanic'],
+				['Germanic', 'West Germanic'],
+				['Germanic', 'East Germanic'],
+				['North Germanic', 'Old Norse'],
+				['North Germanic', 'Old Swedish'],
+				['North Germanic', 'Old Danish'],
+				['West Germanic', 'Old English'],
+				['West Germanic', 'Old Frisian'],
+				['West Germanic', 'Old Dutch'],
+				['West Germanic', 'Old Low German'],
+				['West Germanic', 'Old High German'],
+				['Old Norse', 'Old Icelandic'],
+				['Old Norse', 'Old Norwegian'],
+				['Old Norwegian', 'Middle Norwegian'],
+				['Old Swedish', 'Middle Swedish'],
+				['Old Danish', 'Middle Danish'],
+				['Old English', 'Middle English'],
+				['Old Dutch', 'Middle Dutch'],
+				['Old Low German', 'Middle Low German'],
+				['Old High German', 'Middle High German'],
+				['Balto-Slavic', 'Baltic'],
+				['Balto-Slavic', 'Slavic'],
+				['Slavic', 'East Slavic'],
+				['Slavic', 'West Slavic'],
+				['Slavic', 'South Slavic'],
+				// Leaves:
+				['Proto Indo-European', 'Phrygian'],
+				['Proto Indo-European', 'Armenian'],
+				['Proto Indo-European', 'Albanian'],
+				['Proto Indo-European', 'Thracian'],
+				['Tocharian', 'Tocharian A'],
+				['Tocharian', 'Tocharian B'],
+				['Anatolian', 'Hittite'],
+				['Anatolian', 'Palaic'],
+				['Anatolian', 'Luwic'],
+				['Anatolian', 'Lydian'],
+				['Iranian', 'Balochi'],
+				['Iranian', 'Kurdish'],
+				['Iranian', 'Pashto'],
+				['Iranian', 'Sogdian'],
+				['Old Persian', 'Pahlavi'],
+				['Middle Persian', 'Persian'],
+				['Hellenic', 'Greek'],
+				['Dardic', 'Dard'],
+				['Sanskrit', 'Sindhi'],
+				['Sanskrit', 'Romani'],
+				['Sanskrit', 'Urdu'],
+				['Sanskrit', 'Hindi'],
+				['Sanskrit', 'Bihari'],
+				['Sanskrit', 'Assamese'],
+				['Sanskrit', 'Bengali'],
+				['Sanskrit', 'Marathi'],
+				['Sanskrit', 'Gujarati'],
+				['Sanskrit', 'Punjabi'],
+				['Sanskrit', 'Sinhalese'],
+				['Osco-Umbrian', 'Umbrian'],
+				['Osco-Umbrian', 'Oscan'],
+				['Latino-Faliscan', 'Faliscan'],
+				['Latin', 'Portugese'],
+				['Latin', 'Spanish'],
+				['Latin', 'French'],
+				['Latin', 'Romanian'],
+				['Latin', 'Italian'],
+				['Latin', 'Catalan'],
+				['Latin', 'Franco-Provençal'],
+				['Latin', 'Rhaeto-Romance'],
+				['Brythonic', 'Welsh'],
+				['Brythonic', 'Breton'],
+				['Brythonic', 'Cornish'],
+				['Brythonic', 'Cuymbric'],
+				['Goidelic', 'Modern Irish'],
+				['Goidelic', 'Scottish Gaelic'],
+				['Goidelic', 'Manx'],
+				['East Germanic', 'Gothic'],
+				['Middle Low German', 'Low German'],
+				['Middle High German', '(High) German'],
+				['Middle High German', 'Yiddish'],
+				['Middle English', 'English'],
+				['Middle Dutch', 'Hollandic'],
+				['Middle Dutch', 'Flemish'],
+				['Middle Dutch', 'Dutch'],
+				['Middle Dutch', 'Limburgish'],
+				['Middle Dutch', 'Brabantian'],
+				['Middle Dutch', 'Rhinelandic'],
+				['Old Frisian', 'Frisian'],
+				['Middle Danish', 'Danish'],
+				['Middle Swedish', 'Swedish'],
+				['Middle Norwegian', 'Norwegian'],
+				['Old Norse', 'Faroese'],
+				['Old Icelandic', 'Icelandic'],
+				['Baltic', 'Old Prussian'],
+				['Baltic', 'Lithuanian'],
+				['Baltic', 'Latvian'],
+				['West Slavic', 'Polish'],
+				['West Slavic', 'Slovak'],
+				['West Slavic', 'Czech'],
+				['West Slavic', 'Wendish'],
+				['East Slavic', 'Bulgarian'],
+				['East Slavic', 'Old Church Slavonic'],
+				['East Slavic', 'Macedonian'],
+				['East Slavic', 'Serbo-Croatian'],
+				['East Slavic', 'Slovene'],
+				['South Slavic', 'Russian'],
+				['South Slavic', 'Ukrainian'],
+				['South Slavic', 'Belarusian'],
+				['South Slavic', 'Rusyn']
+			]
+		}]
+	});
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 当前配置统计 图表配置
+	
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 查看好友配置统计 图表配置
+	
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	jQuery('.selectBox').ySelect({
+		placeholder: '请先选择要翻译为的语言',
+		searchText: '搜索~发现新世界~',
+		showSearch: true,
+		numDisplayed: 4,
+		overflowText: '已选中 {n}项',
+		isCheck: false
+	});
+	
+	//单选框选中和取消选中 https://segmentfault.com/q/1010000004945347
+	jQuery('.nameAddType').on('click', function() {
+		var ischecked = jQuery(this).data('checked');
+		if (!ischecked && this.checked) {
+			jQuery(this).data('checked', true);
+		} else {
+			jQuery(this).prop('checked', false);
+			jQuery(this).data('checked', false);
+		}
+		console.log(jQuery(this).data('checked'))
+	}).data('checked', jQuery('.nameAddType').get(0).checked);
+	
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+		 //请选择日期
+		  laydate.render({
+		    elem: '#test-limit2'
+			,trigger: 'click'
+		    ,min: 0
+		    ,max: 99999
+			,done: function(value, date){
+			  //layer.alert('你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
+			  var endTime = new Date(date.year,date.month-1,date.date,date.hours,date.minutes,date.seconds,0).getTime(); //选择的时间
+			  var startTime = Math.round(new Date()); //现在的时间
+			  if(endTime <= startTime)
+			  {
+				 layer.alert("请选择至少一天的时间差!");
+			  	return false;
+			  }
+			  let time = endTime >= startTime ? endTime - startTime: startTime - endTime; //计算时间差
+			 
+			  //计算出相差天数
+			  var str = "";
+			  let days = Math.floor(time / (24 * 3600 * 1000))
+			  //计算出小时数
+			  let leave1 = time % (24 * 3600 * 1000) //计算天数后剩余的毫秒数
+			  let hours = Math.floor(leave1 / (3600 * 1000))
+			  //计算相差分钟数
+			  let leave2 = leave1 % (3600 * 1000) //计算小时数后剩余的毫秒数
+			  let minutes = Math.floor(leave2 / (60 * 1000))
+			  //计算相差秒数
+			  let leave3 = leave2 % (60 * 1000) //计算分钟数后剩余的毫秒数
+			  //let seconds=Math.round(leave3/1000)
+			  let seconds = leave3 / 1000
+			  //if (days > 0)
+			  	str += days + "天";
+			  //if (hours > 0)
+			  	str += hours + "小时";
+			  //if (minutes > 0)
+			  	str += minutes + "分钟";
+			  //if (seconds > 0)
+			  	str += seconds + "秒";
 			
-			 //请选择日期
-			  laydate.render({
-			    elem: '#test-limit2'
-				,trigger: 'click'
-			    ,min: 0
-			    ,max: 99999
-			  });
-			  //请选择时间
-			  laydate.render({
-			      elem: '#test14'
-			      ,type: 'time'
-			      ,format: 'H时m分s秒'
-			    });
+			var timeleftStr = "过"+ str +"后再留言";
+			var dayStr = "等待"+ (days+1) + "天, ";
 			
+			  //console.log(str);
+			  jQuery('#test-limit1')[0].value = dayStr + timeleftStr;
+			}
+		  });
+		  
+		  // //请选择时间
+		  // laydate.render({
+		  //     elem: '#test14'
+		  //     ,type: 'time'
+		  //     ,format: 'H时m分s秒'
+			 //  ,done: function(value, date){
+			 //    //layer.alert('你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
+				// var endTime = new Date(date.year,date.month-1,date.date,date.hours,date.minutes,date.seconds,0).getTime(); //选择的时间
+				//   var startTime = Math.round(new Date()); //现在的时间
+				//   if(endTime <= startTime)
+				//   {
+				// 	 layer.alert("请选择至少一天的时间差!");
+				//   	return false;
+				//   }
+				//   let time = endTime >= startTime ? endTime - startTime: startTime - endTime; //计算时间差
+				 
+				//   //计算出相差天数
+				//   var str = "";
+				//   let days = Math.floor(time / (24 * 3600 * 1000))
+				//   //计算出小时数
+				//   let leave1 = time % (24 * 3600 * 1000) //计算天数后剩余的毫秒数
+				//   let hours = Math.floor(leave1 / (3600 * 1000))
+				//   //计算相差分钟数
+				//   let leave2 = leave1 % (3600 * 1000) //计算小时数后剩余的毫秒数
+				//   let minutes = Math.floor(leave2 / (60 * 1000))
+				//   //计算相差秒数
+				//   let leave3 = leave2 % (60 * 1000) //计算分钟数后剩余的毫秒数
+				//   //let seconds=Math.round(leave3/1000)
+				//   let seconds = leave3 / 1000
+				//   //if (days > 0)
+				//   	str += days + "天";
+				//   //if (hours > 0)
+				//   	str += hours + "小时";
+				//   //if (minutes > 0)
+				//   	str += minutes + "分钟";
+				//   //if (seconds > 0)
+				//   	str += seconds + "秒";
+				
+				// var timeleftStr = "过"+ str +"后再留言";
+				// var dayStr = "等待"+ (days+1) + "天, ";//"过1小时后再留言"
+				
+				//   //console.log(str);
+			 //    jQuery('#test15')[0].value = dayStr + timeleftStr;
+			 //  }
+		  //   });
+		
+		        table.render({
+		            elem: '#test'
+					// ,height: 315 //容器高度
+		            // ,url:'memberStatus?search=1'
+		            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+		            ,data: []
+		            // ,autoSort: false //取消自动排序
+		            ,cols: [
+		                [
+		                // {field:'id', title: 'ID', align: 'center',sort: true}
+		                ,{field:'memberName', title: 'ID', align: 'center',sort: true, width: '8%'} //width 支持：数字、百分比和不填写。你还可以通过 minWidth 参数局部定义当前单元格的最小宽度，layui 2.2.1 新增
+		                ,{field:'team', title: '名称', align: 'center', sort: true,width: '12%'} //单元格内容水平居中
+		                ,{field:'deviceCode', title: '留言时间', align: 'center',width: '17%',sort: true} //width 支持：数字、百分比和不填写。你还可以通过 minWidth 参数局部定义当前单元格的最小宽度，layui 2.2.1 新增
+		                // ,{field:'hp', title: '血量', align: 'center',sort: true}
+		                ,{field:'hp', title: '待留言好友', align: 'center',width: '18%',sort: true}
+		                ,{field:'hitedNumber', title: '留言内容', align: 'center',width: '15%',sort: true}
+		                ,{field:'hitNumber', title: '已执行次数', align: 'center',width: '10%',sort: true}
+		                ,{field:'rePlenishBullet', title: '备注', align: 'center',width: '10%',sort: true}
+		                ,{field:'reviveNum', title: '设置', align: 'center',width: '10%',sort: true},
+		            ]
+						]//标题栏 //设置表头
+		            ,done:function (res,currentCount) {
+		                element.render()
+		            }
+		        });
+				
+		 //监听单元格编辑
+		   table.on('edit(test3)', function(obj){
+		     var value = obj.value //得到修改后的值
+		     ,data = obj.data //得到所在行所有键值
+		     ,field = obj.field; //得到字段
+		     layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+		   });
+		
+		table.reload('test', {
+			elem: '#test'
+			,page: true
+			,data: [
+				{memberName: "1"
+				,team: "留言1"
+				,deviceCode: "2020-5-1"
+				,hp: "All"
+				,hitedNumber: "早安安"
+				,hitNumber: "0"
+				,rePlenishBullet: "无"
+				,reviveNum: '<button type="button" class="layui-btn" id="editFriendGroup" style="height: 28px;line-height: 28px;width: 100%;padding: 0px;">属性</button>'
+				},
+				{memberName: "1"
+				,team: "留言1"
+				,deviceCode: "2020-5-1"
+				,hp: "All"
+				,hitedNumber: "早安安"
+				,hitNumber: "0"
+				,rePlenishBullet: "无"
+				,reviveNum: '<button type="button" class="layui-btn" id="editFriendGroup" style="height: 28px;line-height: 28px;width: 100%;padding: 0px;">属性</button>'
+				},
+				{memberName: "1"
+				,team: "留言1"
+				,deviceCode: "2020-5-1"
+				,hp: "All"
+				,hitedNumber: "早安安"
+				,hitNumber: "0"
+				,rePlenishBullet: "无"
+				,reviveNum: '<button type="button" class="layui-btn" id="editFriendGroup" style="height: 28px;line-height: 28px;width: 100%;padding: 0px;">属性</button>'
+				},
+			]
+		});
+		
+		
+		//开启全功能
+		  colorpicker.render({
+		    elem: '#test-all1'
+		    ,color: 'rgba(7, 155, 140, 1)'
+		    ,format: 'rgb'
+		    ,predefine: true
+		    ,alpha: true
+		    ,done: function(color){
+		      $('#test-all-input').val(color); //向隐藏域赋值
+		      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
+		      
+		      color || this.change(color); //清空时执行 change
+		    }
+		    ,change: function(color){
+		      //给当前页面头部和左侧设置主题色
+		      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
+		    }
+		  });
+		  //开启全功能
+		    colorpicker.render({
+		      elem: '#test-all2'
+		      ,color: 'rgba(7, 155, 140, 1)'
+		      ,format: 'rgb'
+		      ,predefine: true
+		      ,alpha: true
+		      ,done: function(color){
+		        $('#test-all-input').val(color); //向隐藏域赋值
+		        layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
+		        
+		        color || this.change(color); //清空时执行 change
+		      }
+		      ,change: function(color){
+		        //给当前页面头部和左侧设置主题色
+		        $('.header-demo,.layui-side .layui-nav').css('background-color', color);
+		      }
+		    });
 			//开启全功能
 			  colorpicker.render({
-			    elem: '#test-all1'
+			    elem: '#test-all3'
 			    ,color: 'rgba(7, 155, 140, 1)'
 			    ,format: 'rgb'
 			    ,predefine: true
@@ -3394,166 +3781,324 @@ class UI {
 			      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
 			    }
 			  });
-			  //开启全功能
-			    colorpicker.render({
-			      elem: '#test-all2'
-			      ,color: 'rgba(7, 155, 140, 1)'
-			      ,format: 'rgb'
-			      ,predefine: true
-			      ,alpha: true
-			      ,done: function(color){
-			        $('#test-all-input').val(color); //向隐藏域赋值
-			        layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-			        
-			        color || this.change(color); //清空时执行 change
-			      }
-			      ,change: function(color){
-			        //给当前页面头部和左侧设置主题色
-			        $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-			      }
-			    });
-				//开启全功能
-				  colorpicker.render({
-				    elem: '#test-all3'
-				    ,color: 'rgba(7, 155, 140, 1)'
-				    ,format: 'rgb'
-				    ,predefine: true
-				    ,alpha: true
-				    ,done: function(color){
-				      $('#test-all-input').val(color); //向隐藏域赋值
-				      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-				      
-				      color || this.change(color); //清空时执行 change
-				    }
-				    ,change: function(color){
-				      //给当前页面头部和左侧设置主题色
-				      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-				    }
-				  });
-				//开启全功能
-				  colorpicker.render({
-				    elem: '#test-all4'
-				    ,color: 'rgba(7, 155, 140, 1)'
-				    ,format: 'rgb'
-				    ,predefine: true
-				    ,alpha: true
-				    ,done: function(color){
-				      $('#test-all-input').val(color); //向隐藏域赋值
-				      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-				      
-				      color || this.change(color); //清空时执行 change
-				    }
-				    ,change: function(color){
-				      //给当前页面头部和左侧设置主题色
-				      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-				    }
-				  });
-				//开启全功能
-				  colorpicker.render({
-				    elem: '#test-all5'
-				    ,color: 'rgba(7, 155, 140, 1)'
-				    ,format: 'rgb'
-				    ,predefine: true
-				    ,alpha: true
-				    ,done: function(color){
-				      $('#test-all-input').val(color); //向隐藏域赋值
-				      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
-				      
-				      color || this.change(color); //清空时执行 change
-				    }
-				    ,change: function(color){
-				      //给当前页面头部和左侧设置主题色
-				      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
-				    }
-				  });
+			//开启全功能
+			  colorpicker.render({
+			    elem: '#test-all4'
+			    ,color: 'rgba(7, 155, 140, 1)'
+			    ,format: 'rgb'
+			    ,predefine: true
+			    ,alpha: true
+			    ,done: function(color){
+			      $('#test-all-input').val(color); //向隐藏域赋值
+			      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
+			      
+			      color || this.change(color); //清空时执行 change
+			    }
+			    ,change: function(color){
+			      //给当前页面头部和左侧设置主题色
+			      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
+			    }
+			  });
+			//开启全功能
+			  colorpicker.render({
+			    elem: '#test-all5'
+			    ,color: 'rgba(7, 155, 140, 1)'
+			    ,format: 'rgb'
+			    ,predefine: true
+			    ,alpha: true
+			    ,done: function(color){
+			      $('#test-all-input').val(color); //向隐藏域赋值
+			      layer.tips('给指定隐藏域设置了颜色值：'+ color, this.elem);
+			      
+			      color || this.change(color); //清空时执行 change
+			    }
+			    ,change: function(color){
+			      //给当前页面头部和左侧设置主题色
+			      $('.header-demo,.layui-side .layui-nav').css('background-color', color);
+			    }
+			  });
+			  
+			  //监听折叠
+			   element.on('collapse(test)', function(data){
+			     layer.msg('展开状态：'+ data.show);
+			   });
+			  
+			  //请选择日期
+			   laydate.render({
+			     elem: '#test-limit3'
+				 ,type: 'date'
+			  	 ,trigger: 'click'
+				 ,range: '~'
+			     ,min: -7
+			     ,max: 0
+				 ,value: '2020-4-12 ~ 2020-4-19'
+				 ,isInitValue: true
+			   });
+			  
+			  //监听指定开关
+			  form.on('switch(switchTest)', async function(data){
+			      layer.msg('开关checked：'+ (this.checked ? 'true' : 'false'), {
+			        offset: '6px'
+			      });
+			      layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis);
 				  
-				  //监听折叠
-				   element.on('collapse(test)', function(data){
-				     layer.msg('展开状态：'+ data.show);
-				   });
+				  var customUrl = "miku-39";
+				  var profileID = 76561198373290430;
 				  
-				  //请选择日期
-				   laydate.render({
-				     elem: '#test-limit3'
-					 ,type: 'date'
-				  	 ,trigger: 'click'
-					 ,range: '~'
-				     ,min: -7
-				     ,max: 0
-					 ,value: '2020-4-12 ~ 2020-4-19'
-					 ,isInitValue: true
-				   });
-				  
-				  //监听指定开关
-				  form.on('switch(switchTest)', async function(data){
-				      layer.msg('开关checked：'+ (this.checked ? 'true' : 'false'), {
-				        offset: '6px'
-				      });
-				      layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis);
-					  
-					  var customUrl = "miku-39";
-					  var profileID = 76561198373290430;
-					  
-					  if(gc_friAct == null)
-					  	gc_friAct = new friendActivity(profileID || customUrl);
-					  	
-					  if(this.checked == true) //打开了
-					  {
-					  	await gc_friAct.Run();
-					  }
-					  else //关闭了
-					  {
-					  	gc_friAct.Stop();
-					  }
-					  
-				    });
+				  if(gc_friAct == null)
+				  	gc_friAct = new friendActivity(profileID || customUrl);
 				  	
+				  if(this.checked == true) //打开了
+				  {
+				  	await gc_friAct.Run();
+				  }
+				  else //关闭了
+				  {
+				  	gc_friAct.Stop();
+				  }
 				  
-				  //但是，如果你的HTML是动态生成的，自动渲染就会失效
-				  //因此你需要在相应的地方，执行下述方法来进行渲染
-				  form.render();
-				  
-				  element.render('collapse');
+			    });
+			  	
+			  
+			  //但是，如果你的HTML是动态生成的，自动渲染就会失效
+			  //因此你需要在相应的地方，执行下述方法来进行渲染
+			  form.render();
+			  
+			  element.render('collapse');
+	});
+	
+	//-------------------------------------------------------------------------------------------------------------------------------
+	if (opinion() == 0) { //判断页面是pc端还是移动端
+		dvWidthFix();
+	}
+	ToggleManageFriends();
+	
+	console.log("GameFreeInfoHelper call...");
+	GameFreeInfoHelper(); //游戏免费信息助手
+	
+	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#commentthread_Profile_0_textarea'));
+	//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
+	//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
+	
+	setTimeout(async function() {
+		Obj.LoadEmoticons();
+		CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
+			async function a() {
+				//console.log("loadDone");
+				if (!Obj.m_$Popup)
+					Obj.BuildPopup();
+				else
+					PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
+				await emojiFix();
+			}
+			a();
 		});
-
-		//-------------------------------------------------------------------------------------------------------------------------------
-		if (opinion() == 0) { //判断页面是pc端还是移动端
-			dvWidthFix();
-		}
-		ToggleManageFriends();
-
-		console.log("GameFreeInfoHelper call...");
-		GameFreeInfoHelper(); //游戏免费信息助手
-
-		var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#commentthread_Profile_0_textarea'));
-		//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
-		//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
-
-		setTimeout(async function() {
-			Obj.LoadEmoticons();
-			CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
-				async function a() {
-					//console.log("loadDone");
-					if (!Obj.m_$Popup)
-						Obj.BuildPopup();
-					else
-						PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
-					await emojiFix();
-				}
-				a();
-			});
-		}, 0);
-		console.log("注册所有的事件...");
-		await registeredAllEvents(); //注册所有的事件
-		addRemoveFriendRemind(); /*添加删除好友提醒*/
-	}
-	async private_saveUIConfFile() {
-
-	}
-	async private_readUIConfFile() {
-
-	}
+	}, 0);
+	console.log("注册所有的事件...");
+	await registeredAllEvents(); //注册所有的事件
+	addRemoveFriendRemind(); /*添加删除好友提醒*/
 }
+
+function addRemoveFriendRemind(){ /*添加删除好友提醒*/
+	let obj = document.getElementsByClassName("manage_action btnv6_lightblue_blue btn_medium");
+	for (let i = 0; i < obj.length; i++) {
+		let funcText = obj[i].onclick.toString();
+		if(funcText.indexOf("ExecFriendAction('remove', 'friends/all')") != -1) //是否是移除好友按钮
+		{
+			obj[i].onclick = ()=>{
+				ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友').done( function(){
+					console.log("移除好友");
+					ExecFriendAction('remove', 'friends/all');
+					}).fail( function(){
+					console.log("取消移除好友");
+					});
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------------------
+// API
+function getCityCodeByEnglishName(cityEnglishName) {
+	if (g_arrCityList == undefined)
+		return null;
+
+	for (let i = 0; i < g_arrCityList.length; i++) {
+		if (g_arrCityList[i][1].length == cityEnglishName.length &&
+			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
+			return g_arrCityList[i][0];
+		}
+	}
+	return null;
+}
+
+function getCityCodeByChinsesName(cityChinseshName) {
+	if (g_arrCityList == undefined)
+		return null;
+
+	for (let i = 0; i < g_arrCityList.length; i++) {
+		if (g_arrCityList[i][3].length == cityChinseshName.length &&
+			g_arrCityList[i][3].toLowerCase() == cityChinseshName.toLowerCase()) {
+			return g_arrCityList[i][0];
+		}
+	}
+	return null;
+}
+
+function getCityChinsesNameByEnglishName(cityEnglishName) {
+	if (g_arrCityList == undefined)
+		return null;
+
+	for (let i = 0; i < g_arrCityList.length; i++) {
+		if (g_arrCityList[i][1].length == cityEnglishName.length &&
+			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
+			return g_arrCityList[i][3];
+		}
+	}
+	return null;
+}
+//-------------------------------------------------------------------------------------------------------------
+//RGB
+function countRgbColor(r, g, b) //计算RGB渐变颜色
+{
+	var color;
+	//var color = '#' + to2string(r) +  'ffff';
+	//console.log(color);
+	//return color;
+	while (true) {
+		switch (RGBindex) {
+			case 0: //红
+				if (RGBr == 0 & RGBg == 0 & RGBb == 0) {
+					RGBr = 0xFF; //红
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 1;
+					continue; //重新开始
+				}
+				break;
+			case 1: //红->黄
+				if (RGBg != 0xFF) {
+					RGBg += 3; //红->黄
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 2;
+					continue; //重新开始
+				}
+				break;
+			case 2: //黄->绿
+				if (RGBr != 0x00) //黄
+				{
+					RGBr -= 3; //黄->绿
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 3;
+					continue; //重新开始
+				}
+				break;
+			case 3: //绿->蓝(天蓝)
+				if (RGBb != 0xFF) {
+					if (RGBg > 0xBF) {
+						RGBg -= 3;
+					}
+					RGBb += 3;
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 4;
+					continue; //重新开始
+				}
+				break;
+			case 4: //蓝(天蓝)->蓝(深蓝)
+				if (RGBg != 0x00) {
+					RGBg -= 3;
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 5;
+					continue; //重新开始
+				}
+				break;
+			case 5: //蓝(深蓝)->紫
+				if (RGBr < 0x80 || RGBb > 0x80) {
+					if (RGBr < 0x80) {
+						RGBr += 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					} else if (RGBb > 0x80) {
+						RGBb -= 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					}
+
+				} else {
+					RGBindex = 6;
+					continue; //重新开始
+				}
+				break;
+			case 6: //紫->红
+				if (RGBr != 0xFF || RGBb != 0x00) {
+					if (RGBr < 0xFF) {
+						RGBr += 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					} else if (RGBb > 0x00) {
+						RGBb -= 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					}
+
+				} else //继续RGB
+				{
+					RGBindex = 1;
+					continue; //重新开始
+				}
+
+				break;
+			case 7:
+				console.log("end!!!");
+				break;
+			default:
+				console.log("[countRgbColor()-switch(RGBindex):] 未定义异常!")
+				break;
+		}
+	}
+	//红 #FF0000
+	//黄 #FFFF00
+	//绿 #00FF00
+	//蓝 #00BFFF #0000FF
+	//紫 #800080
+
+}
+// function setRgb() //设置RGB渐变颜色
+// {
+// 	var loginBox = document.getElementById("LoginBaseBox");
+// 	loginBox.style.background = countRgbColor(0,0,0);
+// }
+// var tiSysCallback_runRGB = setInterval(function(){runRGB();}, 22); //[启动定时器] 每秒回调函数 // 11 16 22 30
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
 
 async function registeredAllEvents() //注册所有的事件
 {
@@ -5454,7 +5999,7 @@ async function registeredAllEvents() //注册所有的事件
 								//document.getElementById("result1").innerHTML = theday.getFullYear() + "年" + (1 + theday.getMonth()) + "月" + theday.getDate() + "日" + "星期" + cweekday(theday.getDay());
 								return theday.getTime(); //获取对应的时间戳
 							}
-	
+							
 							function calbHMS() { //计算时间差: 一个是当前时间，一个是相差的时间，就都转为秒数进行相减，再还原时间
 								var date = new Date();
 								var date1 = new Date();
@@ -5544,6 +6089,10 @@ async function registeredAllEvents() //注册所有的事件
 	
 	});
 }
+
+var delay = 4; // 设置你的留言时间间隔,单位秒
+var strNoOperate = "(不留言)"; //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
+var strRemarkPlaceholder = "{name}"; //设置你的称呼占位符: 同上
 
 async function Main() {
 	if (document.URL.lastIndexOf("/friends") == -1 || document.URL.indexOf("https://steamcommunity.com") == -1) {
