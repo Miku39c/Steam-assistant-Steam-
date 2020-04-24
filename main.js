@@ -7,7 +7,7 @@
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.3
+// @version      1.2.3.3.1
 // @date         2020.4.23
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @require      file://D:\Desktop\ͼƬ\steam\git steam\common.js
