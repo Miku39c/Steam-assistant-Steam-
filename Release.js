@@ -9,18 +9,6 @@
 // @icon64       http://store.steampowered.com/favicon.ico
 // @version      1.2.3.3.2
 // @date         2020.4.25
-// @source       https://github.com/Mikuof39/Steam-assistant-Steam-
-// @require      file://D:\Desktop\图片\steam\git steam\common.js
-// @require      file://D:\Desktop\图片\steam\git steam\websocket.js
-// @require      file://D:\Desktop\图片\steam\git steam\databaseConf.js
-// @require      file://D:\Desktop\图片\steam\git steam\translateApis.js
-// @require      file://D:\Desktop\图片\steam\git steam\externalApis.js
-// @require      file://D:\Desktop\图片\steam\git steam\steamApis.js
-// @require      file://D:\Desktop\图片\steam\git steam\utility.js
-// @require      file://D:\Desktop\图片\steam\git steam\ui.js
-// @require      file://D:\Desktop\图片\steam\git steam\uiHandler.js
-// @require      file://D:\Desktop\图片\steam\git steam\event.js
-// @require      file://D:\Desktop\图片\steam\git steam\cityList.js
 // @author       Miku39
 // @license      GPL License
 // @updateURL    https://greasyfork.org/zh-CN/scripts/397073
