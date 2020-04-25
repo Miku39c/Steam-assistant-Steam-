@@ -7,9 +7,20 @@
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.3.1
-// @date         2020.4.24
+// @version      1.2.3.3.2
+// @date         2020.4.25
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
+// @require      file://D:\Desktop\图片\steam\git steam\common.js
+// @require      file://D:\Desktop\图片\steam\git steam\websocket.js
+// @require      file://D:\Desktop\图片\steam\git steam\databaseConf.js
+// @require      file://D:\Desktop\图片\steam\git steam\translateApis.js
+// @require      file://D:\Desktop\图片\steam\git steam\externalApis.js
+// @require      file://D:\Desktop\图片\steam\git steam\steamApis.js
+// @require      file://D:\Desktop\图片\steam\git steam\utility.js
+// @require      file://D:\Desktop\图片\steam\git steam\ui.js
+// @require      file://D:\Desktop\图片\steam\git steam\uiHandler.js
+// @require      file://D:\Desktop\图片\steam\git steam\event.js
+// @require      file://D:\Desktop\图片\steam\git steam\cityList.js
 // @author       Miku39
 // @license      GPL License
 // @updateURL    https://greasyfork.org/zh-CN/scripts/397073
@@ -97,6 +108,18 @@ function addNewScript(id, newScript) {
 	if (!styleElement) {
 		styleElement = document.createElement('script');
 		styleElement.type = 'text/javascript';
+		styleElement.id = id;
+		document.getElementsByTagName('head')[0].appendChild(styleElement);
+	}
+	styleElement.appendChild(document.createTextNode(newScript));
+}
+
+function addNewModule(id, newScript){
+	var styleElement = document.getElementById(id);
+	
+	if (!styleElement) {
+		styleElement = document.createElement('script');
+		styleElement.type = 'module';
 		styleElement.id = id;
 		document.getElementsByTagName('head')[0].appendChild(styleElement);
 	}
@@ -2245,6 +2268,207 @@ class SteamData{
 	}
 }
 
+function addRemoveFriendRemind(){ /*添加删除好友提醒*/
+	let obj = document.getElementsByClassName("manage_action btnv6_lightblue_blue btn_medium");
+	for (let i = 0; i < obj.length; i++) {
+		let funcText = obj[i].onclick.toString();
+		if(funcText.indexOf("ExecFriendAction('remove', 'friends/all')") != -1) //是否是移除好友按钮
+		{
+			obj[i].onclick = ()=>{
+				ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友').done( function(){
+					console.log("移除好友");
+					ExecFriendAction('remove', 'friends/all');
+					}).fail( function(){
+					console.log("取消移除好友");
+					});
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------------------
+// API
+function getCityCodeByEnglishName(cityEnglishName) {
+	if (g_arrCityList == undefined)
+		return null;
+
+	for (let i = 0; i < g_arrCityList.length; i++) {
+		if (g_arrCityList[i][1].length == cityEnglishName.length &&
+			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
+			return g_arrCityList[i][0];
+		}
+	}
+	return null;
+}
+
+function getCityCodeByChinsesName(cityChinseshName) {
+	if (g_arrCityList == undefined)
+		return null;
+
+	for (let i = 0; i < g_arrCityList.length; i++) {
+		if (g_arrCityList[i][3].length == cityChinseshName.length &&
+			g_arrCityList[i][3].toLowerCase() == cityChinseshName.toLowerCase()) {
+			return g_arrCityList[i][0];
+		}
+	}
+	return null;
+}
+
+function getCityChinsesNameByEnglishName(cityEnglishName) {
+	if (g_arrCityList == undefined)
+		return null;
+
+	for (let i = 0; i < g_arrCityList.length; i++) {
+		if (g_arrCityList[i][1].length == cityEnglishName.length &&
+			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
+			return g_arrCityList[i][3];
+		}
+	}
+	return null;
+}
+//-------------------------------------------------------------------------------------------------------------
+//RGB
+function countRgbColor(r, g, b) //计算RGB渐变颜色
+{
+	var color;
+	//var color = '#' + to2string(r) +  'ffff';
+	//console.log(color);
+	//return color;
+	while (true) {
+		switch (RGBindex) {
+			case 0: //红
+				if (RGBr == 0 & RGBg == 0 & RGBb == 0) {
+					RGBr = 0xFF; //红
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 1;
+					continue; //重新开始
+				}
+				break;
+			case 1: //红->黄
+				if (RGBg != 0xFF) {
+					RGBg += 3; //红->黄
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 2;
+					continue; //重新开始
+				}
+				break;
+			case 2: //黄->绿
+				if (RGBr != 0x00) //黄
+				{
+					RGBr -= 3; //黄->绿
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 3;
+					continue; //重新开始
+				}
+				break;
+			case 3: //绿->蓝(天蓝)
+				if (RGBb != 0xFF) {
+					if (RGBg > 0xBF) {
+						RGBg -= 3;
+					}
+					RGBb += 3;
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 4;
+					continue; //重新开始
+				}
+				break;
+			case 4: //蓝(天蓝)->蓝(深蓝)
+				if (RGBg != 0x00) {
+					RGBg -= 3;
+					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+					//console.log("color:" + color);
+					return color;
+				} else {
+					RGBindex = 5;
+					continue; //重新开始
+				}
+				break;
+			case 5: //蓝(深蓝)->紫
+				if (RGBr < 0x80 || RGBb > 0x80) {
+					if (RGBr < 0x80) {
+						RGBr += 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					} else if (RGBb > 0x80) {
+						RGBb -= 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					}
+
+				} else {
+					RGBindex = 6;
+					continue; //重新开始
+				}
+				break;
+			case 6: //紫->红
+				if (RGBr != 0xFF || RGBb != 0x00) {
+					if (RGBr < 0xFF) {
+						RGBr += 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					} else if (RGBb > 0x00) {
+						RGBb -= 3;
+						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
+						//console.log("color:" + color);
+						return color;
+					}
+
+				} else //继续RGB
+				{
+					RGBindex = 1;
+					continue; //重新开始
+				}
+
+				break;
+			case 7:
+				console.log("end!!!");
+				break;
+			default:
+				console.log("[countRgbColor()-switch(RGBindex):] 未定义异常!")
+				break;
+		}
+	}
+	//红 #FF0000
+	//黄 #FFFF00
+	//绿 #00FF00
+	//蓝 #00BFFF #0000FF
+	//紫 #800080
+
+}
+// function setRgb() //设置RGB渐变颜色
+// {
+// 	var loginBox = document.getElementById("LoginBaseBox");
+// 	loginBox.style.background = countRgbColor(0,0,0);
+// }
+// var tiSysCallback_runRGB = setInterval(function(){runRGB();}, 22); //[启动定时器] 每秒回调函数 // 11 16 22 30
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------------------------------------
+
 var gc_friAct = null;
 
 class UI {
@@ -3407,7 +3631,6 @@ class UI {
 	}
 }
 
-
 UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程序
 	//2.构建UI
 	layui.use(['laydate', 'laypage', 'layer', 'table', 'carousel', 'upload', 'element', 'slider', 'colorpicker', 'form'], function() {
@@ -4127,207 +4350,6 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	await registeredAllEvents(); //注册所有的事件
 	addRemoveFriendRemind(); /*添加删除好友提醒*/
 }
-
-function addRemoveFriendRemind(){ /*添加删除好友提醒*/
-	let obj = document.getElementsByClassName("manage_action btnv6_lightblue_blue btn_medium");
-	for (let i = 0; i < obj.length; i++) {
-		let funcText = obj[i].onclick.toString();
-		if(funcText.indexOf("ExecFriendAction('remove', 'friends/all')") != -1) //是否是移除好友按钮
-		{
-			obj[i].onclick = ()=>{
-				ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友').done( function(){
-					console.log("移除好友");
-					ExecFriendAction('remove', 'friends/all');
-					}).fail( function(){
-					console.log("取消移除好友");
-					});
-			}
-			return 1;
-		}
-	}
-	return 0;
-}
-//-------------------------------------------------------------------------------------------------------------
-// API
-function getCityCodeByEnglishName(cityEnglishName) {
-	if (g_arrCityList == undefined)
-		return null;
-
-	for (let i = 0; i < g_arrCityList.length; i++) {
-		if (g_arrCityList[i][1].length == cityEnglishName.length &&
-			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
-			return g_arrCityList[i][0];
-		}
-	}
-	return null;
-}
-
-function getCityCodeByChinsesName(cityChinseshName) {
-	if (g_arrCityList == undefined)
-		return null;
-
-	for (let i = 0; i < g_arrCityList.length; i++) {
-		if (g_arrCityList[i][3].length == cityChinseshName.length &&
-			g_arrCityList[i][3].toLowerCase() == cityChinseshName.toLowerCase()) {
-			return g_arrCityList[i][0];
-		}
-	}
-	return null;
-}
-
-function getCityChinsesNameByEnglishName(cityEnglishName) {
-	if (g_arrCityList == undefined)
-		return null;
-
-	for (let i = 0; i < g_arrCityList.length; i++) {
-		if (g_arrCityList[i][1].length == cityEnglishName.length &&
-			g_arrCityList[i][1].toLowerCase() == cityEnglishName.toLowerCase()) {
-			return g_arrCityList[i][3];
-		}
-	}
-	return null;
-}
-//-------------------------------------------------------------------------------------------------------------
-//RGB
-function countRgbColor(r, g, b) //计算RGB渐变颜色
-{
-	var color;
-	//var color = '#' + to2string(r) +  'ffff';
-	//console.log(color);
-	//return color;
-	while (true) {
-		switch (RGBindex) {
-			case 0: //红
-				if (RGBr == 0 & RGBg == 0 & RGBb == 0) {
-					RGBr = 0xFF; //红
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 1;
-					continue; //重新开始
-				}
-				break;
-			case 1: //红->黄
-				if (RGBg != 0xFF) {
-					RGBg += 3; //红->黄
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 2;
-					continue; //重新开始
-				}
-				break;
-			case 2: //黄->绿
-				if (RGBr != 0x00) //黄
-				{
-					RGBr -= 3; //黄->绿
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 3;
-					continue; //重新开始
-				}
-				break;
-			case 3: //绿->蓝(天蓝)
-				if (RGBb != 0xFF) {
-					if (RGBg > 0xBF) {
-						RGBg -= 3;
-					}
-					RGBb += 3;
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 4;
-					continue; //重新开始
-				}
-				break;
-			case 4: //蓝(天蓝)->蓝(深蓝)
-				if (RGBg != 0x00) {
-					RGBg -= 3;
-					color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-					//console.log("color:" + color);
-					return color;
-				} else {
-					RGBindex = 5;
-					continue; //重新开始
-				}
-				break;
-			case 5: //蓝(深蓝)->紫
-				if (RGBr < 0x80 || RGBb > 0x80) {
-					if (RGBr < 0x80) {
-						RGBr += 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					} else if (RGBb > 0x80) {
-						RGBb -= 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					}
-
-				} else {
-					RGBindex = 6;
-					continue; //重新开始
-				}
-				break;
-			case 6: //紫->红
-				if (RGBr != 0xFF || RGBb != 0x00) {
-					if (RGBr < 0xFF) {
-						RGBr += 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					} else if (RGBb > 0x00) {
-						RGBb -= 3;
-						color = '#' + to2string(RGBr) + to2string(RGBg) + to2string(RGBb);
-						//console.log("color:" + color);
-						return color;
-					}
-
-				} else //继续RGB
-				{
-					RGBindex = 1;
-					continue; //重新开始
-				}
-
-				break;
-			case 7:
-				console.log("end!!!");
-				break;
-			default:
-				console.log("[countRgbColor()-switch(RGBindex):] 未定义异常!")
-				break;
-		}
-	}
-	//红 #FF0000
-	//黄 #FFFF00
-	//绿 #00FF00
-	//蓝 #00BFFF #0000FF
-	//紫 #800080
-
-}
-// function setRgb() //设置RGB渐变颜色
-// {
-// 	var loginBox = document.getElementById("LoginBaseBox");
-// 	loginBox.style.background = countRgbColor(0,0,0);
-// }
-// var tiSysCallback_runRGB = setInterval(function(){runRGB();}, 22); //[启动定时器] 每秒回调函数 // 11 16 22 30
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------
 
 async function registeredAllEvents() //注册所有的事件
 {
@@ -5157,403 +5179,591 @@ async function registeredAllEvents() //注册所有的事件
 	
 	//---------------------------------------------------------------------------------------------------------------
 	await jQuery("#comment_submit").click(async function() {
-		date = new Date();
-		startTime = date.getTime();
-	
-		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
-		const msg = jQuery("#comment_textarea").val(); //获取评论内容
-		var newMgs = "";
-		var mode = 0;
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-	
-		if (total > 0 && msg.length > 0) {
-			jQuery("#log_head, #log_body").html("");
-			//jQuery(".selected").each(async function(i) {
-			var jqobj = jQuery("#search_results .selected.selectable");
-	
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-	
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+		setTimeout(async ()=>{
+			date = new Date();
+			startTime = date.getTime();
+			
+			const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
+			const msg = jQuery("#comment_textarea").val(); //获取评论内容
+			var newMgs = "";
+			var mode = 0;
+			var SpecialName = undefined;
+			var steamName = undefined;
+			var name = undefined;
+			
+			if (total > 0 && msg.length > 0) {
+				jQuery("#log_head, #log_body").html("");
+				//jQuery(".selected").each(async function(i) {
+				var jqobj = jQuery("#search_results .selected.selectable");
+		
+				for (let i = 0; i < jqobj.length; i++) {
+					let cur = jqobj.get(i);
+		
+					//--------------------------------------------------------------------
 					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-					if (SpecialNameobj.length > 0) //安全检查
+					steamName = undefined;
+		
+					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+						//获取备注
+						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+						SpecialName = undefined;
+						if (SpecialNameobj != "undefined") {
+							SpecialName = SpecialNameobj[0].innerText; //备注
+						}
+						//获取steam名称
+						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+						name = steamName;
+					} else //否则如果是好友界面
 					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						//获取名称,然后判断是备注还是steam名称
+						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+						SpecialName = undefined;
+						if (SpecialNameobj.length > 0) //安全检查
 						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							name = SpecialName;
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							SpecialName = undefined; //就没有备注
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							name = steamName;
+							if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+							{
+								console.log("获取到的是备注");
+								SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+								steamName = undefined; //就没有名称
+								name = SpecialName;
+							} else if (nicknameObj.length == 0) {
+								console.log("获取到的是steam名称");
+								SpecialName = undefined; //就没有备注
+								steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+								name = steamName;
+							}
 						}
 					}
-				}
-				//--------------------------------------------------------------------
-				//判断选择的模式
-				if ($("select_islName_checkbox").checked == true) {
-					mode = 1;
-				}
-				else if ($("select_isSpecialName_checkbox").checked == true) {
-					mode = 2;
-				}
-				else if ($("select_isCustom_checkbox").checked == true) {
-					mode = 3;
-				}
-				else //如果都没有选中，则直接发送消息
-					mode = 0;
-				
-				if (mode == 1) { //是否为好友添加称呼 (如果好友没有备注则使用steam名称)
-					//判断是否有备注,没有则使用steam名称
-					if (SpecialName != undefined) {
-						let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
-						SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
-						
-						console.log("为" + steamName + "添加称呼: " + SpecialName);
-						newMgs = SpecialName + msg;
-					} else {
-						console.log("为" + steamName + "添加称呼: " + steamName);
-						newMgs = steamName + msg;
+					//--------------------------------------------------------------------
+					//判断选择的模式
+					if ($("select_islName_checkbox").checked == true) {
+						mode = 1;
 					}
-				} else if (mode == 2) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
-					//判断是否有备注,没有则不操作
-					if (SpecialName != undefined) {
-						let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
-						SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
-						
-						console.log("为" + steamName + "添加称呼: " + SpecialName);
-						newMgs = SpecialName + msg;
-					} else {
+					else if ($("select_isSpecialName_checkbox").checked == true) {
+						mode = 2;
+					}
+					else if ($("select_isCustom_checkbox").checked == true) {
+						mode = 3;
+					}
+					else //如果都没有选中，则直接发送消息
+						mode = 0;
+					
+					if (mode == 1) { //是否为好友添加称呼 (如果好友没有备注则使用steam名称)
+						//判断是否有备注,没有则使用steam名称
+						if (SpecialName != undefined) {
+							let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
+							SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
+							
+							console.log("为" + steamName + "添加称呼: " + SpecialName);
+							newMgs = SpecialName + msg;
+						} else {
+							console.log("为" + steamName + "添加称呼: " + steamName);
+							newMgs = steamName + msg;
+						}
+					} else if (mode == 2) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
+						//判断是否有备注,没有则不操作
+						if (SpecialName != undefined) {
+							let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
+							SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
+							
+							console.log("为" + steamName + "添加称呼: " + SpecialName);
+							newMgs = SpecialName + msg;
+						} else {
+							newMgs = msg;
+						}
+					} else if (mode == 3) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
+						//判断是否有备注,没有则不操作
+						if (SpecialName != undefined) {
+							let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
+							SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
+							
+							console.log("为" + steamName + "添加称呼: " + SpecialName);
+							let str = msg;
+							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+						} else {
+							let str = msg;
+							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+						}
+					} else if (mode == 0) { //直接发送内容
 						newMgs = msg;
 					}
-				} else if (mode == 3) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
-					//判断是否有备注,没有则不操作
+					console.log("[Debug] mode:", mode);
+					console.log("[Debug] SpecialName:", SpecialName, "steamName:", steamName);
+					console.log("[Debug] newMgs:", newMgs, "msg:", msg);
+					//--------------------------------------------------------------------
+					let profileID = cur.getAttribute("data-steamid");
+		
 					if (SpecialName != undefined) {
-						let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
-						SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
-						
-						console.log("为" + steamName + "添加称呼: " + SpecialName);
-						let str = msg;
-						newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-					} else {
-						let str = msg;
-						newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-					}
-				} else if (mode == 0) { //直接发送内容
-					newMgs = msg;
-				}
-				console.log("[Debug] mode:", mode);
-				console.log("[Debug] SpecialName:", SpecialName, "steamName:", steamName);
-				console.log("[Debug] newMgs:", newMgs, "msg:", msg);
-				//--------------------------------------------------------------------
-				let profileID = cur.getAttribute("data-steamid");
-	
-				if (SpecialName != undefined) {
-					if (SpecialName.indexOf(strNoOperate) != -1) {
-						jQuery("#log_body")[0].innerHTML +=
-							"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-							"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
-						continue;
-					}
-				}
-				
-				(function(i, profileID) {
-					//setTimeout(function() {
-	
-					jQuery.post("//steamcommunity.com/comment/Profile/post/" + profileID + "/-1/", {
-						comment: newMgs,
-						count: 6,
-						sessionid: g_sessionID
-					}, function(response) {
-						if (response.success === false) {
+						if (SpecialName.indexOf(strNoOperate) != -1) {
 							jQuery("#log_body")[0].innerHTML +=
-								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 留言失败了! ' + profileID + '  ' + name +
-								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
-						} else {
-							jQuery("#log_body")[0].innerHTML +=
-								'[' + (i + 1) + '/' + total + '] ' +
-								"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
-								profileID + '  ' + name + "</a>" +
-								"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-								profileID + "\">" + newMgs + "</a><br>";
+								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
+							continue;
 						}
-					}).fail(function() {
-						jQuery("#log_body")[0].innerHTML +=
-							'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
-							"无法发表评论于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-							profileID + "\">" +
-							profileID + '  ' + name + "</a></span><br>";
-					}).always(function() {
-						jQuery("#log_head").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
-					});
-	
-	
-					//}, i * 6000);
-	
-				})(i, profileID);
-				await sleep(delay * 1000)
-				//console.log(cur)
+					}
+					
+					(function(i, profileID) {
+						//setTimeout(function() {
+		
+						jQuery.post("//steamcommunity.com/comment/Profile/post/" + profileID + "/-1/", {
+							comment: newMgs,
+							count: 6,
+							sessionid: g_sessionID
+						}, function(response) {
+							if (response.success === false) {
+								jQuery("#log_body")[0].innerHTML +=
+									"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+									"\">" + '[' + (i + 1) + '/' + total + '] 留言失败了! ' + profileID + '  ' + name +
+									'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+							} else {
+								jQuery("#log_body")[0].innerHTML +=
+									'[' + (i + 1) + '/' + total + '] ' +
+									"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
+									profileID + '  ' + name + "</a>" +
+									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+									profileID + "\">" + newMgs + "</a><br>";
+							}
+						}).fail(function() {
+							jQuery("#log_body")[0].innerHTML +=
+								'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
+								"无法发表评论于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+								profileID + "\">" +
+								profileID + '  ' + name + "</a></span><br>";
+						}).always(function() {
+							jQuery("#log_head").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
+						});
+		
+		
+						//}, i * 6000);
+		
+					})(i, profileID);
+					await sleep(delay * 1000)
+					//console.log(cur)
+				}
+		
+		
+				date = new Date();
+				endTime = date.getTime();
+				let time = endTime - startTime;
+				//console.log("time",time,endTime,startTime);
+				//--------------------------------------------------------------------------------
+				//计算出相差天数
+				var str = "";
+				let days = Math.floor(time / (24 * 3600 * 1000))
+				//计算出小时数
+				let leave1 = time % (24 * 3600 * 1000) //计算天数后剩余的毫秒数
+				let hours = Math.floor(leave1 / (3600 * 1000))
+				//计算相差分钟数
+				let leave2 = leave1 % (3600 * 1000) //计算小时数后剩余的毫秒数
+				let minutes = Math.floor(leave2 / (60 * 1000))
+				//计算相差秒数
+				let leave3 = leave2 % (60 * 1000) //计算分钟数后剩余的毫秒数
+				//let seconds=Math.round(leave3/1000)
+				let seconds = leave3 / 1000
+				if (days > 0)
+					str += days + "天";
+				if (hours > 0)
+					str += hours + "小时";
+				if (minutes > 0)
+					str += minutes + "分钟";
+				if (seconds > 0)
+					str += seconds + "秒";
+				//--------------------------------------------------------------------------------
+				jQuery("#log_body")[0].innerHTML +=
+					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
+				//});
+		
+			} else {
+				alert("请确保您输入了一条消息并选择了1个或更多好友。");
 			}
-	
-	
-			date = new Date();
-			endTime = date.getTime();
-			let time = endTime - startTime;
-			//console.log("time",time,endTime,startTime);
-			//--------------------------------------------------------------------------------
-			//计算出相差天数
-			var str = "";
-			let days = Math.floor(time / (24 * 3600 * 1000))
-			//计算出小时数
-			let leave1 = time % (24 * 3600 * 1000) //计算天数后剩余的毫秒数
-			let hours = Math.floor(leave1 / (3600 * 1000))
-			//计算相差分钟数
-			let leave2 = leave1 % (3600 * 1000) //计算小时数后剩余的毫秒数
-			let minutes = Math.floor(leave2 / (60 * 1000))
-			//计算相差秒数
-			let leave3 = leave2 % (60 * 1000) //计算分钟数后剩余的毫秒数
-			//let seconds=Math.round(leave3/1000)
-			let seconds = leave3 / 1000
-			if (days > 0)
-				str += days + "天";
-			if (hours > 0)
-				str += hours + "小时";
-			if (minutes > 0)
-				str += minutes + "分钟";
-			if (seconds > 0)
-				str += seconds + "秒";
-			//--------------------------------------------------------------------------------
-			jQuery("#log_body")[0].innerHTML +=
-				"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
-			//});
-	
-		} else {
-			alert("请确保您输入了一条消息并选择了1个或更多好友。");
-		}
+		},0);
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------
 	await jQuery("#comment_submit_special").click(async function() {
-		date = new Date();
-		startTime = date.getTime();
-	
-		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
-		const msg = jQuery("#comment_textarea").val(); //获取评论内容
-		const msg_CN = jQuery("#comment_textarea_zhc").val(); //获取评论内容
-		const msg_EN = jQuery("#comment_textarea_en").val(); //获取评论内容
-		const msg_JP = jQuery("#comment_textarea_jp").val(); //获取评论内容
-		const msg_CN_SG = jQuery("#comment_textarea_zh_sg").val(); //获取评论内容
-		const msg_CN_HANT = jQuery("#comment_textarea_zh_hant").val(); //获取评论内容
-		const msg_CN_HK = jQuery("#comment_textarea_zh_hk").val(); //获取评论内容
-		const msg_CN_MO = jQuery("#comment_textarea_zh_mo").val(); //获取评论内容
-		const msg_CN_TW = jQuery("#comment_textarea_zh_tw").val(); //获取评论内容
-		var newMgs = "";
-		var mode = 0;
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-	
-		if (total > 0 && msg.length > 0) {
-			jQuery("#log_head, #log_body").html("");
-			//jQuery(".selected").each(async function(i) {
-			//var jqobj = jQuery(".selected");
-			//var jqobj = jQuery(".selected[data-steamid]"); //排除掉选择的其他的东西
-			var jqobj = jQuery("#search_results .selected.selectable"); //排除掉选择的其他的东西
-	
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-	
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+		
+		setTimeout(async()=>{
+			date = new Date();
+			startTime = date.getTime();
+				
+			const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
+			const msg = jQuery("#comment_textarea").val(); //获取评论内容
+			const msg_CN = jQuery("#comment_textarea_zhc").val(); //获取评论内容
+			const msg_EN = jQuery("#comment_textarea_en").val(); //获取评论内容
+			const msg_JP = jQuery("#comment_textarea_jp").val(); //获取评论内容
+			const msg_CN_SG = jQuery("#comment_textarea_zh_sg").val(); //获取评论内容
+			const msg_CN_HANT = jQuery("#comment_textarea_zh_hant").val(); //获取评论内容
+			const msg_CN_HK = jQuery("#comment_textarea_zh_hk").val(); //获取评论内容
+			const msg_CN_MO = jQuery("#comment_textarea_zh_mo").val(); //获取评论内容
+			const msg_CN_TW = jQuery("#comment_textarea_zh_tw").val(); //获取评论内容
+			var newMgs = "";
+			var mode = 0;
+			var SpecialName = undefined;
+			var steamName = undefined;
+			var name = undefined;
+				
+			if (total > 0 && msg.length > 0) {
+				jQuery("#log_head, #log_body").html("");
+				//jQuery(".selected").each(async function(i) {
+				//var jqobj = jQuery(".selected");
+				//var jqobj = jQuery(".selected[data-steamid]"); //排除掉选择的其他的东西
+				var jqobj = jQuery("#search_results .selected.selectable"); //排除掉选择的其他的东西
+				
+				for (let i = 0; i < jqobj.length; i++) {
+					let cur = jqobj.get(i);
+				
+					//--------------------------------------------------------------------
 					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-					if (SpecialNameobj.length > 0) //安全检查
+					steamName = undefined;
+				
+					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+						//获取备注
+						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+						SpecialName = undefined;
+						if (SpecialNameobj != "undefined") {
+							SpecialName = SpecialNameobj[0].innerText; //备注
+						}
+						//获取steam名称
+						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+						name = steamName;
+					} else //否则如果是好友界面
 					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						//获取名称,然后判断是备注还是steam名称
+						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+						SpecialName = undefined;
+						if (SpecialNameobj.length > 0) //安全检查
 						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							name = SpecialName;
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							SpecialName = undefined; //就没有备注
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							name = steamName;
+							if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+							{
+								console.log("获取到的是备注");
+								SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+								steamName = undefined; //就没有名称
+								name = SpecialName;
+							} else if (nicknameObj.length == 0) {
+								console.log("获取到的是steam名称");
+								SpecialName = undefined; //就没有备注
+								steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+								name = steamName;
+							}
 						}
 					}
-				}
-				//--------------------------------------------------------------------
-				//判断选择的模式
-				if ($("select_islName_checkbox").checked == true) {
-					mode = 1;
-				}
-				else if ($("select_isSpecialName_checkbox").checked == true) {
-					mode = 2;
-				}
-				else if ($("select_isCustom_checkbox").checked == true) {
-					mode = 3;
-				}
-				else //如果都没有选中，则直接发送消息
-					mode = 0;
-	
-				var getVA = function(steamName, SpecialName) {
-					return steamName == undefined ? steamName : SpecialName;
-				};
-	
-				console.log("DBG 0", steamName, SpecialName, name);
-	
-				if (mode == 1) { //是否为好友添加称呼 (如果好友没有备注则使用steam名称)
-					//判断是否有备注,没有则使用steam名称
-					if (SpecialName != undefined) {
-						let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
-						SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
-	
-						if (strNationality == "{CN}" || strNationality == "{CN-N}") {
-							newMgs = SpecialName + msg_CN;
-						} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
-							newMgs = SpecialName + msg_EN;
-						} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
-							newMgs = SpecialName + msg_JP;
-						} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
-							newMgs = SpecialName + msg_CN_SG;
-						} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
-							newMgs = SpecialName + msg_CN_HANT;
-						} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
-							newMgs = SpecialName + msg_CN_HK;
-						} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
-							newMgs = SpecialName + msg_CN_MO;
-						} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
-							newMgs = SpecialName + msg_CN_TW;
-						} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
-						{
-							if (msg_EN != undefined && msg_EN != "")
-								newMgs = SpecialName + msg_EN;
-							else if (msg_JP != undefined && msg_JP != "")
-								newMgs = SpecialName + msg_JP;
-							else if (msg_CN != undefined && msg_CN != "")
+					//--------------------------------------------------------------------
+					//判断选择的模式
+					if ($("select_islName_checkbox").checked == true) {
+						mode = 1;
+					}
+					else if ($("select_isSpecialName_checkbox").checked == true) {
+						mode = 2;
+					}
+					else if ($("select_isCustom_checkbox").checked == true) {
+						mode = 3;
+					}
+					else //如果都没有选中，则直接发送消息
+						mode = 0;
+				
+					var getVA = function(steamName, SpecialName) {
+						return steamName == undefined ? steamName : SpecialName;
+					};
+				
+					console.log("DBG 0", steamName, SpecialName, name);
+				
+					if (mode == 1) { //是否为好友添加称呼 (如果好友没有备注则使用steam名称)
+						//判断是否有备注,没有则使用steam名称
+						if (SpecialName != undefined) {
+							let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
+							SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
+				
+							if (strNationality == "{CN}" || strNationality == "{CN-N}") {
 								newMgs = SpecialName + msg_CN;
-							else
-								newMgs = SpecialName + msg;
-						}
-						console.log("DBG 1", steamName, SpecialName, name, strNationality);
-						console.log("为" + SpecialName + "添加称呼: " + SpecialName);
-						//newMgs = SpecialName + msg;
-					} else {
-						let strNationality = steamName.slice(0, steamName.indexOf('}') + 1); //提取国籍
-						steamName = steamName.slice(steamName.indexOf('}') + 1); //去掉国籍标识
-	
-						if (strNationality == "{CN}" || strNationality == "{CN-N}") {
-							newMgs = steamName + msg_CN;
-						} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
-							newMgs = steamName + msg_EN;
-						} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
-							newMgs = steamName + msg_JP;
-						} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
-							newMgs = steamName + msg_CN_SG;
-						} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
-							newMgs = steamName + msg_CN_HANT;
-						} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
-							newMgs = steamName + msg_CN_HK;
-						} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
-							newMgs = steamName + msg_CN_MO;
-						} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
-							newMgs = steamName + msg_CN_TW;
-						} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
-						{
-							if (msg_EN != undefined && msg_EN != "")
-								newMgs = steamName + msg_EN;
-							else if (msg_JP != undefined && msg_JP != "")
-								newMgs = steamName + msg_JP;
-							else if (msg_CN != undefined && msg_CN != "")
+							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
+								newMgs = SpecialName + msg_EN;
+							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
+								newMgs = SpecialName + msg_JP;
+							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
+								newMgs = SpecialName + msg_CN_SG;
+							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
+								newMgs = SpecialName + msg_CN_HANT;
+							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
+								newMgs = SpecialName + msg_CN_HK;
+							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
+								newMgs = SpecialName + msg_CN_MO;
+							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
+								newMgs = SpecialName + msg_CN_TW;
+							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
+							{
+								if (msg_EN != undefined && msg_EN != "")
+									newMgs = SpecialName + msg_EN;
+								else if (msg_JP != undefined && msg_JP != "")
+									newMgs = SpecialName + msg_JP;
+								else if (msg_CN != undefined && msg_CN != "")
+									newMgs = SpecialName + msg_CN;
+								else
+									newMgs = SpecialName + msg;
+							}
+							console.log("DBG 1", steamName, SpecialName, name, strNationality);
+							console.log("为" + SpecialName + "添加称呼: " + SpecialName);
+							//newMgs = SpecialName + msg;
+						} else {
+							let strNationality = steamName.slice(0, steamName.indexOf('}') + 1); //提取国籍
+							steamName = steamName.slice(steamName.indexOf('}') + 1); //去掉国籍标识
+				
+							if (strNationality == "{CN}" || strNationality == "{CN-N}") {
 								newMgs = steamName + msg_CN;
-							else
-								newMgs = steamName + msg;
+							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
+								newMgs = steamName + msg_EN;
+							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
+								newMgs = steamName + msg_JP;
+							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
+								newMgs = steamName + msg_CN_SG;
+							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
+								newMgs = steamName + msg_CN_HANT;
+							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
+								newMgs = steamName + msg_CN_HK;
+							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
+								newMgs = steamName + msg_CN_MO;
+							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
+								newMgs = steamName + msg_CN_TW;
+							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
+							{
+								if (msg_EN != undefined && msg_EN != "")
+									newMgs = steamName + msg_EN;
+								else if (msg_JP != undefined && msg_JP != "")
+									newMgs = steamName + msg_JP;
+								else if (msg_CN != undefined && msg_CN != "")
+									newMgs = steamName + msg_CN;
+								else
+									newMgs = steamName + msg;
+							}
+							console.log("DBG 2", steamName, SpecialName, name, strNationality);
+							console.log("为" + steamName + "添加称呼: " + steamName);
+							//newMgs = steamName + msg;
 						}
-						console.log("DBG 2", steamName, SpecialName, name, strNationality);
-						console.log("为" + steamName + "添加称呼: " + steamName);
-						//newMgs = steamName + msg;
-					}
-				} else if (mode == 2) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
-					//判断是否有备注,没有则不操作
-					if (SpecialName != undefined) {
-						let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
-						SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
-	
-						if (strNationality == "{CN}" || strNationality == "{CN-N}") {
-							newMgs = SpecialName + msg_CN;
-						} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
-							newMgs = SpecialName + msg_EN;
-						} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
-							newMgs = SpecialName + msg_JP;
-						} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
-							newMgs = SpecialName + msg_CN_SG;
-						} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
-							newMgs = SpecialName + msg_CN_HANT;
-						} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
-							newMgs = SpecialName + msg_CN_HK;
-						} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
-							newMgs = SpecialName + msg_CN_MO;
-						} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
-							newMgs = SpecialName + msg_CN_TW;
-						} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
-						{
-							if (msg_EN != undefined && msg_EN != "")
-								newMgs = SpecialName + msg_EN;
-							else if (msg_JP != undefined && msg_JP != "")
-								newMgs = SpecialName + msg_JP;
-							else if (msg_CN != undefined && msg_CN != "")
+					} else if (mode == 2) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
+						//判断是否有备注,没有则不操作
+						if (SpecialName != undefined) {
+							let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
+							SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
+				
+							if (strNationality == "{CN}" || strNationality == "{CN-N}") {
 								newMgs = SpecialName + msg_CN;
-							else
-								newMgs = SpecialName + msg;
+							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
+								newMgs = SpecialName + msg_EN;
+							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
+								newMgs = SpecialName + msg_JP;
+							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
+								newMgs = SpecialName + msg_CN_SG;
+							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
+								newMgs = SpecialName + msg_CN_HANT;
+							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
+								newMgs = SpecialName + msg_CN_HK;
+							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
+								newMgs = SpecialName + msg_CN_MO;
+							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
+								newMgs = SpecialName + msg_CN_TW;
+							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
+							{
+								if (msg_EN != undefined && msg_EN != "")
+									newMgs = SpecialName + msg_EN;
+								else if (msg_JP != undefined && msg_JP != "")
+									newMgs = SpecialName + msg_JP;
+								else if (msg_CN != undefined && msg_CN != "")
+									newMgs = SpecialName + msg_CN;
+								else
+									newMgs = SpecialName + msg;
+							}
+							console.log("DBG 3", steamName, SpecialName, name, strNationality);
+							console.log("为" + steamName + "添加称呼: " + SpecialName);
+							//newMgs = SpecialName + msg;
+						} else {
+							let strNationality = steamName.slice(0, steamName.indexOf('}') + 1); //提取国籍
+							steamName = steamName.slice(steamName.indexOf('}') + 1); //去掉国籍标识
+				
+							if (strNationality == "{CN}" || strNationality == "{CN-N}") {
+								newMgs = msg_CN;
+							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
+								newMgs = msg_EN;
+							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
+								newMgs = msg_JP;
+							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
+								newMgs = msg_CN_SG;
+							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
+								newMgs = msg_CN_HANT;
+							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
+								newMgs = msg_CN_HK;
+							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
+								newMgs = msg_CN_MO;
+							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
+								newMgs = msg_CN_TW;
+							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
+							{
+								if (msg_EN != undefined && msg_EN != "")
+									newMgs = msg_EN;
+								else if (msg_JP != undefined && msg_JP != "")
+									newMgs = msg_JP;
+								else if (msg_CN != undefined && msg_CN != "")
+									newMgs = msg_CN;
+								else
+									newMgs = msg;
+							}
+							console.log("DBG 4", steamName, SpecialName, name, strNationality);
+							//newMgs = msg;
 						}
-						console.log("DBG 3", steamName, SpecialName, name, strNationality);
-						console.log("为" + steamName + "添加称呼: " + SpecialName);
-						//newMgs = SpecialName + msg;
-					} else {
-						let strNationality = steamName.slice(0, steamName.indexOf('}') + 1); //提取国籍
-						steamName = steamName.slice(steamName.indexOf('}') + 1); //去掉国籍标识
-	
+					} else if (mode == 3) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
+						//判断是否有备注,没有则不操作
+						if (SpecialName != undefined) {
+							let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
+							SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
+							
+							if (strNationality == "{CN}" || strNationality == "{CN-N}") {
+								if(msg_CN == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
+								if(msg_EN == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_EN;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
+								if(msg_JP == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_JP;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
+								if(msg_CN_SG == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_SG;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
+								if(msg_CN_HANT == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_HANT;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
+								if(msg_CN_HK == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_HK;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
+								if(msg_CN_MO == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_MO;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
+								if(msg_CN_TW == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_TW;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
+							{
+								if (msg_EN != undefined && msg_EN != ""){
+									let str = msg_EN;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								}	
+								else if (msg_JP != undefined && msg_JP != ""){
+									let str = msg_JP;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								}
+								else if (msg_CN != undefined && msg_CN != ""){
+									let str = msg_CN;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								}
+								else{
+									let str = msg;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								}
+							}
+							console.log("DBG 3", steamName, SpecialName, name, strNationality);
+							console.log("为" + steamName + "添加称呼: " + SpecialName);
+							//newMgs = SpecialName + msg;
+						} else {
+							let strNationality = steamName.slice(0, steamName.indexOf('}') + 1); //提取国籍
+							steamName = steamName.slice(steamName.indexOf('}') + 1); //去掉国籍标识
+						
+							if (strNationality == "{CN}" || strNationality == "{CN-N}") {
+								if(msg_CN == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
+								if(msg_EN == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_EN;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
+								if(msg_JP == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_JP;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
+								if(msg_CN_SG == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_SG;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
+								if(msg_CN_HANT == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_HANT;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
+								if(msg_CN_HK == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_HK;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
+								if(msg_CN_MO == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_MO;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
+								if(msg_CN_TW == undefined){
+									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
+								}
+								let str = msg_CN_TW;
+								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
+							{
+								if (msg_EN != undefined && msg_EN != ""){
+									let str = msg_EN;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								}	
+								else if (msg_JP != undefined && msg_JP != ""){
+									let str = msg_JP;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								}
+								else if (msg_CN != undefined && msg_CN != ""){
+									let str = msg_CN;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								}
+								else{
+									let str = msg;
+									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								}
+							}
+							console.log("DBG 4", steamName, SpecialName, name, strNationality);
+							//newMgs = msg;
+						}
+					} else if (mode == 0) { //直接发送内容
+						let strNationality = name.slice(0, name.indexOf('}') + 1); //提取国籍
+						name = name.slice(name.indexOf('}') + 1); //去掉国籍标识
+				
 						if (strNationality == "{CN}" || strNationality == "{CN-N}") {
 							newMgs = msg_CN;
 						} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
@@ -5581,282 +5791,100 @@ async function registeredAllEvents() //注册所有的事件
 							else
 								newMgs = msg;
 						}
-						console.log("DBG 4", steamName, SpecialName, name, strNationality);
-						//newMgs = msg;
+						console.log("DBG 5", steamName, SpecialName, name, strNationality);
+						//ewMgs = msg;
 					}
-				} else if (mode == 3) { //是否为好友添加称呼 (请为好友设置备注为需要的称呼,否则不添加称呼)
-					//判断是否有备注,没有则不操作
-					if (SpecialName != undefined) {
-						let strNationality = SpecialName.slice(0, SpecialName.indexOf('}') + 1); //提取国籍
-						SpecialName = SpecialName.slice(SpecialName.indexOf('}') + 1); //去掉国籍标识
-						
-						if (strNationality == "{CN}" || strNationality == "{CN-N}") {
-							if(msg_CN == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
-							if(msg_EN == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_EN;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
-							if(msg_JP == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_JP;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
-							if(msg_CN_SG == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_SG;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
-							if(msg_CN_HANT == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_HANT;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
-							if(msg_CN_HK == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_HK;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
-							if(msg_CN_MO == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_MO;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
-							if(msg_CN_TW == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_TW;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-						} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
-						{
-							if (msg_EN != undefined && msg_EN != ""){
-								let str = msg_EN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-							}	
-							else if (msg_JP != undefined && msg_JP != ""){
-								let str = msg_JP;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-							}
-							else if (msg_CN != undefined && msg_CN != ""){
-								let str = msg_CN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-							}
-							else{
-								let str = msg;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
-							}
-						}
-						console.log("DBG 3", steamName, SpecialName, name, strNationality);
-						console.log("为" + steamName + "添加称呼: " + SpecialName);
-						//newMgs = SpecialName + msg;
-					} else {
-						let strNationality = steamName.slice(0, steamName.indexOf('}') + 1); //提取国籍
-						steamName = steamName.slice(steamName.indexOf('}') + 1); //去掉国籍标识
+					console.log("[Debug] mode:", mode);
+					console.log("[Debug] SpecialName:", SpecialName, "steamName:", steamName);
+					console.log("[Debug] newMgs:", newMgs, "msg:", msg);
+					//--------------------------------------------------------------------
+					let profileID = cur.getAttribute("data-steamid");
 					
-						if (strNationality == "{CN}" || strNationality == "{CN-N}") {
-							if(msg_CN == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
-							if(msg_EN == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_EN;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
-							if(msg_JP == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_JP;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
-							if(msg_CN_SG == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_SG;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
-							if(msg_CN_HANT == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_HANT;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
-							if(msg_CN_HK == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_HK;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
-							if(msg_CN_MO == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_MO;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
-							if(msg_CN_TW == undefined){
-								return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
-							}
-							let str = msg_CN_TW;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-						} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
-						{
-							if (msg_EN != undefined && msg_EN != ""){
-								let str = msg_EN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-							}	
-							else if (msg_JP != undefined && msg_JP != ""){
-								let str = msg_JP;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-							}
-							else if (msg_CN != undefined && msg_CN != ""){
-								let str = msg_CN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-							}
-							else{
-								let str = msg;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
-							}
-						}
-						console.log("DBG 4", steamName, SpecialName, name, strNationality);
-						//newMgs = msg;
-					}
-				} else if (mode == 0) { //直接发送内容
-					let strNationality = name.slice(0, name.indexOf('}') + 1); //提取国籍
-					name = name.slice(name.indexOf('}') + 1); //去掉国籍标识
-	
-					if (strNationality == "{CN}" || strNationality == "{CN-N}") {
-						newMgs = msg_CN;
-					} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
-						newMgs = msg_EN;
-					} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
-						newMgs = msg_JP;
-					} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
-						newMgs = msg_CN_SG;
-					} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
-						newMgs = msg_CN_HANT;
-					} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
-						newMgs = msg_CN_HK;
-					} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
-						newMgs = msg_CN_MO;
-					} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
-						newMgs = msg_CN_TW;
-					} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
-					{
-						if (msg_EN != undefined && msg_EN != "")
-							newMgs = msg_EN;
-						else if (msg_JP != undefined && msg_JP != "")
-							newMgs = msg_JP;
-						else if (msg_CN != undefined && msg_CN != "")
-							newMgs = msg_CN;
-						else
-							newMgs = msg;
-					}
-					console.log("DBG 5", steamName, SpecialName, name, strNationality);
-					//ewMgs = msg;
-				}
-				console.log("[Debug] mode:", mode);
-				console.log("[Debug] SpecialName:", SpecialName, "steamName:", steamName);
-				console.log("[Debug] newMgs:", newMgs, "msg:", msg);
-				//--------------------------------------------------------------------
-				let profileID = cur.getAttribute("data-steamid");
-	
-				if (SpecialName != undefined) {
-					if (SpecialName.indexOf(strNoOperate) != -1) {
-						jQuery("#log_body")[0].innerHTML +=
-							"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-							"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
-						continue;
-					}
-				}
-	
-				(function(i, profileID) {
-					//setTimeout(function() {
-	
-					jQuery.post("//steamcommunity.com/comment/Profile/post/" + profileID + "/-1/", {
-						comment: newMgs,
-						count: 6,
-						sessionid: g_sessionID
-					}, function(response) {
-						if (response.success === false) {
+					if (SpecialName != undefined) {
+						if (SpecialName.indexOf(strNoOperate) != -1) {
 							jQuery("#log_body")[0].innerHTML +=
-								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 留言失败了! ' + profileID + '  ' + name +
-								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
-						} else {
+								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
+							continue;
+						}
+					}
+					
+					(function(i, profileID) {
+						//setTimeout(function() {
+				
+						jQuery.post("//steamcommunity.com/comment/Profile/post/" + profileID + "/-1/", {
+							comment: newMgs,
+							count: 6,
+							sessionid: g_sessionID
+						}, function(response) {
+							if (response.success === false) {
+								jQuery("#log_body")[0].innerHTML +=
+									"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+									"\">" + '[' + (i + 1) + '/' + total + '] 留言失败了! ' + profileID + '  ' + name +
+									'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+							} else {
+								jQuery("#log_body")[0].innerHTML +=
+									'[' + (i + 1) + '/' + total + '] ' +
+									"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
+									profileID + '  ' + name + "</a>" +
+									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+									profileID + "\">" + newMgs + "</a><br>";
+							}
+						}).fail(function() {
 							jQuery("#log_body")[0].innerHTML +=
 								'[' + (i + 1) + '/' + total + '] ' +
-								"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
-								profileID + '  ' + name + "</a>" +
-								"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-								profileID + "\">" + newMgs + "</a><br>";
-						}
-					}).fail(function() {
-						jQuery("#log_body")[0].innerHTML +=
-							'[' + (i + 1) + '/' + total + '] ' +
-							"<span style='color:#DA2626;'>无法发表评论于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-							profileID + "\">" +
-							profileID + '  ' + name + "</a></span><br>";
-					}).always(function() {
-						jQuery("#log_head").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
-					});
-	
-	
-					//}, i * 6000);
-	
-				})(i, profileID);
-				await sleep(delay * 1000)
-				//console.log(cur)
+								"<span style='color:#DA2626;'>无法发表评论于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+								profileID + "\">" +
+								profileID + '  ' + name + "</a></span><br>";
+						}).always(function() {
+							jQuery("#log_head").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
+						});
+						
+						
+						//}, i * 6000);
+				
+					})(i, profileID);
+					await sleep(delay * 1000)
+					//console.log(cur)
+				}
+				
+				
+				date = new Date();
+				endTime = date.getTime();
+				let time = endTime - startTime;
+				//console.log("time",time,endTime,startTime);
+				//--------------------------------------------------------------------------------
+				//计算出相差天数
+				var str = "";
+				let days = Math.floor(time / (24 * 3600 * 1000))
+				//计算出小时数
+				let leave1 = time % (24 * 3600 * 1000) //计算天数后剩余的毫秒数
+				let hours = Math.floor(leave1 / (3600 * 1000))
+				//计算相差分钟数
+				let leave2 = leave1 % (3600 * 1000) //计算小时数后剩余的毫秒数
+				let minutes = Math.floor(leave2 / (60 * 1000))
+				//计算相差秒数
+				let leave3 = leave2 % (60 * 1000) //计算分钟数后剩余的毫秒数
+				//let seconds=Math.round(leave3/1000)
+				let seconds = leave3 / 1000
+				if (days > 0)
+					str += days + "天";
+				if (hours > 0)
+					str += hours + "小时";
+				if (minutes > 0)
+					str += minutes + "分钟";
+				if (seconds > 0)
+					str += seconds + "秒";
+				//--------------------------------------------------------------------------------
+				jQuery("#log_body")[0].innerHTML +=
+					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
+				//});
+				
+			} else {
+				alert("请确保您输入了一条消息并选择了1个或更多好友。");
 			}
-	
-	
-			date = new Date();
-			endTime = date.getTime();
-			let time = endTime - startTime;
-			//console.log("time",time,endTime,startTime);
-			//--------------------------------------------------------------------------------
-			//计算出相差天数
-			var str = "";
-			let days = Math.floor(time / (24 * 3600 * 1000))
-			//计算出小时数
-			let leave1 = time % (24 * 3600 * 1000) //计算天数后剩余的毫秒数
-			let hours = Math.floor(leave1 / (3600 * 1000))
-			//计算相差分钟数
-			let leave2 = leave1 % (3600 * 1000) //计算小时数后剩余的毫秒数
-			let minutes = Math.floor(leave2 / (60 * 1000))
-			//计算相差秒数
-			let leave3 = leave2 % (60 * 1000) //计算分钟数后剩余的毫秒数
-			//let seconds=Math.round(leave3/1000)
-			let seconds = leave3 / 1000
-			if (days > 0)
-				str += days + "天";
-			if (hours > 0)
-				str += hours + "小时";
-			if (minutes > 0)
-				str += minutes + "分钟";
-			if (seconds > 0)
-				str += seconds + "秒";
-			//--------------------------------------------------------------------------------
-			jQuery("#log_body")[0].innerHTML +=
-				"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
-			//});
-	
-		} else {
-			alert("请确保您输入了一条消息并选择了1个或更多好友。");
-		}
+		},0);
+		
 	});
 	
 	var GroupMode = 0; //分组标志 0没有分组 1是国籍 2是离线时间

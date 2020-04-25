@@ -52,6 +52,18 @@ function addNewScript(id, newScript) {
 	styleElement.appendChild(document.createTextNode(newScript));
 }
 
+function addNewModule(id, newScript){
+	var styleElement = document.getElementById(id);
+	
+	if (!styleElement) {
+		styleElement = document.createElement('script');
+		styleElement.type = 'module';
+		styleElement.id = id;
+		document.getElementsByTagName('head')[0].appendChild(styleElement);
+	}
+	styleElement.appendChild(document.createTextNode(newScript));
+}
+
 function loadjscssFile(filePath, filetype) { //动态加载一个js/css文件
 	if (filetype == "js") {
 		var fileref = document.createElement('script')
