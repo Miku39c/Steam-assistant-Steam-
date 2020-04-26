@@ -103,257 +103,257 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 留言数据统计 图表配置
-	Highcharts.setOptions({
-			global : {
-					useUTC : false
-			}
-	});
-	// Create the chart
-	Highcharts.stockChart('container_commentStatistics', {
-			chart : {
-					events : {
-							load : function () {
-									// set up the updating of the chart each second
-									var series = this.series[0];
-									setInterval(function () {
-											var x = (new Date()).getTime(), // current time
-													y = Math.round(Math.random() * 100);
-											series.addPoint([x, y], true, true);
-									}, 1000);
-							}
-					}
-			},
-			rangeSelector: {
-					buttons: [{
-							count: 1,
-							type: 'minute',
-							text: '1M'
-					}, {
-							count: 5,
-							type: 'minute',
-							text: '5M'
-					}, {
-							type: 'all',
-							text: 'All'
-					}],
-					inputEnabled: false,
-					selected: 0
-			},
-			title : {
-					text : 'Live random data'
-			},
-			tooltip: {
-					split: false
-			},
-			exporting: {
-					enabled: false
-			},
-			series : [{
-					name : '随机数据',
-					data : (function () {
-							// generate an array of random data
-							var data = [], time = (new Date()).getTime(), i;
-							for (i = -999; i <= 0; i += 1) {
-									data.push([
-											time + i * 1000,
-											Math.round(Math.random() * 100)
-									]);
-							}
-							return data;
-					}())
-			}]
-	});
+	// Highcharts.setOptions({
+	// 		global : {
+	// 				useUTC : false
+	// 		}
+	// });
+	// // Create the chart
+	// Highcharts.stockChart('container_commentStatistics', {
+	// 		chart : {
+	// 				events : {
+	// 						load : function () {
+	// 								// set up the updating of the chart each second
+	// 								var series = this.series[0];
+	// 								setInterval(function () {
+	// 										var x = (new Date()).getTime(), // current time
+	// 												y = Math.round(Math.random() * 100);
+	// 										series.addPoint([x, y], true, true);
+	// 								}, 1000);
+	// 						}
+	// 				}
+	// 		},
+	// 		rangeSelector: {
+	// 				buttons: [{
+	// 						count: 1,
+	// 						type: 'minute',
+	// 						text: '1M'
+	// 				}, {
+	// 						count: 5,
+	// 						type: 'minute',
+	// 						text: '5M'
+	// 				}, {
+	// 						type: 'all',
+	// 						text: 'All'
+	// 				}],
+	// 				inputEnabled: false,
+	// 				selected: 0
+	// 		},
+	// 		title : {
+	// 				text : 'Live random data'
+	// 		},
+	// 		tooltip: {
+	// 				split: false
+	// 		},
+	// 		exporting: {
+	// 				enabled: false
+	// 		},
+	// 		series : [{
+	// 				name : '随机数据',
+	// 				data : (function () {
+	// 						// generate an array of random data
+	// 						var data = [], time = (new Date()).getTime(), i;
+	// 						for (i = -999; i <= 0; i += 1) {
+	// 								data.push([
+	// 										time + i * 1000,
+	// 										Math.round(Math.random() * 100)
+	// 								]);
+	// 						}
+	// 						return data;
+	// 				}())
+	// 		}]
+	// });
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	// 关系网统计 图表配置
-	// Add the nodes option through an event call. We want to start with the parent
-	// item and apply separate colors to each child element, then the same color to
-	// grandchildren.
-	Highcharts.addEvent(
-		Highcharts.seriesTypes.networkgraph,
-		'afterSetOptions',
-		function (e) {
-			var colors = Highcharts.getOptions().colors,
-				i = 0,
-				nodes = {};
-			e.options.data.forEach(function (link) {
-				if (link[0] === 'Proto Indo-European') {
-					nodes['Proto Indo-European'] = {
-						id: 'Proto Indo-European',
-						marker: {
-							radius: 20
-						}
-					};
-					nodes[link[1]] = {
-						id: link[1],
-						marker: {
-							radius: 10
-						},
-						color: colors[i++]
-					};
-				} else if (nodes[link[0]] && nodes[link[0]].color) {
-					nodes[link[1]] = {
-						id: link[1],
-						color: nodes[link[0]].color
-					};
-				}
-			});
-			e.options.nodes = Object.keys(nodes).map(function (id) {
-				return nodes[id];
-			});
-		}
-	);
-	Highcharts.chart('container_relationshipStatistics', {
-		chart: {
-			type: 'networkgraph',
-			height: '100%'
-		},
-		title: {
-			text: 'The Indo-European Laungauge Tree'
-		},
-		subtitle: {
-			text: 'A Force-Directed Network Graph in Highcharts'
-		},
-		plotOptions: {
-			networkgraph: {
-				keys: ['from', 'to'],
-				layoutAlgorithm: {
-					enableSimulation: true
-				}
-			}
-		},
-		series: [{
-			dataLabels: {
-				enabled: true
-			},
-			data: [
-				['Proto Indo-European', 'Balto-Slavic'],
-				['Proto Indo-European', 'Germanic'],
-				['Proto Indo-European', 'Celtic'],
-				['Proto Indo-European', 'Italic'],
-				['Proto Indo-European', 'Hellenic'],
-				['Proto Indo-European', 'Anatolian'],
-				['Proto Indo-European', 'Indo-Iranian'],
-				['Proto Indo-European', 'Tocharian'],
-				['Indo-Iranian', 'Dardic'],
-				['Indo-Iranian', 'Indic'],
-				['Indo-Iranian', 'Iranian'],
-				['Iranian', 'Old Persian'],
-				['Old Persian', 'Middle Persian'],
-				['Indic', 'Sanskrit'],
-				['Italic', 'Osco-Umbrian'],
-				['Italic', 'Latino-Faliscan'],
-				['Latino-Faliscan', 'Latin'],
-				['Celtic', 'Brythonic'],
-				['Celtic', 'Goidelic'],
-				['Germanic', 'North Germanic'],
-				['Germanic', 'West Germanic'],
-				['Germanic', 'East Germanic'],
-				['North Germanic', 'Old Norse'],
-				['North Germanic', 'Old Swedish'],
-				['North Germanic', 'Old Danish'],
-				['West Germanic', 'Old English'],
-				['West Germanic', 'Old Frisian'],
-				['West Germanic', 'Old Dutch'],
-				['West Germanic', 'Old Low German'],
-				['West Germanic', 'Old High German'],
-				['Old Norse', 'Old Icelandic'],
-				['Old Norse', 'Old Norwegian'],
-				['Old Norwegian', 'Middle Norwegian'],
-				['Old Swedish', 'Middle Swedish'],
-				['Old Danish', 'Middle Danish'],
-				['Old English', 'Middle English'],
-				['Old Dutch', 'Middle Dutch'],
-				['Old Low German', 'Middle Low German'],
-				['Old High German', 'Middle High German'],
-				['Balto-Slavic', 'Baltic'],
-				['Balto-Slavic', 'Slavic'],
-				['Slavic', 'East Slavic'],
-				['Slavic', 'West Slavic'],
-				['Slavic', 'South Slavic'],
-				// Leaves:
-				['Proto Indo-European', 'Phrygian'],
-				['Proto Indo-European', 'Armenian'],
-				['Proto Indo-European', 'Albanian'],
-				['Proto Indo-European', 'Thracian'],
-				['Tocharian', 'Tocharian A'],
-				['Tocharian', 'Tocharian B'],
-				['Anatolian', 'Hittite'],
-				['Anatolian', 'Palaic'],
-				['Anatolian', 'Luwic'],
-				['Anatolian', 'Lydian'],
-				['Iranian', 'Balochi'],
-				['Iranian', 'Kurdish'],
-				['Iranian', 'Pashto'],
-				['Iranian', 'Sogdian'],
-				['Old Persian', 'Pahlavi'],
-				['Middle Persian', 'Persian'],
-				['Hellenic', 'Greek'],
-				['Dardic', 'Dard'],
-				['Sanskrit', 'Sindhi'],
-				['Sanskrit', 'Romani'],
-				['Sanskrit', 'Urdu'],
-				['Sanskrit', 'Hindi'],
-				['Sanskrit', 'Bihari'],
-				['Sanskrit', 'Assamese'],
-				['Sanskrit', 'Bengali'],
-				['Sanskrit', 'Marathi'],
-				['Sanskrit', 'Gujarati'],
-				['Sanskrit', 'Punjabi'],
-				['Sanskrit', 'Sinhalese'],
-				['Osco-Umbrian', 'Umbrian'],
-				['Osco-Umbrian', 'Oscan'],
-				['Latino-Faliscan', 'Faliscan'],
-				['Latin', 'Portugese'],
-				['Latin', 'Spanish'],
-				['Latin', 'French'],
-				['Latin', 'Romanian'],
-				['Latin', 'Italian'],
-				['Latin', 'Catalan'],
-				['Latin', 'Franco-Provençal'],
-				['Latin', 'Rhaeto-Romance'],
-				['Brythonic', 'Welsh'],
-				['Brythonic', 'Breton'],
-				['Brythonic', 'Cornish'],
-				['Brythonic', 'Cuymbric'],
-				['Goidelic', 'Modern Irish'],
-				['Goidelic', 'Scottish Gaelic'],
-				['Goidelic', 'Manx'],
-				['East Germanic', 'Gothic'],
-				['Middle Low German', 'Low German'],
-				['Middle High German', '(High) German'],
-				['Middle High German', 'Yiddish'],
-				['Middle English', 'English'],
-				['Middle Dutch', 'Hollandic'],
-				['Middle Dutch', 'Flemish'],
-				['Middle Dutch', 'Dutch'],
-				['Middle Dutch', 'Limburgish'],
-				['Middle Dutch', 'Brabantian'],
-				['Middle Dutch', 'Rhinelandic'],
-				['Old Frisian', 'Frisian'],
-				['Middle Danish', 'Danish'],
-				['Middle Swedish', 'Swedish'],
-				['Middle Norwegian', 'Norwegian'],
-				['Old Norse', 'Faroese'],
-				['Old Icelandic', 'Icelandic'],
-				['Baltic', 'Old Prussian'],
-				['Baltic', 'Lithuanian'],
-				['Baltic', 'Latvian'],
-				['West Slavic', 'Polish'],
-				['West Slavic', 'Slovak'],
-				['West Slavic', 'Czech'],
-				['West Slavic', 'Wendish'],
-				['East Slavic', 'Bulgarian'],
-				['East Slavic', 'Old Church Slavonic'],
-				['East Slavic', 'Macedonian'],
-				['East Slavic', 'Serbo-Croatian'],
-				['East Slavic', 'Slovene'],
-				['South Slavic', 'Russian'],
-				['South Slavic', 'Ukrainian'],
-				['South Slavic', 'Belarusian'],
-				['South Slavic', 'Rusyn']
-			]
-		}]
-	});
+	// // 关系网统计 图表配置
+	// // Add the nodes option through an event call. We want to start with the parent
+	// // item and apply separate colors to each child element, then the same color to
+	// // grandchildren.
+	// Highcharts.addEvent(
+	// 	Highcharts.seriesTypes.networkgraph,
+	// 	'afterSetOptions',
+	// 	function (e) {
+	// 		var colors = Highcharts.getOptions().colors,
+	// 			i = 0,
+	// 			nodes = {};
+	// 		e.options.data.forEach(function (link) {
+	// 			if (link[0] === 'Proto Indo-European') {
+	// 				nodes['Proto Indo-European'] = {
+	// 					id: 'Proto Indo-European',
+	// 					marker: {
+	// 						radius: 20
+	// 					}
+	// 				};
+	// 				nodes[link[1]] = {
+	// 					id: link[1],
+	// 					marker: {
+	// 						radius: 10
+	// 					},
+	// 					color: colors[i++]
+	// 				};
+	// 			} else if (nodes[link[0]] && nodes[link[0]].color) {
+	// 				nodes[link[1]] = {
+	// 					id: link[1],
+	// 					color: nodes[link[0]].color
+	// 				};
+	// 			}
+	// 		});
+	// 		e.options.nodes = Object.keys(nodes).map(function (id) {
+	// 			return nodes[id];
+	// 		});
+	// 	}
+	// );
+	// Highcharts.chart('container_relationshipStatistics', {
+	// 	chart: {
+	// 		type: 'networkgraph',
+	// 		height: '100%'
+	// 	},
+	// 	title: {
+	// 		text: 'The Indo-European Laungauge Tree'
+	// 	},
+	// 	subtitle: {
+	// 		text: 'A Force-Directed Network Graph in Highcharts'
+	// 	},
+	// 	plotOptions: {
+	// 		networkgraph: {
+	// 			keys: ['from', 'to'],
+	// 			layoutAlgorithm: {
+	// 				enableSimulation: true
+	// 			}
+	// 		}
+	// 	},
+	// 	series: [{
+	// 		dataLabels: {
+	// 			enabled: true
+	// 		},
+	// 		data: [
+	// 			['Proto Indo-European', 'Balto-Slavic'],
+	// 			['Proto Indo-European', 'Germanic'],
+	// 			['Proto Indo-European', 'Celtic'],
+	// 			['Proto Indo-European', 'Italic'],
+	// 			['Proto Indo-European', 'Hellenic'],
+	// 			['Proto Indo-European', 'Anatolian'],
+	// 			['Proto Indo-European', 'Indo-Iranian'],
+	// 			['Proto Indo-European', 'Tocharian'],
+	// 			['Indo-Iranian', 'Dardic'],
+	// 			['Indo-Iranian', 'Indic'],
+	// 			['Indo-Iranian', 'Iranian'],
+	// 			['Iranian', 'Old Persian'],
+	// 			['Old Persian', 'Middle Persian'],
+	// 			['Indic', 'Sanskrit'],
+	// 			['Italic', 'Osco-Umbrian'],
+	// 			['Italic', 'Latino-Faliscan'],
+	// 			['Latino-Faliscan', 'Latin'],
+	// 			['Celtic', 'Brythonic'],
+	// 			['Celtic', 'Goidelic'],
+	// 			['Germanic', 'North Germanic'],
+	// 			['Germanic', 'West Germanic'],
+	// 			['Germanic', 'East Germanic'],
+	// 			['North Germanic', 'Old Norse'],
+	// 			['North Germanic', 'Old Swedish'],
+	// 			['North Germanic', 'Old Danish'],
+	// 			['West Germanic', 'Old English'],
+	// 			['West Germanic', 'Old Frisian'],
+	// 			['West Germanic', 'Old Dutch'],
+	// 			['West Germanic', 'Old Low German'],
+	// 			['West Germanic', 'Old High German'],
+	// 			['Old Norse', 'Old Icelandic'],
+	// 			['Old Norse', 'Old Norwegian'],
+	// 			['Old Norwegian', 'Middle Norwegian'],
+	// 			['Old Swedish', 'Middle Swedish'],
+	// 			['Old Danish', 'Middle Danish'],
+	// 			['Old English', 'Middle English'],
+	// 			['Old Dutch', 'Middle Dutch'],
+	// 			['Old Low German', 'Middle Low German'],
+	// 			['Old High German', 'Middle High German'],
+	// 			['Balto-Slavic', 'Baltic'],
+	// 			['Balto-Slavic', 'Slavic'],
+	// 			['Slavic', 'East Slavic'],
+	// 			['Slavic', 'West Slavic'],
+	// 			['Slavic', 'South Slavic'],
+	// 			// Leaves:
+	// 			['Proto Indo-European', 'Phrygian'],
+	// 			['Proto Indo-European', 'Armenian'],
+	// 			['Proto Indo-European', 'Albanian'],
+	// 			['Proto Indo-European', 'Thracian'],
+	// 			['Tocharian', 'Tocharian A'],
+	// 			['Tocharian', 'Tocharian B'],
+	// 			['Anatolian', 'Hittite'],
+	// 			['Anatolian', 'Palaic'],
+	// 			['Anatolian', 'Luwic'],
+	// 			['Anatolian', 'Lydian'],
+	// 			['Iranian', 'Balochi'],
+	// 			['Iranian', 'Kurdish'],
+	// 			['Iranian', 'Pashto'],
+	// 			['Iranian', 'Sogdian'],
+	// 			['Old Persian', 'Pahlavi'],
+	// 			['Middle Persian', 'Persian'],
+	// 			['Hellenic', 'Greek'],
+	// 			['Dardic', 'Dard'],
+	// 			['Sanskrit', 'Sindhi'],
+	// 			['Sanskrit', 'Romani'],
+	// 			['Sanskrit', 'Urdu'],
+	// 			['Sanskrit', 'Hindi'],
+	// 			['Sanskrit', 'Bihari'],
+	// 			['Sanskrit', 'Assamese'],
+	// 			['Sanskrit', 'Bengali'],
+	// 			['Sanskrit', 'Marathi'],
+	// 			['Sanskrit', 'Gujarati'],
+	// 			['Sanskrit', 'Punjabi'],
+	// 			['Sanskrit', 'Sinhalese'],
+	// 			['Osco-Umbrian', 'Umbrian'],
+	// 			['Osco-Umbrian', 'Oscan'],
+	// 			['Latino-Faliscan', 'Faliscan'],
+	// 			['Latin', 'Portugese'],
+	// 			['Latin', 'Spanish'],
+	// 			['Latin', 'French'],
+	// 			['Latin', 'Romanian'],
+	// 			['Latin', 'Italian'],
+	// 			['Latin', 'Catalan'],
+	// 			['Latin', 'Franco-Provençal'],
+	// 			['Latin', 'Rhaeto-Romance'],
+	// 			['Brythonic', 'Welsh'],
+	// 			['Brythonic', 'Breton'],
+	// 			['Brythonic', 'Cornish'],
+	// 			['Brythonic', 'Cuymbric'],
+	// 			['Goidelic', 'Modern Irish'],
+	// 			['Goidelic', 'Scottish Gaelic'],
+	// 			['Goidelic', 'Manx'],
+	// 			['East Germanic', 'Gothic'],
+	// 			['Middle Low German', 'Low German'],
+	// 			['Middle High German', '(High) German'],
+	// 			['Middle High German', 'Yiddish'],
+	// 			['Middle English', 'English'],
+	// 			['Middle Dutch', 'Hollandic'],
+	// 			['Middle Dutch', 'Flemish'],
+	// 			['Middle Dutch', 'Dutch'],
+	// 			['Middle Dutch', 'Limburgish'],
+	// 			['Middle Dutch', 'Brabantian'],
+	// 			['Middle Dutch', 'Rhinelandic'],
+	// 			['Old Frisian', 'Frisian'],
+	// 			['Middle Danish', 'Danish'],
+	// 			['Middle Swedish', 'Swedish'],
+	// 			['Middle Norwegian', 'Norwegian'],
+	// 			['Old Norse', 'Faroese'],
+	// 			['Old Icelandic', 'Icelandic'],
+	// 			['Baltic', 'Old Prussian'],
+	// 			['Baltic', 'Lithuanian'],
+	// 			['Baltic', 'Latvian'],
+	// 			['West Slavic', 'Polish'],
+	// 			['West Slavic', 'Slovak'],
+	// 			['West Slavic', 'Czech'],
+	// 			['West Slavic', 'Wendish'],
+	// 			['East Slavic', 'Bulgarian'],
+	// 			['East Slavic', 'Old Church Slavonic'],
+	// 			['East Slavic', 'Macedonian'],
+	// 			['East Slavic', 'Serbo-Croatian'],
+	// 			['East Slavic', 'Slovene'],
+	// 			['South Slavic', 'Russian'],
+	// 			['South Slavic', 'Ukrainian'],
+	// 			['South Slavic', 'Belarusian'],
+	// 			['South Slavic', 'Rusyn']
+	// 		]
+	// 	}]
+	// });
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 当前配置统计 图表配置
 	
@@ -361,6 +361,252 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	// 查看好友配置统计 图表配置
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 多选下拉框
+	(function($) {
+		$.fn.ySelect = function(options) {
+			var defaultOptions = {
+				placeholder: '请选择',
+				numDisplayed: 4,
+				overflowText: '{n} selected',
+				searchText: '搜索',
+				showSearch: true
+			}
+			if (typeof options == 'string') {
+				var settings = options;
+			} else {
+				var settings = $.extend(true, {}, defaultOptions, options);
+			}
+	
+			function ySelect(select, settings) {
+				this.$select = $(select);
+				this.settings = settings;
+				this.create();
+			}
+			ySelect.prototype = {
+				create: function() {
+					var multiple = this.$select.is('[multiple]') ? ' multiple' : '';
+					this.$select.wrap('<div class="fs-wrap' + multiple + '"></div>');
+					this.$select.before('<div class="fs-label-wrap"><div class="fs-label">' + this.settings.placeholder +
+						'</div><span class="fs-arrow"></span></div>');
+					this.$select.before('<div class="fs-dropdown hidden"><div class="fs-options"></div></div>');
+					this.$select.addClass('hidden');
+					this.$wrap = this.$select.closest('.fs-wrap');
+					this.reload();
+				},
+				reload: function() {
+					if (this.settings.showSearch) {
+						var search = '<div class="fs-search"><input type="search" placeholder="' + this.settings.searchText +
+							'" /><span class="fs-selectAll"><i class="fa fa-check-square-o"></i></span></div>';
+						this.$wrap.find('.fs-dropdown').prepend(search);
+					}
+					var choices = this.buildOptions(this.$select);
+					this.$wrap.find('.fs-options').html(choices);
+					this.reloadDropdownLabel();
+				},
+				destroy: function() {
+					this.$wrap.find('.fs-label-wrap').remove();
+					this.$wrap.find('.fs-dropdown').remove();
+					this.$select.unwrap().removeClass('hidden');
+				},
+				buildOptions: function($element) {
+					var $this = this;
+					var choices = '';
+					$element.children().each(function(i, el) {
+						var $el = $(el);
+						if ('optgroup' == $el.prop('nodeName').toLowerCase()) {
+							choices += '<div class="fs-optgroup">';
+							choices += '<div class="fs-optgroup-label">' + $el.prop('label') + '</div>';
+							choices += $this.buildOptions($el);
+							choices += '</div>';
+						} else {
+							var selected = $el.is('[selected]') ? ' selected' : '';
+							choices += '<div class="fs-option' + selected + '" data-value="' + $el.prop('value') +
+								'"><span class="fs-checkbox"><i></i></span><div class="fs-option-label">' + $el.html() + '</div></div>';
+						}
+					});
+					return choices;
+				},
+				reloadDropdownLabel: function() {
+					var settings = this.settings;
+					var labelText = [];
+					this.$wrap.find('.fs-option.selected').each(function(i, el) {
+						labelText.push($(el).find('.fs-option-label').text());
+					});
+					if (labelText.length < 1) {
+						labelText = settings.placeholder;
+					} else if (labelText.length > settings.numDisplayed) {
+						labelText = settings.overflowText.replace('{n}', labelText.length);
+					} else {
+						labelText = labelText.join(', ');
+					}
+					this.$wrap.find('.fs-label').html(labelText);
+					this.$select.change();
+				},
+				setwrap: function() {
+					return "123";
+				},
+			}
+			return this.each(function() {
+				var data = $(this).data('ySelect');
+				if (!data) {
+					data = new ySelect(this, settings);
+					$(this).data('ySelect', data);
+				}
+				if (typeof settings == 'string') {
+					data[settings]();
+				}
+			});
+		}
+		window.ySelect = {
+			'active': null,
+			'idx': -1
+		};
+	
+		function setIndexes($wrap) {
+			$wrap.find('.fs-option:not(.hidden)').each(function(i, el) {
+				$(el).attr('data-index', i);
+				$wrap.find('.fs-option').removeClass('hl');
+			});
+			$wrap.find('.fs-search input').focus();
+			window.ySelect.idx = -1;
+		}
+	
+		function setScroll($wrap) {
+			var $container = $wrap.find('.fs-options');
+			var $selected = $wrap.find('.fs-option.hl');
+			var itemMin = $selected.offset().top + $container.scrollTop();
+			var itemMax = itemMin + $selected.outerHeight();
+			var containerMin = $container.offset().top + $container.scrollTop();
+			var containerMax = containerMin + $container.outerHeight();
+			if (itemMax > containerMax) {
+				var to = $container.scrollTop() + itemMax - containerMax;
+				$container.scrollTop(to);
+			} else if (itemMin < containerMin) {
+				var to = $container.scrollTop() - containerMin - itemMin;
+				$container.scrollTop(to);
+			}
+		}
+		$(document).on('click', '.fs-selectAll', function() {
+			$(this).parent().next().find('.fs-option.selected').click();
+			$(this).parent().next().find('.fs-option').click();
+			$(this).addClass('selected');
+		});
+		$(document).on('click', '.fs-selectAll.selected', function() {
+			$(this).parent().next().find('.fs-option.selected').click();
+			$(this).removeClass('selected');
+		});
+		$(document).on('click', '.fs-option', function() {
+			var $wrap = $(this).closest('.fs-wrap');
+			if ($wrap.hasClass('multiple')) {
+				var selected = [];
+				$(this).toggleClass('selected');
+				$wrap.find('.fs-option.selected').each(function(i, el) {
+					selected.push($(el).attr('data-value'));
+				});
+			} else {
+				var selected = $(this).attr('data-value');
+				$wrap.find('.fs-option').removeClass('selected');
+				$(this).addClass('selected');
+				$wrap.find('.fs-dropdown').hide();
+			}
+			$wrap.find('select').val(selected);
+			$wrap.find('select').ySelect('reloadDropdownLabel');
+			$wrap.find('select').ySelect('setwrap');
+		});
+		$(document).on('keyup', '.fs-search input', function(e) {
+			if (40 == e.which) {
+				$(this).blur();
+				return;
+			}
+			var $wrap = $(this).closest('.fs-wrap');
+			var keywords = $(this).val();
+			$wrap.find('.fs-option, .fs-optgroup-label').removeClass('hidden');
+			if ('' != keywords) {
+				$wrap.find('.fs-option').each(function() {
+					var regex = new RegExp(keywords, 'gi');
+					if (null === $(this).find('.fs-option-label').text().match(regex)) {
+						$(this).addClass('hidden');
+					}
+				});
+				$wrap.find('.fs-optgroup-label').each(function() {
+					var num_visible = $(this).closest('.fs-optgroup').find('.fs-option:not(.hidden)').length;
+					if (num_visible < 1) {
+						$(this).addClass('hidden');
+					}
+				});
+			}
+			setIndexes($wrap);
+		});
+		$(document).on('click', function(e) {
+			var $el = $(e.target);
+			var $wrap = $el.closest('.fs-wrap');
+			if (0 < $wrap.length) {
+				if ($el.hasClass('fs-label') || $el.hasClass('fs-arrow')) {
+					window.ySelect.active = $wrap;
+					var is_hidden = $wrap.find('.fs-dropdown').hasClass('hidden');
+					$('.fs-dropdown').addClass('hidden');
+					if (is_hidden) {
+						$wrap.find('.fs-dropdown').removeClass('hidden');
+					} else {
+						$wrap.find('.fs-dropdown').addClass('hidden');
+					}
+					setIndexes($wrap);
+				}
+			} else {
+				$('.fs-dropdown').addClass('hidden');
+				window.ySelect.active = null;
+			}
+		});
+		$(document).on('keydown', function(e) {
+			var $wrap = window.ySelect.active;
+			if (null === $wrap) {
+				return;
+			} else if (38 == e.which) {
+				e.preventDefault();
+				$wrap.find('.fs-option').removeClass('hl');
+				if (window.ySelect.idx > 0) {
+					window.ySelect.idx--;
+					$wrap.find('.fs-option[data-index=' + window.ySelect.idx + ']').addClass('hl');
+					setScroll($wrap);
+				} else {
+					window.ySelect.idx = -1;
+					$wrap.find('.fs-search input').focus();
+				}
+			} else if (40 == e.which) {
+				e.preventDefault();
+				var last_index = $wrap.find('.fs-option:last').attr('data-index');
+				if (window.ySelect.idx < parseInt(last_index)) {
+					window.ySelect.idx++;
+					$wrap.find('.fs-option').removeClass('hl');
+					$wrap.find('.fs-option[data-index=' + window.ySelect.idx + ']').addClass('hl');
+					setScroll($wrap);
+				}
+			} else if (32 == e.which || 13 == e.which) {
+				$wrap.find('.fs-option.hl').click();
+			} else if (27 == e.which) {
+				$('.fs-dropdown').addClass('hidden');
+				window.ySelect.active = null;
+			}
+		});
+		$.fn.ySelectedValues = function(splitString) {
+			var result = "";
+			var $selects = this.find("option:selected");
+			for (var i = 0; i < $selects.length; i++) {
+				result += $selects[i].value + ((i == $selects.length - 1) ? "" : splitString);
+			}
+			return result;
+		}
+		$.fn.ySelectedTexts = function(splitString) {
+			var result = "";
+			var $selects = this.find("option:selected");
+			for (var i = 0; i < $selects.length; i++) {
+				result += $selects[i].text + ((i == $selects.length - 1) ? "" : splitString);
+			}
+			return result;
+		}
+	})(jQuery);
+	
+	
 	jQuery('.selectBox').ySelect({
 		placeholder: '请先选择要翻译为的语言',
 		searchText: '搜索~发现新世界~',

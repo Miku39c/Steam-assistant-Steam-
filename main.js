@@ -7,8 +7,8 @@
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.3.2
-// @date         2020.4.25
+// @version      1.2.3.3.3
+// @date         2020.4.26
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @require      file://D:\Desktop\图片\steam\git steam\common.js
 // @require      file://D:\Desktop\图片\steam\git steam\websocket.js
@@ -57,34 +57,14 @@
 // @connect      api.mz-moe.cn            //https://mz-moe.cn/?p=23
 // @connect      www.layuicdn.com
 // @noframes
-// @run-at       document-body
+// @run-at       document-start
 // ==/UserScript==
 
 
 
-var delay = 4; // 设置你的留言时间间隔,单位秒
-var strNoOperate = "(不留言)"; //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-var strRemarkPlaceholder = "{name}"; //设置你的称呼占位符: 同上
-
-async function Main() {
-	if (document.URL.lastIndexOf("/friends") == -1 || document.URL.indexOf("https://steamcommunity.com") == -1) {
-		alert("请在打开的页面上,在Console(控制台)粘贴运行代码!");
-		open("https://steamcommunity.com/my/friends");
-	} else {
-		var date;
-		var startTime = 0,
-			endTime = 0;
-		
-		if (delay < 0) delay = 0;
-		
-		(async()=>{
-		var ui = new UI();
-		await ui.initUI();
+(async()=>{
+	var ui = new UI();
+	if(await ui.initUI() != false){
 		await ui.createUI();
-		})();
-		
 	}
-
-}
-
-Main();
+})();

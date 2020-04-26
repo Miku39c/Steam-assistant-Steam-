@@ -2,7 +2,7 @@ async function registeredAllEvents() //注册所有的事件
 {
 	jQuery("#addCustomName").click(async function() {
 		var inString = document.getElementById("comment_textarea");
-		inString.value += strRemarkPlaceholder;
+		inString.value += g_conf[0].strRemarkPlaceholder;
 	});
 	
 	//<留言时的时间戳-目标时间戳>
@@ -13,8 +13,6 @@ async function registeredAllEvents() //注册所有的事件
 	jQuery("#unsetTimeInterval").click(async function() {
 		
 	});
-	
-	
 	
 	jQuery("#setNoLeave").click(async function() {
 		var SpecialName = undefined;
@@ -34,7 +32,7 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 				
-				var nostrNoOperate = strNoOperate + "-N";
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 				
 				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
 					//获取备注
@@ -61,7 +59,7 @@ async function registeredAllEvents() //注册所有的事件
 							console.log("获取到的是备注");
 							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
 							steamName = undefined; //就没有名称
-							if (SpecialName.indexOf(strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
+							if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
 							{
 								jQuery("#log_body1")[0].innerHTML +=
 									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
@@ -69,7 +67,7 @@ async function registeredAllEvents() //注册所有的事件
 								continue;
 							}
 							name = SpecialName;
-							name = name + strNoOperate; //组合
+							name = name + g_conf[0].strNoOperate; //组合
 						} else if (nicknameObj.length == 0) {
 							console.log("获取到的是steam名称");
 							SpecialName = undefined; //就没有备注
@@ -138,7 +136,7 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 			
-				var nostrNoOperate = strNoOperate + "-N";
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 			
 				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
 					//获取备注
@@ -169,9 +167,9 @@ async function registeredAllEvents() //注册所有的事件
 								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(nostrNoOperate)); //去掉国籍标识
 								name = ""; //去掉备注
 							}
-							else if (SpecialName.lastIndexOf(strNoOperate) != -1) //检查是否设置了国籍标识
+							else if (SpecialName.lastIndexOf(g_conf[0].strNoOperate) != -1) //检查是否设置了国籍标识
 							{
-								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(strNoOperate)); //去掉国籍标识
+								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(g_conf[0].strNoOperate)); //去掉国籍标识
 								name = SpecialName; //使用原来的备注
 							}else {
 								jQuery("#log_body1")[0].innerHTML +=
@@ -927,10 +925,10 @@ async function registeredAllEvents() //注册所有的事件
 							
 							console.log("为" + steamName + "添加称呼: " + SpecialName);
 							let str = msg;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 						} else {
 							let str = msg;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 						}
 					} else if (mode == 0) { //直接发送内容
 						newMgs = msg;
@@ -942,7 +940,7 @@ async function registeredAllEvents() //注册所有的事件
 					let profileID = cur.getAttribute("data-steamid");
 		
 					if (SpecialName != undefined) {
-						if (SpecialName.indexOf(strNoOperate) != -1) {
+						if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1) {
 							jQuery("#log_body")[0].innerHTML +=
 								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
 								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
@@ -985,7 +983,7 @@ async function registeredAllEvents() //注册所有的事件
 						//}, i * 6000);
 		
 					})(i, profileID);
-					await sleep(delay * 1000)
+					await sleep(g_conf[0].delay * 1000)
 					//console.log(cur)
 				}
 		
@@ -1268,66 +1266,66 @@ async function registeredAllEvents() //注册所有的事件
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
 								if(msg_EN == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_EN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
 								if(msg_JP == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_JP;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
 								if(msg_CN_SG == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_SG;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
 								if(msg_CN_HANT == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HANT;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
 								if(msg_CN_HK == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HK;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
 								if(msg_CN_MO == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_MO;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
 								if(msg_CN_TW == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_TW;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
 							{
 								if (msg_EN != undefined && msg_EN != ""){
 									let str = msg_EN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}	
 								else if (msg_JP != undefined && msg_JP != ""){
 									let str = msg_JP;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}
 								else if (msg_CN != undefined && msg_CN != ""){
 									let str = msg_CN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}
 								else{
 									let str = msg;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}
 							}
 							console.log("DBG 3", steamName, SpecialName, name, strNationality);
@@ -1342,66 +1340,66 @@ async function registeredAllEvents() //注册所有的事件
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
 								if(msg_EN == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_EN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
 								if(msg_JP == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_JP;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
 								if(msg_CN_SG == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_SG;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
 								if(msg_CN_HANT == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HANT;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
 								if(msg_CN_HK == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HK;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
 								if(msg_CN_MO == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_MO;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
 								if(msg_CN_TW == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_TW;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
 							{
 								if (msg_EN != undefined && msg_EN != ""){
 									let str = msg_EN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}	
 								else if (msg_JP != undefined && msg_JP != ""){
 									let str = msg_JP;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}
 								else if (msg_CN != undefined && msg_CN != ""){
 									let str = msg_CN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}
 								else{
 									let str = msg;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}
 							}
 							console.log("DBG 4", steamName, SpecialName, name, strNationality);
@@ -1448,7 +1446,7 @@ async function registeredAllEvents() //注册所有的事件
 					let profileID = cur.getAttribute("data-steamid");
 					
 					if (SpecialName != undefined) {
-						if (SpecialName.indexOf(strNoOperate) != -1) {
+						if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1) {
 							jQuery("#log_body")[0].innerHTML +=
 								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
 								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
@@ -1491,7 +1489,7 @@ async function registeredAllEvents() //注册所有的事件
 						//}, i * 6000);
 				
 					})(i, profileID);
-					await sleep(delay * 1000)
+					await sleep(g_conf[0].delay * 1000)
 					//console.log(cur)
 				}
 				

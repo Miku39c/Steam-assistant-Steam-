@@ -17,6 +17,14 @@ function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	}
 	return 0;
 }
+
+function getLoginStatus(){
+	if(g_steamID == false)
+		return false; //没有登陆
+	else if(typeof g_steamID == "string" && g_steamID.indexOf('7656119')==0)
+		return true; //成功登陆
+}
+
 //-------------------------------------------------------------------------------------------------------------
 // API
 function getCityCodeByEnglishName(cityEnglishName) {

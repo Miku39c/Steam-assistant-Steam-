@@ -7,8 +7,9 @@
 // @namespace    Steam Tampermonkey Script
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.3.2
-// @date         2020.4.25
+// @version      1.2.3.3.3
+// @date         2020.4.26
+// @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @author       Miku39
 // @license      GPL License
 // @updateURL    https://greasyfork.org/zh-CN/scripts/397073
@@ -45,7 +46,7 @@
 // @connect      api.mz-moe.cn            //https://mz-moe.cn/?p=23
 // @connect      www.layuicdn.com
 // @noframes
-// @run-at       document-body
+// @run-at       document-start
 // ==/UserScript==
 
 //-------------------------------------------------------------------------------------------------------------
@@ -376,252 +377,6 @@ async function getResourceByURL_Test1(resourceURL) {
 	// 	}
 	// });
 }
-
-//-------------------------------------------------------------------------------------------------------------
-// 多选下拉框
-(function($) {
-	$.fn.ySelect = function(options) {
-		var defaultOptions = {
-			placeholder: '请选择',
-			numDisplayed: 4,
-			overflowText: '{n} selected',
-			searchText: '搜索',
-			showSearch: true
-		}
-		if (typeof options == 'string') {
-			var settings = options;
-		} else {
-			var settings = $.extend(true, {}, defaultOptions, options);
-		}
-
-		function ySelect(select, settings) {
-			this.$select = $(select);
-			this.settings = settings;
-			this.create();
-		}
-		ySelect.prototype = {
-			create: function() {
-				var multiple = this.$select.is('[multiple]') ? ' multiple' : '';
-				this.$select.wrap('<div class="fs-wrap' + multiple + '"></div>');
-				this.$select.before('<div class="fs-label-wrap"><div class="fs-label">' + this.settings.placeholder +
-					'</div><span class="fs-arrow"></span></div>');
-				this.$select.before('<div class="fs-dropdown hidden"><div class="fs-options"></div></div>');
-				this.$select.addClass('hidden');
-				this.$wrap = this.$select.closest('.fs-wrap');
-				this.reload();
-			},
-			reload: function() {
-				if (this.settings.showSearch) {
-					var search = '<div class="fs-search"><input type="search" placeholder="' + this.settings.searchText +
-						'" /><span class="fs-selectAll"><i class="fa fa-check-square-o"></i></span></div>';
-					this.$wrap.find('.fs-dropdown').prepend(search);
-				}
-				var choices = this.buildOptions(this.$select);
-				this.$wrap.find('.fs-options').html(choices);
-				this.reloadDropdownLabel();
-			},
-			destroy: function() {
-				this.$wrap.find('.fs-label-wrap').remove();
-				this.$wrap.find('.fs-dropdown').remove();
-				this.$select.unwrap().removeClass('hidden');
-			},
-			buildOptions: function($element) {
-				var $this = this;
-				var choices = '';
-				$element.children().each(function(i, el) {
-					var $el = $(el);
-					if ('optgroup' == $el.prop('nodeName').toLowerCase()) {
-						choices += '<div class="fs-optgroup">';
-						choices += '<div class="fs-optgroup-label">' + $el.prop('label') + '</div>';
-						choices += $this.buildOptions($el);
-						choices += '</div>';
-					} else {
-						var selected = $el.is('[selected]') ? ' selected' : '';
-						choices += '<div class="fs-option' + selected + '" data-value="' + $el.prop('value') +
-							'"><span class="fs-checkbox"><i></i></span><div class="fs-option-label">' + $el.html() + '</div></div>';
-					}
-				});
-				return choices;
-			},
-			reloadDropdownLabel: function() {
-				var settings = this.settings;
-				var labelText = [];
-				this.$wrap.find('.fs-option.selected').each(function(i, el) {
-					labelText.push($(el).find('.fs-option-label').text());
-				});
-				if (labelText.length < 1) {
-					labelText = settings.placeholder;
-				} else if (labelText.length > settings.numDisplayed) {
-					labelText = settings.overflowText.replace('{n}', labelText.length);
-				} else {
-					labelText = labelText.join(', ');
-				}
-				this.$wrap.find('.fs-label').html(labelText);
-				this.$select.change();
-			},
-			setwrap: function() {
-				return "123";
-			},
-		}
-		return this.each(function() {
-			var data = $(this).data('ySelect');
-			if (!data) {
-				data = new ySelect(this, settings);
-				$(this).data('ySelect', data);
-			}
-			if (typeof settings == 'string') {
-				data[settings]();
-			}
-		});
-	}
-	window.ySelect = {
-		'active': null,
-		'idx': -1
-	};
-
-	function setIndexes($wrap) {
-		$wrap.find('.fs-option:not(.hidden)').each(function(i, el) {
-			$(el).attr('data-index', i);
-			$wrap.find('.fs-option').removeClass('hl');
-		});
-		$wrap.find('.fs-search input').focus();
-		window.ySelect.idx = -1;
-	}
-
-	function setScroll($wrap) {
-		var $container = $wrap.find('.fs-options');
-		var $selected = $wrap.find('.fs-option.hl');
-		var itemMin = $selected.offset().top + $container.scrollTop();
-		var itemMax = itemMin + $selected.outerHeight();
-		var containerMin = $container.offset().top + $container.scrollTop();
-		var containerMax = containerMin + $container.outerHeight();
-		if (itemMax > containerMax) {
-			var to = $container.scrollTop() + itemMax - containerMax;
-			$container.scrollTop(to);
-		} else if (itemMin < containerMin) {
-			var to = $container.scrollTop() - containerMin - itemMin;
-			$container.scrollTop(to);
-		}
-	}
-	$(document).on('click', '.fs-selectAll', function() {
-		$(this).parent().next().find('.fs-option.selected').click();
-		$(this).parent().next().find('.fs-option').click();
-		$(this).addClass('selected');
-	});
-	$(document).on('click', '.fs-selectAll.selected', function() {
-		$(this).parent().next().find('.fs-option.selected').click();
-		$(this).removeClass('selected');
-	});
-	$(document).on('click', '.fs-option', function() {
-		var $wrap = $(this).closest('.fs-wrap');
-		if ($wrap.hasClass('multiple')) {
-			var selected = [];
-			$(this).toggleClass('selected');
-			$wrap.find('.fs-option.selected').each(function(i, el) {
-				selected.push($(el).attr('data-value'));
-			});
-		} else {
-			var selected = $(this).attr('data-value');
-			$wrap.find('.fs-option').removeClass('selected');
-			$(this).addClass('selected');
-			$wrap.find('.fs-dropdown').hide();
-		}
-		$wrap.find('select').val(selected);
-		$wrap.find('select').ySelect('reloadDropdownLabel');
-		$wrap.find('select').ySelect('setwrap');
-	});
-	$(document).on('keyup', '.fs-search input', function(e) {
-		if (40 == e.which) {
-			$(this).blur();
-			return;
-		}
-		var $wrap = $(this).closest('.fs-wrap');
-		var keywords = $(this).val();
-		$wrap.find('.fs-option, .fs-optgroup-label').removeClass('hidden');
-		if ('' != keywords) {
-			$wrap.find('.fs-option').each(function() {
-				var regex = new RegExp(keywords, 'gi');
-				if (null === $(this).find('.fs-option-label').text().match(regex)) {
-					$(this).addClass('hidden');
-				}
-			});
-			$wrap.find('.fs-optgroup-label').each(function() {
-				var num_visible = $(this).closest('.fs-optgroup').find('.fs-option:not(.hidden)').length;
-				if (num_visible < 1) {
-					$(this).addClass('hidden');
-				}
-			});
-		}
-		setIndexes($wrap);
-	});
-	$(document).on('click', function(e) {
-		var $el = $(e.target);
-		var $wrap = $el.closest('.fs-wrap');
-		if (0 < $wrap.length) {
-			if ($el.hasClass('fs-label') || $el.hasClass('fs-arrow')) {
-				window.ySelect.active = $wrap;
-				var is_hidden = $wrap.find('.fs-dropdown').hasClass('hidden');
-				$('.fs-dropdown').addClass('hidden');
-				if (is_hidden) {
-					$wrap.find('.fs-dropdown').removeClass('hidden');
-				} else {
-					$wrap.find('.fs-dropdown').addClass('hidden');
-				}
-				setIndexes($wrap);
-			}
-		} else {
-			$('.fs-dropdown').addClass('hidden');
-			window.ySelect.active = null;
-		}
-	});
-	$(document).on('keydown', function(e) {
-		var $wrap = window.ySelect.active;
-		if (null === $wrap) {
-			return;
-		} else if (38 == e.which) {
-			e.preventDefault();
-			$wrap.find('.fs-option').removeClass('hl');
-			if (window.ySelect.idx > 0) {
-				window.ySelect.idx--;
-				$wrap.find('.fs-option[data-index=' + window.ySelect.idx + ']').addClass('hl');
-				setScroll($wrap);
-			} else {
-				window.ySelect.idx = -1;
-				$wrap.find('.fs-search input').focus();
-			}
-		} else if (40 == e.which) {
-			e.preventDefault();
-			var last_index = $wrap.find('.fs-option:last').attr('data-index');
-			if (window.ySelect.idx < parseInt(last_index)) {
-				window.ySelect.idx++;
-				$wrap.find('.fs-option').removeClass('hl');
-				$wrap.find('.fs-option[data-index=' + window.ySelect.idx + ']').addClass('hl');
-				setScroll($wrap);
-			}
-		} else if (32 == e.which || 13 == e.which) {
-			$wrap.find('.fs-option.hl').click();
-		} else if (27 == e.which) {
-			$('.fs-dropdown').addClass('hidden');
-			window.ySelect.active = null;
-		}
-	});
-	$.fn.ySelectedValues = function(splitString) {
-		var result = "";
-		var $selects = this.find("option:selected");
-		for (var i = 0; i < $selects.length; i++) {
-			result += $selects[i].value + ((i == $selects.length - 1) ? "" : splitString);
-		}
-		return result;
-	}
-	$.fn.ySelectedTexts = function(splitString) {
-		var result = "";
-		var $selects = this.find("option:selected");
-		for (var i = 0; i < $selects.length; i++) {
-			result += $selects[i].text + ((i == $selects.length - 1) ? "" : splitString);
-		}
-		return result;
-	}
-})(jQuery);
 //-------------------------------------------------------------------------------------------------------------
 function WriteLog() {
 	// eslint-disable-next-line no-console
@@ -786,6 +541,113 @@ var log = new Log("Sophie");
 //log.test("Arguments.getArgumentsAllValueByDebug() successed!");
 //log.debug("Arguments.getArgumentsAllValueByDebug() 111");
 //log.debug(Arguments.getArgumentsAllValueByDebug, "111");
+
+//保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表
+var g_conf = [
+	{autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
+	,delay: 4 // 设置你的留言时间间隔,单位秒
+	,strNoOperate: "(不留言)" //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
+	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
+	,steamID: ""
+	}
+]// g_conf[0].
+
+//只读类型的默认配置信息对象
+const default_conf = {
+	autoLogin: 1
+	,delay: 4
+	,strNoOperate: "(不留言)"
+	,strRemarkPlaceholder: "{name}"
+	,steamID: ""
+}
+
+function fixConfInfo(i,steamID){ //修复配置信息
+	var isFix = false;
+	
+	if (g_conf[i].delay < 0){
+		isFix = true; g_conf[i].delay = 4;
+	}
+	if (g_conf[i].strNoOperate == ""){
+		isFix = true; g_conf[i].strNoOperate = "(不留言)";
+	}
+	if (g_conf[i].strRemarkPlaceholder == ""){
+		isFix = true; g_conf[i].strRemarkPlaceholder = "{name}";
+	}
+	
+	return isFix;
+}
+
+function newUserGuide(steamID){ //新用户引导
+	//新手引导
+	//console.log("欢迎使用Steam小助手. 当前版本: 更新时间:");
+	//显示简短的教程界面
+	//console.log("是否进入教程?");
+	//console.log("文字教程: 链接到指南 视频教程: 链接");
+	//对配置文件进行初始化，将默认设置作为当前用户的配置信息存储到第一格
+	var length = g_conf.push(default_conf); //添加默认配置信息作为新配置信息
+	g_conf[length-1].steamID = steamID; //设置当前用户的steamID，作为当前用户的配置信息
+}
+
+function readUserConfInfoToCurrConfInfo(i){ //读取用户配置信息到当前配置信息处[0]
+	g_conf[0].autoLogin = g_conf[i].autoLogin;
+	g_conf[0].delay = g_conf[i].delay;
+	g_conf[0].strNoOperate = g_conf[i].strNoOperate;
+	g_conf[0].strRemarkPlaceholder = g_conf[i].strRemarkPlaceholder;
+	g_conf[0].steamID = g_conf[i].steamID;
+}
+
+function readConfInfo(steamID){ //读取已保存的对应配置信息
+	
+	if(g_conf.length == 1){ //说明没有格外的配置信息
+		newUserGuide(steamID);
+	}
+	else
+	{
+		for (let i = 1; i < g_conf.length; i++) { //遍历所有的配置信息
+			if(g_conf[i].steamID == steamID){
+				readUserConfInfoToCurrConfInfo(i); //读取用户配置信息到当前配置信息处[0]
+				return true;
+			}
+		}
+		//如果没有查找到，则新建用户引导
+		newUserGuide(steamID);
+		return true;
+	}
+}
+
+function saveConfInfo(steamID){ //保存最新的配置信息
+	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+		console.log("尝试保存的配置信息无效，已经恢复至默认值. 请检查...");
+	}
+	//从0号中读取出来，存储到对应的位置
+	
+}
+
+function initConfInfo(i,steamID){ //配置信息初始化(恢复默认)
+	g_conf[i].autoLogin = default_conf.autoLogin;
+	g_conf[i].delay = default_conf.delay;
+	g_conf[i].strNoOperate = default_conf.strNoOperate;
+	g_conf[i].strRemarkPlaceholder = default_conf.strRemarkPlaceholder;
+	g_conf[i].steamID = default_conf.steamID;
+}
+
+function exportConfInfo(steamID){ //导出配置信息(到文件)
+	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+		console.log("尝试导出的配置信息无效，已经恢复至默认值. 请检查...");
+	}
+	//从0号中读取出来，导出到文件
+	
+}
+
+function importConfInfo(steamID){ //导入配置信息(选择文件并读取)
+	//从文件中读取配置信息，导入到0号配置
+	
+	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+		console.log("尝试导入的配置信息无效，已经恢复至默认值. 请检查...");
+	}
+	
+	//保存配置文件
+}
 
 //-------------------------------------------------------------------------------------------------------------
 // 翻译API
@@ -2275,6 +2137,14 @@ function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	}
 	return 0;
 }
+
+function getLoginStatus(){
+	if(g_steamID == false)
+		return false; //没有登陆
+	else if(typeof g_steamID == "string" && g_steamID.indexOf('7656119')==0)
+		return true; //成功登陆
+}
+
 //-------------------------------------------------------------------------------------------------------------
 // API
 function getCityCodeByEnglishName(cityEnglishName) {
@@ -2461,11 +2331,12 @@ var gc_friAct = null;
 
 class UI {
 	constructor(arg) {
-
+	
 	}
 	
 	async loadBaseResources(){
 		let arr = [];
+		var arrjsData = new Array(5);
 		//0.基本环境-加载css
 		arr.push(new Promise(function (resolve, reject){
 			//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
@@ -2488,17 +2359,18 @@ class UI {
 				color: #aaa\
 				}'
 			); /* 覆盖layui的css样式 */
-			resolve('成功') // 数据处理完成
+			resolve('css') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
+		
 		//1.基本环境-加载js到页面上，方便调试
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
-			var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true);
+			var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true); //
 			//console.log("数据获取成果",jsData);
 			addNewScript('layui_Script', jsData);
 			//console.log("layui_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('layui') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
@@ -2507,477 +2379,508 @@ class UI {
 			//console.log("数据获取成果",jsData);
 			addNewScript('localforage_Script', jsData);
 			//console.log("localforage_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('localforage') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highstock/highstock.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highstock/highstock.js",true);
+			arrjsData[0] = await getResourceByURL("https://code.highcharts.com.cn/highstock/highstock.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highstock_Script', jsData);
-			//console.log("highstock_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highstock') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/exporting.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/exporting.js",true);
+			arrjsData[1] = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/exporting.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_exporting_Script', jsData);
-			//console.log("highcharts_exporting_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts exporting') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/oldie.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/oldie.js",true);
+			arrjsData[2] = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/oldie.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_oldie_Script', jsData);
-			//console.log("highcharts_oldie_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts oldie') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js",true);
+			arrjsData[3] = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_networkgraph_Script', jsData);
-			//console.log("highcharts_networkgraph_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts networkgraph') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js",true);
+			arrjsData[4] = await getResourceByURL("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_zh_CN_Script', jsData);
-			//console.log("highcharts_zh_CN_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts zh_CN') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
-		// arr.push(new Promise(async function (resolve, reject){
-			
-		// }));
-		let res = await Promise.all(arr);
-		console.log("ret:",res);
 		
+		arr.push(new Promise(async function (resolve, reject){
+			addNewStyle('styles_js',
+				'::selection {color:#000;background: #35d5ff;}\
+					#addFriendToGroup,#unaddFriendToGroup,#setTimeInterval,#unsetTimeInterval,#setNoLeave,#unsetNoLeave,#addCustomName,#translationText,#setNationality,#unsetNationality,#NationalityGroup,#NationalitySortGroup,#OfflineTimeGroup,#ShowFriendData {font-family: "Motiva Sans", Sans-serif;font-weight: 300;\
+					padding: 2px 5px;border:0;outline:0;border-radius: 2px;color: #67c1f5 !important;background: rgba(0, 0, 0, 0.5 );}\
+					.persona.offline, a.persona.offline, .persona.offline.a {color:#ccc;}\
+					.persona, a.persona, .persona a, .friend_status_offline, .friend_status_offline div, .friend_status_offline a {color:#ccc;}\
+					.player_nickname_hint {color:#ccc;}\
+					#addFriendToGroup:hover,#unaddFriendToGroup:hover,#setTimeInterval:hover,#unsetTimeInterval:hover,#setNoLeave:hover,#unsetNoLeave:hover,#addCustomName:hover,#translationText:hover,#setNationality:hover,#unsetNationality:hover,#NationalityGroup:hover,#NationalitySortGroup:hover,#OfflineTimeGroup:hover,#ShowFriendData:hover {background-color: #0a6aa1;color: #fff !important;cursor: pointer;}'
+			); /* 选择的文本 */
+			addNewStyle('styles1_js',
+				'.fs-wrap {\
+					position: relative;\
+					display: inline-block;\
+					vertical-align: bottom;\
+					width: 200px;\
+					margin: 3px;\
+					font-size: 12px;\
+					line-height: 1\
+				}\
+				.fs-label-wrap {\
+					position: relative;\
+					border: 1px solid #34DEFF;\
+					cursor: default;\
+					color: #66ccff;\
+					border-radius: 4px;\
+					box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075)\
+				}\
+				.fs-label-wrap,\
+				.fs-dropdown {\
+					-webkit-user-select: none;\
+					-moz-user-select: none;\
+					-ms-user-select: none;\
+					user-select: none\
+				}\
+				.fs-label-wrap .fs-label {\
+					padding: 4px 22px 4px 8px;\
+					text-overflow: ellipsis;\
+					white-space: nowrap;\
+					overflow: hidden;\
+					cursor: pointer\
+				}\
+				.fs-arrow {\
+					width: 0;\
+					height: 0;\
+					border-left: 4px solid transparent;\
+					border-right: 4px solid transparent;\
+					border-top: 6px solid #fff;\
+					position: absolute;\
+					top: 0;\
+					right: 4px;\
+					bottom: 0;\
+					margin: auto;\
+					cursor: pointer\
+				}\
+				.fs-dropdown {\
+					position: absolute;\
+					background-color: #3E9AC6;\
+					border: 1px solid #000;\
+					width: 100%;\
+					z-index: 1000;\
+					border-radius: 4px\
+				}\
+				.fs-dropdown .fs-options {\
+					max-height: 200px;\
+					overflow: auto\
+				}\
+				\
+				.fs-search input {\
+					width: 90%;\
+					padding: 2px 4px;\
+					border: 0\
+					outline: 0;\
+				}\
+				.fs-selectAll {\
+					float: right;\
+					cursor: pointer;\
+					margin-top: 4px;\
+					height: auto\
+				}\
+				.fs-selectAll.selected {\
+					float: right;\
+					cursor: pointer;\
+					margin-top: 4px;\
+					height: auto;\
+					color: green\
+				}\
+				.fs-selectAll:hover {\
+					background-color: #35d5ff\
+				}\
+				.fs-option,\
+				.fs-search,\
+				.fs-optgroup-label {\
+					padding: 6px 8px;\
+					border-bottom: 1px solid #eee;\
+					cursor: default\
+				}\
+				.fs-option {cursor: pointer}\
+				.fs-option.hl {\
+					background-color: #f5f5f5\
+				}\
+				.fs-wrap.multiple .fs-option {\
+					position: relative;\
+					padding-left: 30px\
+				}\
+				.fs-wrap.multiple .fs-checkbox {\
+					position: absolute;\
+					display: block;\
+					width: 30px;\
+					top: 0;\
+					left: 0;\
+					bottom: 0\
+				}\
+				.fs-wrap.multiple .fs-option .fs-checkbox i {\
+					position: absolute;\
+					margin: auto;\
+					left: 0;\
+					right: 0;\
+					top: 0;\
+					bottom: 0;\
+					width: 14px;\
+					height: 14px;\
+					border: 1px solid #aeaeae;\
+					border-radius: 4px;\
+					background-color: #fff\
+				}\
+				.fs-wrap.multiple .fs-option.selected .fs-checkbox i {\
+					background-color: #11a911;\
+					border-color: transparent;\
+					background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABMSURBVAiZfc0xDkAAFIPhd2Kr1WRjcAExuIgzGUTIZ/AkImjSofnbNBAfHvzAHjOKNzhiQ42IDFXCDivaaxAJd0xYshT3QqBxqnxeHvhunpu23xnmAAAAAElFTkSuQmCC);\
+					background-repeat: no-repeat;\
+					background-position: center\
+				}\
+				.fs-wrap .fs-option:hover {\
+					background: #48E3FF;\
+					border-radius: 4px;\
+					margin-left: 2px;\
+					margin-right: 2px\
+				}\
+				.fs-optgroup-label {font-weight: 700}\
+				.hidden {display: none}\
+				.fs-options::-webkit-scrollbar {width: 6px}\
+				.fs-options::-webkit-scrollbar-track {\
+					-webkit-border-radius: 2em;\
+					-moz-border-radius: 2em;\
+					border-radius: 2em;\
+					-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
+					background: rgba(0, 0, 0, .1)}\
+				.fs-options::-webkit-scrollbar-thumb {\
+					-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
+					background: rgba(0, 0, 0, .2);\
+					-webkit-border-radius: 2em;\
+					-moz-border-radius: 2em;\
+					border-radius: 2em\
+				}'
+			); /* 选择的文本 */
+			
+			addNewScript('styles_Script',
+				"\
+							function wordCount(data) {\
+								var intLength = 0;\
+								for (var i = 0; i < data.length; i++) {\
+									if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
+										intLength = intLength + 3;\
+									else\
+										intLength = intLength + 1;\
+								}\
+								return intLength;\
+							}\
+							var comment_textareaHeight = [];\
+							function inBoxShrinkage(id,type){\
+							var index = -1;\
+							var iArr;\
+							for(let i=0;i<comment_textareaHeight.length;i++)\
+							{\
+								index = comment_textareaHeight[i].indexOf(id);\
+								if(index != -1)\
+								{\
+									iArr = i; /*记录旧节点的下标*/\
+									console.log('记录旧节点的下标','iArr',iArr);\
+									break;\
+								}\
+							}\
+							if(index == -1)\
+							{\
+								comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
+								iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
+								console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);\
+							}\
+							var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
+							if(nHeight==0)/*第一次,没有指定的样式*/\
+							{\
+								nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
+							}\
+							/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
+							var commentText = document.getElementById(id);if (type == true){commentText.removeEventListener('propertychange', change, false);\
+							commentText.removeEventListener('input', change, false);commentText.removeEventListener('focus', change, false);\
+							commentText.scrollTop = 0;document.body.scrollTop = 0;commentText.style.height = '28px';} else if (type == false){autoTextarea(commentText);\
+							commentText.style.height = nHeight + 'px';}\
+							}\
+							var change;\
+							var autoTextarea = function(elem, extra, maxHeight) {\
+								extra = extra || 0;\
+								var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
+									isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
+									addEvent = function(type, callback) {\
+										elem.addEventListener ?\
+											elem.addEventListener(type, callback, false) :\
+											elem.attachEvent('on' + type, callback);\
+									},\
+									getStyle = elem.currentStyle ? function(name) {\
+										var val = elem.currentStyle[name];\
+										if (name === 'height' && val.search(/px/i) !== 1) {\
+											var rect = elem.getBoundingClientRect();\
+											return rect.bottom - rect.top -\
+												parseFloat(getStyle('paddingTop')) -\
+												parseFloat(getStyle('paddingBottom')) + 'px';\
+										};\
+										return val;\
+									} : function(name) {\
+										return getComputedStyle(elem, null)[name];\
+									},\
+									minHeight = parseFloat(getStyle('height'));\
+								elem.style.resize = 'none';\
+								change = function(e,id) {\
+									var scrollTop, height,\
+										padding = 0,\
+										style = elem.style;\
+									var obj = document.getElementById('strInBytes');\
+									console.log(id);\
+									if(id == undefined || id == null)\
+										var commentText = document.getElementById(window.event.target.id);\
+									else\
+										var commentText = document.getElementById(id);\
+									var numText = wordCount(commentText.value);\
+									obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
+									if (wordCount(commentText.value) >= 1000) {\
+										document.getElementById('strInBytes_Text').style.color = '#FF0000';\
+										commentText.style.background = '#7b3863';\
+										jQuery('#log_head, #log_body').html('');\
+										jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
+									} else {\
+										document.getElementById('strInBytes_Text').style.color = '#32CD32';\
+										commentText.style.background = '#1b2838';\
+										jQuery('#log_head, #log_body').html('');\
+									}\
+									if (elem._length === elem.value.length) return;\
+									elem._length = elem.value.length;\
+									if (!isFirefox && !isOpera) {\
+										padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
+									};\
+									scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
+									elem.style.height = minHeight + 'px';\
+									if (elem.scrollHeight > minHeight) {\
+										if (maxHeight && elem.scrollHeight > maxHeight) {\
+											height = maxHeight - padding;\
+											style.overflowY = 'auto';\
+										} else {\
+											height = elem.scrollHeight - padding;\
+											style.overflowY = 'hidden';\
+										};\
+										style.height = height + extra + 'px';\
+										var nHeight1 = height + extra;\
+										var newStr = nHeight1.toString();\
+										/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
+										/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
+										/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
+										/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
+										var iIndex;\
+										for(let i=0;i<comment_textareaHeight.length;i++)\
+										{\
+											if(id == undefined || id == null)\
+											{\
+												if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
+												{\
+													iIndex = i;\
+													break;\
+												}\
+											}\
+											else\
+											{\
+												if(comment_textareaHeight[i].indexOf(id)==0)\
+												{\
+													iIndex = i;\
+													break;\
+												}\
+											}\
+										}\
+										/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
+										/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+										comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
+										/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+										comment_textareaHeight[iIndex] += newStr;/*存储*/\
+										/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
+										scrollTop += parseInt(style.height) - elem.currHeight;\
+										/*document.body.scrollTop = scrollTop;*/\
+										/*document.documentElement.scrollTop = scrollTop;*/\
+										elem.currHeight = parseInt(style.height);\
+									};\
+								};\
+								addEvent('propertychange', change);\
+								addEvent('input', change);\
+								addEvent('focus', change);\
+								change();\
+								};\
+								function closeAllinBoxShrinkage(){\
+									inBoxShrinkage('comment_textarea',true);\
+									inBoxShrinkage('comment_textarea_zhc',true);\
+									inBoxShrinkage('comment_textarea_en',true);\
+									inBoxShrinkage('comment_textarea_jp',true);\
+									inBoxShrinkage('comment_textarea_zh_sg',true);\
+									inBoxShrinkage('comment_textarea_zh_hant',true);\
+									inBoxShrinkage('comment_textarea_zh_hk',true);\
+									inBoxShrinkage('comment_textarea_zh_mo',true);\
+									inBoxShrinkage('comment_textarea_zh_tw',true);\
+								}\
+								var inBoxonblurID = 0;\
+								function addEmojiEvent(emojiCode)\
+								{\
+									switch (inBoxonblurID){\
+										case 0:\
+											let inObj = document.getElementById('comment_textarea');\
+											inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
+											break;\
+										case 1:\
+											let inObj1 = document.getElementById('comment_textarea_en');\
+											inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
+											break;\
+										case 2:\
+											let inObj2 = document.getElementById('comment_textarea_jp');\
+											inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
+											break;\
+										case 3:\
+											let inObj3 = document.getElementById('comment_textarea_zhc');\
+											inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
+											break;\
+										case 4:\
+											let inObj4 = document.getElementById('comment_textarea_zh_sg');\
+											inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
+											break;\
+										case 5:\
+											let inObj5 = document.getElementById('comment_textarea_zh_hant');\
+											inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
+											break;\
+										case 6:\
+											let inObj6 = document.getElementById('comment_textarea_zh_hk');\
+											inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
+											break;\
+										case 7:\
+											let inObj7 = document.getElementById('comment_textarea_zh_mo');\
+											inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
+											break;\
+										case 8:\
+											let inObj8 = document.getElementById('comment_textarea_zh_tw');\
+											inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
+											break;\
+										default:\
+											break;\
+									}}\
+									"
+			);
+			
+			addNewScript('Utility_Script',
+				'\
+					function emojiFix() { /*修复表情*/\
+						console.log("表情开始修复...");\
+						let obj = document.getElementsByClassName("emoticon_popup es_emoticons")[0];\
+						if (obj != undefined) {\
+							obj.style.position = "relative";\
+							obj.style.zIndex = "999";\
+						}\
+					\
+						let obj1 = document.getElementsByClassName("emoticon_popup_ctn")[0];\
+						if (obj1 != undefined) {\
+							obj1.style.zIndex = "999";\
+						}\
+					\
+						let emojiObjArrs = document.getElementsByClassName("emoticon_option");\
+						if (emojiObjArrs.length > 0) {\
+							for (let i in emojiObjArrs) {\
+								emojiObjArrs[i].onclick = function() {\
+									addEmojiEvent(emojiObjArrs[i].getAttribute(\'data-emoticon\'));\
+								}\
+							}\
+							console.log("表情修复完毕!");\
+						}\
+						/*console.log("修复表情错误!");*/\
+					}\
+					\
+					function dvWidthFix() { /*用于修复PC端留言提示内容溢出导致布局发生错误的问题*/\
+						$("subpage_container").style.width = "calc(100% - 280px)";\
+					}\
+					'
+			);
+			resolve('css js') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		
+		arr.push(new Promise(async function (resolve, reject){
+			document.addEventListener("DOMContentLoaded", function(event) {
+			//console.log("DOM fully loaded and parsed");
+			resolve('DOM fully loaded') // 数据处理完成
+			// reject('失败') // 数据处理出错
+			});
+		}));
+		
+		let res = await Promise.all(arr);
+		
+		addNewScript('highstock_Script', arrjsData[0]);
+		//console.log("highstock_Script success.");
+		
+		addNewScript('highcharts_exporting_Script', arrjsData[1]);
+		//console.log("highcharts_exporting_Script success.");
+		
+		addNewScript('highcharts_oldie_Script', arrjsData[2]);
+		//console.log("highcharts_oldie_Script success.");
+		
+		addNewScript('highcharts_networkgraph_Script', arrjsData[3]);
+		//console.log("highcharts_networkgraph_Script success.");
+		
+		addNewScript('highcharts_zh_CN_Script', arrjsData[4]);
+		//console.log("highcharts_zh_CN_Script success.");
+		
+		console.log("ret:",res);
 	}
 	
 	async initUI() {
-		await this.loadBaseResources();
+		//提前加载资源，等待所有资源加载完毕后直接运行，以最大程序缩减脚本初始化等待的时间
+		await this.loadBaseResources(); //加载基础资源
 		
-		addNewStyle('styles_js',
-			'::selection {color:#000;background: #35d5ff;}\
-						#addFriendToGroup,#unaddFriendToGroup,#setTimeInterval,#unsetTimeInterval,#setNoLeave,#unsetNoLeave,#addCustomName,#translationText,#setNationality,#unsetNationality,#NationalityGroup,#NationalitySortGroup,#OfflineTimeGroup,#ShowFriendData {font-family: "Motiva Sans", Sans-serif;font-weight: 300;\
-						padding: 2px 5px;border:0;outline:0;border-radius: 2px;color: #67c1f5 !important;background: rgba(0, 0, 0, 0.5 );}\
-						.persona.offline, a.persona.offline, .persona.offline.a {color:#ccc;}\
-						.persona, a.persona, .persona a, .friend_status_offline, .friend_status_offline div, .friend_status_offline a {color:#ccc;}\
-						.player_nickname_hint {color:#ccc;}\
-						#addFriendToGroup:hover,#unaddFriendToGroup:hover,#setTimeInterval:hover,#unsetTimeInterval:hover,#setNoLeave:hover,#unsetNoLeave:hover,#addCustomName:hover,#translationText:hover,#setNationality:hover,#unsetNationality:hover,#NationalityGroup:hover,#NationalitySortGroup:hover,#OfflineTimeGroup:hover,#ShowFriendData:hover {background-color: #0a6aa1;color: #fff !important;cursor: pointer;}'
-		); /* 选择的文本 */
-		addNewStyle('styles1_js',
-			'.fs-wrap {\
-											position: relative;\
-											display: inline-block;\
-											vertical-align: bottom;\
-											width: 200px;\
-											margin: 3px;\
-											font-size: 12px;\
-											line-height: 1\
-										}\
-										.fs-label-wrap {\
-											position: relative;\
-											border: 1px solid #34DEFF;\
-											cursor: default;\
-											color: #66ccff;\
-											border-radius: 4px;\
-											box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075)\
-										}\
-										.fs-label-wrap,\
-										.fs-dropdown {\
-											-webkit-user-select: none;\
-											-moz-user-select: none;\
-											-ms-user-select: none;\
-											user-select: none\
-										}\
-										.fs-label-wrap .fs-label {\
-											padding: 4px 22px 4px 8px;\
-											text-overflow: ellipsis;\
-											white-space: nowrap;\
-											overflow: hidden;\
-											cursor: pointer\
-										}\
-										.fs-arrow {\
-											width: 0;\
-											height: 0;\
-											border-left: 4px solid transparent;\
-											border-right: 4px solid transparent;\
-											border-top: 6px solid #fff;\
-											position: absolute;\
-											top: 0;\
-											right: 4px;\
-											bottom: 0;\
-											margin: auto;\
-											cursor: pointer\
-										}\
-										.fs-dropdown {\
-											position: absolute;\
-											background-color: #3E9AC6;\
-											border: 1px solid #000;\
-											width: 100%;\
-											z-index: 1000;\
-											border-radius: 4px\
-										}\
-										.fs-dropdown .fs-options {\
-											max-height: 200px;\
-											overflow: auto\
-										}\
-										\
-										.fs-search input {\
-											width: 90%;\
-											padding: 2px 4px;\
-											border: 0\
-											outline: 0;\
-										}\
-										.fs-selectAll {\
-											float: right;\
-											cursor: pointer;\
-											margin-top: 4px;\
-											height: auto\
-										}\
-										.fs-selectAll.selected {\
-											float: right;\
-											cursor: pointer;\
-											margin-top: 4px;\
-											height: auto;\
-											color: green\
-										}\
-										.fs-selectAll:hover {\
-											background-color: #35d5ff\
-										}\
-										.fs-option,\
-										.fs-search,\
-										.fs-optgroup-label {\
-											padding: 6px 8px;\
-											border-bottom: 1px solid #eee;\
-											cursor: default\
-										}\
-										.fs-option {cursor: pointer}\
-										.fs-option.hl {\
-											background-color: #f5f5f5\
-										}\
-										.fs-wrap.multiple .fs-option {\
-											position: relative;\
-											padding-left: 30px\
-										}\
-										.fs-wrap.multiple .fs-checkbox {\
-											position: absolute;\
-											display: block;\
-											width: 30px;\
-											top: 0;\
-											left: 0;\
-											bottom: 0\
-										}\
-										.fs-wrap.multiple .fs-option .fs-checkbox i {\
-											position: absolute;\
-											margin: auto;\
-											left: 0;\
-											right: 0;\
-											top: 0;\
-											bottom: 0;\
-											width: 14px;\
-											height: 14px;\
-											border: 1px solid #aeaeae;\
-											border-radius: 4px;\
-											background-color: #fff\
-										}\
-										.fs-wrap.multiple .fs-option.selected .fs-checkbox i {\
-											background-color: #11a911;\
-											border-color: transparent;\
-											background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABMSURBVAiZfc0xDkAAFIPhd2Kr1WRjcAExuIgzGUTIZ/AkImjSofnbNBAfHvzAHjOKNzhiQ42IDFXCDivaaxAJd0xYshT3QqBxqnxeHvhunpu23xnmAAAAAElFTkSuQmCC);\
-											background-repeat: no-repeat;\
-											background-position: center\
-										}\
-										.fs-wrap .fs-option:hover {\
-											background: #48E3FF;\
-											border-radius: 4px;\
-											margin-left: 2px;\
-											margin-right: 2px\
-										}\
-										.fs-optgroup-label {font-weight: 700}\
-										.hidden {display: none}\
-										.fs-options::-webkit-scrollbar {width: 6px}\
-										.fs-options::-webkit-scrollbar-track {\
-											-webkit-border-radius: 2em;\
-											-moz-border-radius: 2em;\
-											border-radius: 2em;\
-											-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
-											background: rgba(0, 0, 0, .1)}\
-										.fs-options::-webkit-scrollbar-thumb {\
-											-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
-											background: rgba(0, 0, 0, .2);\
-											-webkit-border-radius: 2em;\
-											-moz-border-radius: 2em;\
-											border-radius: 2em\
-										}'
-		); /* 选择的文本 */
-
-		addNewScript('styles_Script',
-			"\
-						function wordCount(data) {\
-							var intLength = 0;\
-							for (var i = 0; i < data.length; i++) {\
-								if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
-									intLength = intLength + 3;\
-								else\
-									intLength = intLength + 1;\
-							}\
-							return intLength;\
-						}\
-						var comment_textareaHeight = [];\
-						function inBoxShrinkage(id,type){\
-						var index = -1;\
-						var iArr;\
-						for(let i=0;i<comment_textareaHeight.length;i++)\
-						{\
-							index = comment_textareaHeight[i].indexOf(id);\
-							if(index != -1)\
-							{\
-								iArr = i; /*记录旧节点的下标*/\
-								console.log('记录旧节点的下标','iArr',iArr);\
-								break;\
-							}\
-						}\
-						if(index == -1)\
-						{\
-							comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
-							iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
-							console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);\
-						}\
-						var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
-						if(nHeight==0)/*第一次,没有指定的样式*/\
-						{\
-							nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
-						}\
-						/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
-						var commentText = document.getElementById(id);if (type == true){commentText.removeEventListener('propertychange', change, false);\
-						commentText.removeEventListener('input', change, false);commentText.removeEventListener('focus', change, false);\
-						commentText.scrollTop = 0;document.body.scrollTop = 0;commentText.style.height = '28px';} else if (type == false){autoTextarea(commentText);\
-						commentText.style.height = nHeight + 'px';}\
-						}\
-						var change;\
-						var autoTextarea = function(elem, extra, maxHeight) {\
-							extra = extra || 0;\
-							var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
-								isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
-								addEvent = function(type, callback) {\
-									elem.addEventListener ?\
-										elem.addEventListener(type, callback, false) :\
-										elem.attachEvent('on' + type, callback);\
-								},\
-								getStyle = elem.currentStyle ? function(name) {\
-									var val = elem.currentStyle[name];\
-									if (name === 'height' && val.search(/px/i) !== 1) {\
-										var rect = elem.getBoundingClientRect();\
-										return rect.bottom - rect.top -\
-											parseFloat(getStyle('paddingTop')) -\
-											parseFloat(getStyle('paddingBottom')) + 'px';\
-									};\
-									return val;\
-								} : function(name) {\
-									return getComputedStyle(elem, null)[name];\
-								},\
-								minHeight = parseFloat(getStyle('height'));\
-							elem.style.resize = 'none';\
-							change = function(e,id) {\
-								var scrollTop, height,\
-									padding = 0,\
-									style = elem.style;\
-								var obj = document.getElementById('strInBytes');\
-								console.log(id);\
-								if(id == undefined || id == null)\
-									var commentText = document.getElementById(window.event.target.id);\
-								else\
-									var commentText = document.getElementById(id);\
-								var numText = wordCount(commentText.value);\
-								obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
-								if (wordCount(commentText.value) >= 1000) {\
-									document.getElementById('strInBytes_Text').style.color = '#FF0000';\
-									commentText.style.background = '#7b3863';\
-									jQuery('#log_head, #log_body').html('');\
-									jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
-								} else {\
-									document.getElementById('strInBytes_Text').style.color = '#32CD32';\
-									commentText.style.background = '#1b2838';\
-									jQuery('#log_head, #log_body').html('');\
-								}\
-								if (elem._length === elem.value.length) return;\
-								elem._length = elem.value.length;\
-								if (!isFirefox && !isOpera) {\
-									padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
-								};\
-								scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
-								elem.style.height = minHeight + 'px';\
-								if (elem.scrollHeight > minHeight) {\
-									if (maxHeight && elem.scrollHeight > maxHeight) {\
-										height = maxHeight - padding;\
-										style.overflowY = 'auto';\
-									} else {\
-										height = elem.scrollHeight - padding;\
-										style.overflowY = 'hidden';\
-									};\
-									style.height = height + extra + 'px';\
-									var nHeight1 = height + extra;\
-									var newStr = nHeight1.toString();\
-									/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
-									/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
-									/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
-									/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
-									var iIndex;\
-									for(let i=0;i<comment_textareaHeight.length;i++)\
-									{\
-										if(id == undefined || id == null)\
-										{\
-											if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
-											{\
-												iIndex = i;\
-												break;\
-											}\
-										}\
-										else\
-										{\
-											if(comment_textareaHeight[i].indexOf(id)==0)\
-											{\
-												iIndex = i;\
-												break;\
-											}\
-										}\
-									}\
-									/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
-									/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-									comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
-									/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-									comment_textareaHeight[iIndex] += newStr;/*存储*/\
-									/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
-									scrollTop += parseInt(style.height) - elem.currHeight;\
-									/*document.body.scrollTop = scrollTop;*/\
-									/*document.documentElement.scrollTop = scrollTop;*/\
-									elem.currHeight = parseInt(style.height);\
-								};\
-							};\
-							addEvent('propertychange', change);\
-							addEvent('input', change);\
-							addEvent('focus', change);\
-							change();\
-							};\
-							function closeAllinBoxShrinkage(){\
-								inBoxShrinkage('comment_textarea',true);\
-								inBoxShrinkage('comment_textarea_zhc',true);\
-								inBoxShrinkage('comment_textarea_en',true);\
-								inBoxShrinkage('comment_textarea_jp',true);\
-								inBoxShrinkage('comment_textarea_zh_sg',true);\
-								inBoxShrinkage('comment_textarea_zh_hant',true);\
-								inBoxShrinkage('comment_textarea_zh_hk',true);\
-								inBoxShrinkage('comment_textarea_zh_mo',true);\
-								inBoxShrinkage('comment_textarea_zh_tw',true);\
-							}\
-							var inBoxonblurID = 0;\
-							function addEmojiEvent(emojiCode)\
-							{\
-								switch (inBoxonblurID){\
-									case 0:\
-										let inObj = document.getElementById('comment_textarea');\
-										inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
-										break;\
-									case 1:\
-										let inObj1 = document.getElementById('comment_textarea_en');\
-										inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
-										break;\
-									case 2:\
-										let inObj2 = document.getElementById('comment_textarea_jp');\
-										inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
-										break;\
-									case 3:\
-										let inObj3 = document.getElementById('comment_textarea_zhc');\
-										inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
-										break;\
-									case 4:\
-										let inObj4 = document.getElementById('comment_textarea_zh_sg');\
-										inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
-										break;\
-									case 5:\
-										let inObj5 = document.getElementById('comment_textarea_zh_hant');\
-										inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
-										break;\
-									case 6:\
-										let inObj6 = document.getElementById('comment_textarea_zh_hk');\
-										inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
-										break;\
-									case 7:\
-										let inObj7 = document.getElementById('comment_textarea_zh_mo');\
-										inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
-										break;\
-									case 8:\
-										let inObj8 = document.getElementById('comment_textarea_zh_tw');\
-										inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
-										break;\
-									default:\
-										break;\
-								}}\
-								"
-		);
-
-		addNewScript('Utility_Script',
-			'\
-				function emojiFix() { /*修复表情*/\
-					console.log("表情开始修复...");\
-					let obj = document.getElementsByClassName("emoticon_popup es_emoticons")[0];\
-					if (obj != undefined) {\
-						obj.style.position = "relative";\
-						obj.style.zIndex = "999";\
-					}\
-				\
-					let obj1 = document.getElementsByClassName("emoticon_popup_ctn")[0];\
-					if (obj1 != undefined) {\
-						obj1.style.zIndex = "999";\
-					}\
-				\
-					let emojiObjArrs = document.getElementsByClassName("emoticon_option");\
-					if (emojiObjArrs.length > 0) {\
-						for (let i in emojiObjArrs) {\
-							emojiObjArrs[i].onclick = function() {\
-								addEmojiEvent(emojiObjArrs[i].getAttribute(\'data-emoticon\'));\
-							}\
-						}\
-						console.log("表情修复完毕!");\
-					}\
-					/*console.log("修复表情错误!");*/\
-				}\
-				\
-				function dvWidthFix() { /*用于修复PC端留言提示内容溢出导致布局发生错误的问题*/\
-					$("subpage_container").style.width = "calc(100% - 280px)";\
-				}\
-				'
-		);
+		if(getLoginStatus() == false){ //判断是否登录，如果没有登录则不需要继续运行
+			layer.alert('请先登录Steam，才能继续使用哦~', {icon: 0},function(index){
+				if(g_conf[0].autoLogin == 1){
+					var obj = document.getElementsByClassName("global_action_link");
+					for (let i = 0; i < obj.length; i++) {
+						if(obj[i].className == "global_action_link"){
+							obj[i].click(); //跳转到登录页面
+						}
+					}
+				}
+			});
+			return false;
+		}
 		
+		readConfInfo(g_steamID); //读取已保存的对应配置信息
 	}
 	async createUI() {
 		//正常html代码
@@ -3724,257 +3627,257 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 留言数据统计 图表配置
-	Highcharts.setOptions({
-			global : {
-					useUTC : false
-			}
-	});
-	// Create the chart
-	Highcharts.stockChart('container_commentStatistics', {
-			chart : {
-					events : {
-							load : function () {
-									// set up the updating of the chart each second
-									var series = this.series[0];
-									setInterval(function () {
-											var x = (new Date()).getTime(), // current time
-													y = Math.round(Math.random() * 100);
-											series.addPoint([x, y], true, true);
-									}, 1000);
-							}
-					}
-			},
-			rangeSelector: {
-					buttons: [{
-							count: 1,
-							type: 'minute',
-							text: '1M'
-					}, {
-							count: 5,
-							type: 'minute',
-							text: '5M'
-					}, {
-							type: 'all',
-							text: 'All'
-					}],
-					inputEnabled: false,
-					selected: 0
-			},
-			title : {
-					text : 'Live random data'
-			},
-			tooltip: {
-					split: false
-			},
-			exporting: {
-					enabled: false
-			},
-			series : [{
-					name : '随机数据',
-					data : (function () {
-							// generate an array of random data
-							var data = [], time = (new Date()).getTime(), i;
-							for (i = -999; i <= 0; i += 1) {
-									data.push([
-											time + i * 1000,
-											Math.round(Math.random() * 100)
-									]);
-							}
-							return data;
-					}())
-			}]
-	});
+	// Highcharts.setOptions({
+	// 		global : {
+	// 				useUTC : false
+	// 		}
+	// });
+	// // Create the chart
+	// Highcharts.stockChart('container_commentStatistics', {
+	// 		chart : {
+	// 				events : {
+	// 						load : function () {
+	// 								// set up the updating of the chart each second
+	// 								var series = this.series[0];
+	// 								setInterval(function () {
+	// 										var x = (new Date()).getTime(), // current time
+	// 												y = Math.round(Math.random() * 100);
+	// 										series.addPoint([x, y], true, true);
+	// 								}, 1000);
+	// 						}
+	// 				}
+	// 		},
+	// 		rangeSelector: {
+	// 				buttons: [{
+	// 						count: 1,
+	// 						type: 'minute',
+	// 						text: '1M'
+	// 				}, {
+	// 						count: 5,
+	// 						type: 'minute',
+	// 						text: '5M'
+	// 				}, {
+	// 						type: 'all',
+	// 						text: 'All'
+	// 				}],
+	// 				inputEnabled: false,
+	// 				selected: 0
+	// 		},
+	// 		title : {
+	// 				text : 'Live random data'
+	// 		},
+	// 		tooltip: {
+	// 				split: false
+	// 		},
+	// 		exporting: {
+	// 				enabled: false
+	// 		},
+	// 		series : [{
+	// 				name : '随机数据',
+	// 				data : (function () {
+	// 						// generate an array of random data
+	// 						var data = [], time = (new Date()).getTime(), i;
+	// 						for (i = -999; i <= 0; i += 1) {
+	// 								data.push([
+	// 										time + i * 1000,
+	// 										Math.round(Math.random() * 100)
+	// 								]);
+	// 						}
+	// 						return data;
+	// 				}())
+	// 		}]
+	// });
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	// 关系网统计 图表配置
-	// Add the nodes option through an event call. We want to start with the parent
-	// item and apply separate colors to each child element, then the same color to
-	// grandchildren.
-	Highcharts.addEvent(
-		Highcharts.seriesTypes.networkgraph,
-		'afterSetOptions',
-		function (e) {
-			var colors = Highcharts.getOptions().colors,
-				i = 0,
-				nodes = {};
-			e.options.data.forEach(function (link) {
-				if (link[0] === 'Proto Indo-European') {
-					nodes['Proto Indo-European'] = {
-						id: 'Proto Indo-European',
-						marker: {
-							radius: 20
-						}
-					};
-					nodes[link[1]] = {
-						id: link[1],
-						marker: {
-							radius: 10
-						},
-						color: colors[i++]
-					};
-				} else if (nodes[link[0]] && nodes[link[0]].color) {
-					nodes[link[1]] = {
-						id: link[1],
-						color: nodes[link[0]].color
-					};
-				}
-			});
-			e.options.nodes = Object.keys(nodes).map(function (id) {
-				return nodes[id];
-			});
-		}
-	);
-	Highcharts.chart('container_relationshipStatistics', {
-		chart: {
-			type: 'networkgraph',
-			height: '100%'
-		},
-		title: {
-			text: 'The Indo-European Laungauge Tree'
-		},
-		subtitle: {
-			text: 'A Force-Directed Network Graph in Highcharts'
-		},
-		plotOptions: {
-			networkgraph: {
-				keys: ['from', 'to'],
-				layoutAlgorithm: {
-					enableSimulation: true
-				}
-			}
-		},
-		series: [{
-			dataLabels: {
-				enabled: true
-			},
-			data: [
-				['Proto Indo-European', 'Balto-Slavic'],
-				['Proto Indo-European', 'Germanic'],
-				['Proto Indo-European', 'Celtic'],
-				['Proto Indo-European', 'Italic'],
-				['Proto Indo-European', 'Hellenic'],
-				['Proto Indo-European', 'Anatolian'],
-				['Proto Indo-European', 'Indo-Iranian'],
-				['Proto Indo-European', 'Tocharian'],
-				['Indo-Iranian', 'Dardic'],
-				['Indo-Iranian', 'Indic'],
-				['Indo-Iranian', 'Iranian'],
-				['Iranian', 'Old Persian'],
-				['Old Persian', 'Middle Persian'],
-				['Indic', 'Sanskrit'],
-				['Italic', 'Osco-Umbrian'],
-				['Italic', 'Latino-Faliscan'],
-				['Latino-Faliscan', 'Latin'],
-				['Celtic', 'Brythonic'],
-				['Celtic', 'Goidelic'],
-				['Germanic', 'North Germanic'],
-				['Germanic', 'West Germanic'],
-				['Germanic', 'East Germanic'],
-				['North Germanic', 'Old Norse'],
-				['North Germanic', 'Old Swedish'],
-				['North Germanic', 'Old Danish'],
-				['West Germanic', 'Old English'],
-				['West Germanic', 'Old Frisian'],
-				['West Germanic', 'Old Dutch'],
-				['West Germanic', 'Old Low German'],
-				['West Germanic', 'Old High German'],
-				['Old Norse', 'Old Icelandic'],
-				['Old Norse', 'Old Norwegian'],
-				['Old Norwegian', 'Middle Norwegian'],
-				['Old Swedish', 'Middle Swedish'],
-				['Old Danish', 'Middle Danish'],
-				['Old English', 'Middle English'],
-				['Old Dutch', 'Middle Dutch'],
-				['Old Low German', 'Middle Low German'],
-				['Old High German', 'Middle High German'],
-				['Balto-Slavic', 'Baltic'],
-				['Balto-Slavic', 'Slavic'],
-				['Slavic', 'East Slavic'],
-				['Slavic', 'West Slavic'],
-				['Slavic', 'South Slavic'],
-				// Leaves:
-				['Proto Indo-European', 'Phrygian'],
-				['Proto Indo-European', 'Armenian'],
-				['Proto Indo-European', 'Albanian'],
-				['Proto Indo-European', 'Thracian'],
-				['Tocharian', 'Tocharian A'],
-				['Tocharian', 'Tocharian B'],
-				['Anatolian', 'Hittite'],
-				['Anatolian', 'Palaic'],
-				['Anatolian', 'Luwic'],
-				['Anatolian', 'Lydian'],
-				['Iranian', 'Balochi'],
-				['Iranian', 'Kurdish'],
-				['Iranian', 'Pashto'],
-				['Iranian', 'Sogdian'],
-				['Old Persian', 'Pahlavi'],
-				['Middle Persian', 'Persian'],
-				['Hellenic', 'Greek'],
-				['Dardic', 'Dard'],
-				['Sanskrit', 'Sindhi'],
-				['Sanskrit', 'Romani'],
-				['Sanskrit', 'Urdu'],
-				['Sanskrit', 'Hindi'],
-				['Sanskrit', 'Bihari'],
-				['Sanskrit', 'Assamese'],
-				['Sanskrit', 'Bengali'],
-				['Sanskrit', 'Marathi'],
-				['Sanskrit', 'Gujarati'],
-				['Sanskrit', 'Punjabi'],
-				['Sanskrit', 'Sinhalese'],
-				['Osco-Umbrian', 'Umbrian'],
-				['Osco-Umbrian', 'Oscan'],
-				['Latino-Faliscan', 'Faliscan'],
-				['Latin', 'Portugese'],
-				['Latin', 'Spanish'],
-				['Latin', 'French'],
-				['Latin', 'Romanian'],
-				['Latin', 'Italian'],
-				['Latin', 'Catalan'],
-				['Latin', 'Franco-Provençal'],
-				['Latin', 'Rhaeto-Romance'],
-				['Brythonic', 'Welsh'],
-				['Brythonic', 'Breton'],
-				['Brythonic', 'Cornish'],
-				['Brythonic', 'Cuymbric'],
-				['Goidelic', 'Modern Irish'],
-				['Goidelic', 'Scottish Gaelic'],
-				['Goidelic', 'Manx'],
-				['East Germanic', 'Gothic'],
-				['Middle Low German', 'Low German'],
-				['Middle High German', '(High) German'],
-				['Middle High German', 'Yiddish'],
-				['Middle English', 'English'],
-				['Middle Dutch', 'Hollandic'],
-				['Middle Dutch', 'Flemish'],
-				['Middle Dutch', 'Dutch'],
-				['Middle Dutch', 'Limburgish'],
-				['Middle Dutch', 'Brabantian'],
-				['Middle Dutch', 'Rhinelandic'],
-				['Old Frisian', 'Frisian'],
-				['Middle Danish', 'Danish'],
-				['Middle Swedish', 'Swedish'],
-				['Middle Norwegian', 'Norwegian'],
-				['Old Norse', 'Faroese'],
-				['Old Icelandic', 'Icelandic'],
-				['Baltic', 'Old Prussian'],
-				['Baltic', 'Lithuanian'],
-				['Baltic', 'Latvian'],
-				['West Slavic', 'Polish'],
-				['West Slavic', 'Slovak'],
-				['West Slavic', 'Czech'],
-				['West Slavic', 'Wendish'],
-				['East Slavic', 'Bulgarian'],
-				['East Slavic', 'Old Church Slavonic'],
-				['East Slavic', 'Macedonian'],
-				['East Slavic', 'Serbo-Croatian'],
-				['East Slavic', 'Slovene'],
-				['South Slavic', 'Russian'],
-				['South Slavic', 'Ukrainian'],
-				['South Slavic', 'Belarusian'],
-				['South Slavic', 'Rusyn']
-			]
-		}]
-	});
+	// // 关系网统计 图表配置
+	// // Add the nodes option through an event call. We want to start with the parent
+	// // item and apply separate colors to each child element, then the same color to
+	// // grandchildren.
+	// Highcharts.addEvent(
+	// 	Highcharts.seriesTypes.networkgraph,
+	// 	'afterSetOptions',
+	// 	function (e) {
+	// 		var colors = Highcharts.getOptions().colors,
+	// 			i = 0,
+	// 			nodes = {};
+	// 		e.options.data.forEach(function (link) {
+	// 			if (link[0] === 'Proto Indo-European') {
+	// 				nodes['Proto Indo-European'] = {
+	// 					id: 'Proto Indo-European',
+	// 					marker: {
+	// 						radius: 20
+	// 					}
+	// 				};
+	// 				nodes[link[1]] = {
+	// 					id: link[1],
+	// 					marker: {
+	// 						radius: 10
+	// 					},
+	// 					color: colors[i++]
+	// 				};
+	// 			} else if (nodes[link[0]] && nodes[link[0]].color) {
+	// 				nodes[link[1]] = {
+	// 					id: link[1],
+	// 					color: nodes[link[0]].color
+	// 				};
+	// 			}
+	// 		});
+	// 		e.options.nodes = Object.keys(nodes).map(function (id) {
+	// 			return nodes[id];
+	// 		});
+	// 	}
+	// );
+	// Highcharts.chart('container_relationshipStatistics', {
+	// 	chart: {
+	// 		type: 'networkgraph',
+	// 		height: '100%'
+	// 	},
+	// 	title: {
+	// 		text: 'The Indo-European Laungauge Tree'
+	// 	},
+	// 	subtitle: {
+	// 		text: 'A Force-Directed Network Graph in Highcharts'
+	// 	},
+	// 	plotOptions: {
+	// 		networkgraph: {
+	// 			keys: ['from', 'to'],
+	// 			layoutAlgorithm: {
+	// 				enableSimulation: true
+	// 			}
+	// 		}
+	// 	},
+	// 	series: [{
+	// 		dataLabels: {
+	// 			enabled: true
+	// 		},
+	// 		data: [
+	// 			['Proto Indo-European', 'Balto-Slavic'],
+	// 			['Proto Indo-European', 'Germanic'],
+	// 			['Proto Indo-European', 'Celtic'],
+	// 			['Proto Indo-European', 'Italic'],
+	// 			['Proto Indo-European', 'Hellenic'],
+	// 			['Proto Indo-European', 'Anatolian'],
+	// 			['Proto Indo-European', 'Indo-Iranian'],
+	// 			['Proto Indo-European', 'Tocharian'],
+	// 			['Indo-Iranian', 'Dardic'],
+	// 			['Indo-Iranian', 'Indic'],
+	// 			['Indo-Iranian', 'Iranian'],
+	// 			['Iranian', 'Old Persian'],
+	// 			['Old Persian', 'Middle Persian'],
+	// 			['Indic', 'Sanskrit'],
+	// 			['Italic', 'Osco-Umbrian'],
+	// 			['Italic', 'Latino-Faliscan'],
+	// 			['Latino-Faliscan', 'Latin'],
+	// 			['Celtic', 'Brythonic'],
+	// 			['Celtic', 'Goidelic'],
+	// 			['Germanic', 'North Germanic'],
+	// 			['Germanic', 'West Germanic'],
+	// 			['Germanic', 'East Germanic'],
+	// 			['North Germanic', 'Old Norse'],
+	// 			['North Germanic', 'Old Swedish'],
+	// 			['North Germanic', 'Old Danish'],
+	// 			['West Germanic', 'Old English'],
+	// 			['West Germanic', 'Old Frisian'],
+	// 			['West Germanic', 'Old Dutch'],
+	// 			['West Germanic', 'Old Low German'],
+	// 			['West Germanic', 'Old High German'],
+	// 			['Old Norse', 'Old Icelandic'],
+	// 			['Old Norse', 'Old Norwegian'],
+	// 			['Old Norwegian', 'Middle Norwegian'],
+	// 			['Old Swedish', 'Middle Swedish'],
+	// 			['Old Danish', 'Middle Danish'],
+	// 			['Old English', 'Middle English'],
+	// 			['Old Dutch', 'Middle Dutch'],
+	// 			['Old Low German', 'Middle Low German'],
+	// 			['Old High German', 'Middle High German'],
+	// 			['Balto-Slavic', 'Baltic'],
+	// 			['Balto-Slavic', 'Slavic'],
+	// 			['Slavic', 'East Slavic'],
+	// 			['Slavic', 'West Slavic'],
+	// 			['Slavic', 'South Slavic'],
+	// 			// Leaves:
+	// 			['Proto Indo-European', 'Phrygian'],
+	// 			['Proto Indo-European', 'Armenian'],
+	// 			['Proto Indo-European', 'Albanian'],
+	// 			['Proto Indo-European', 'Thracian'],
+	// 			['Tocharian', 'Tocharian A'],
+	// 			['Tocharian', 'Tocharian B'],
+	// 			['Anatolian', 'Hittite'],
+	// 			['Anatolian', 'Palaic'],
+	// 			['Anatolian', 'Luwic'],
+	// 			['Anatolian', 'Lydian'],
+	// 			['Iranian', 'Balochi'],
+	// 			['Iranian', 'Kurdish'],
+	// 			['Iranian', 'Pashto'],
+	// 			['Iranian', 'Sogdian'],
+	// 			['Old Persian', 'Pahlavi'],
+	// 			['Middle Persian', 'Persian'],
+	// 			['Hellenic', 'Greek'],
+	// 			['Dardic', 'Dard'],
+	// 			['Sanskrit', 'Sindhi'],
+	// 			['Sanskrit', 'Romani'],
+	// 			['Sanskrit', 'Urdu'],
+	// 			['Sanskrit', 'Hindi'],
+	// 			['Sanskrit', 'Bihari'],
+	// 			['Sanskrit', 'Assamese'],
+	// 			['Sanskrit', 'Bengali'],
+	// 			['Sanskrit', 'Marathi'],
+	// 			['Sanskrit', 'Gujarati'],
+	// 			['Sanskrit', 'Punjabi'],
+	// 			['Sanskrit', 'Sinhalese'],
+	// 			['Osco-Umbrian', 'Umbrian'],
+	// 			['Osco-Umbrian', 'Oscan'],
+	// 			['Latino-Faliscan', 'Faliscan'],
+	// 			['Latin', 'Portugese'],
+	// 			['Latin', 'Spanish'],
+	// 			['Latin', 'French'],
+	// 			['Latin', 'Romanian'],
+	// 			['Latin', 'Italian'],
+	// 			['Latin', 'Catalan'],
+	// 			['Latin', 'Franco-Provençal'],
+	// 			['Latin', 'Rhaeto-Romance'],
+	// 			['Brythonic', 'Welsh'],
+	// 			['Brythonic', 'Breton'],
+	// 			['Brythonic', 'Cornish'],
+	// 			['Brythonic', 'Cuymbric'],
+	// 			['Goidelic', 'Modern Irish'],
+	// 			['Goidelic', 'Scottish Gaelic'],
+	// 			['Goidelic', 'Manx'],
+	// 			['East Germanic', 'Gothic'],
+	// 			['Middle Low German', 'Low German'],
+	// 			['Middle High German', '(High) German'],
+	// 			['Middle High German', 'Yiddish'],
+	// 			['Middle English', 'English'],
+	// 			['Middle Dutch', 'Hollandic'],
+	// 			['Middle Dutch', 'Flemish'],
+	// 			['Middle Dutch', 'Dutch'],
+	// 			['Middle Dutch', 'Limburgish'],
+	// 			['Middle Dutch', 'Brabantian'],
+	// 			['Middle Dutch', 'Rhinelandic'],
+	// 			['Old Frisian', 'Frisian'],
+	// 			['Middle Danish', 'Danish'],
+	// 			['Middle Swedish', 'Swedish'],
+	// 			['Middle Norwegian', 'Norwegian'],
+	// 			['Old Norse', 'Faroese'],
+	// 			['Old Icelandic', 'Icelandic'],
+	// 			['Baltic', 'Old Prussian'],
+	// 			['Baltic', 'Lithuanian'],
+	// 			['Baltic', 'Latvian'],
+	// 			['West Slavic', 'Polish'],
+	// 			['West Slavic', 'Slovak'],
+	// 			['West Slavic', 'Czech'],
+	// 			['West Slavic', 'Wendish'],
+	// 			['East Slavic', 'Bulgarian'],
+	// 			['East Slavic', 'Old Church Slavonic'],
+	// 			['East Slavic', 'Macedonian'],
+	// 			['East Slavic', 'Serbo-Croatian'],
+	// 			['East Slavic', 'Slovene'],
+	// 			['South Slavic', 'Russian'],
+	// 			['South Slavic', 'Ukrainian'],
+	// 			['South Slavic', 'Belarusian'],
+	// 			['South Slavic', 'Rusyn']
+	// 		]
+	// 	}]
+	// });
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 当前配置统计 图表配置
 	
@@ -3982,6 +3885,252 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	// 查看好友配置统计 图表配置
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 多选下拉框
+	(function($) {
+		$.fn.ySelect = function(options) {
+			var defaultOptions = {
+				placeholder: '请选择',
+				numDisplayed: 4,
+				overflowText: '{n} selected',
+				searchText: '搜索',
+				showSearch: true
+			}
+			if (typeof options == 'string') {
+				var settings = options;
+			} else {
+				var settings = $.extend(true, {}, defaultOptions, options);
+			}
+	
+			function ySelect(select, settings) {
+				this.$select = $(select);
+				this.settings = settings;
+				this.create();
+			}
+			ySelect.prototype = {
+				create: function() {
+					var multiple = this.$select.is('[multiple]') ? ' multiple' : '';
+					this.$select.wrap('<div class="fs-wrap' + multiple + '"></div>');
+					this.$select.before('<div class="fs-label-wrap"><div class="fs-label">' + this.settings.placeholder +
+						'</div><span class="fs-arrow"></span></div>');
+					this.$select.before('<div class="fs-dropdown hidden"><div class="fs-options"></div></div>');
+					this.$select.addClass('hidden');
+					this.$wrap = this.$select.closest('.fs-wrap');
+					this.reload();
+				},
+				reload: function() {
+					if (this.settings.showSearch) {
+						var search = '<div class="fs-search"><input type="search" placeholder="' + this.settings.searchText +
+							'" /><span class="fs-selectAll"><i class="fa fa-check-square-o"></i></span></div>';
+						this.$wrap.find('.fs-dropdown').prepend(search);
+					}
+					var choices = this.buildOptions(this.$select);
+					this.$wrap.find('.fs-options').html(choices);
+					this.reloadDropdownLabel();
+				},
+				destroy: function() {
+					this.$wrap.find('.fs-label-wrap').remove();
+					this.$wrap.find('.fs-dropdown').remove();
+					this.$select.unwrap().removeClass('hidden');
+				},
+				buildOptions: function($element) {
+					var $this = this;
+					var choices = '';
+					$element.children().each(function(i, el) {
+						var $el = $(el);
+						if ('optgroup' == $el.prop('nodeName').toLowerCase()) {
+							choices += '<div class="fs-optgroup">';
+							choices += '<div class="fs-optgroup-label">' + $el.prop('label') + '</div>';
+							choices += $this.buildOptions($el);
+							choices += '</div>';
+						} else {
+							var selected = $el.is('[selected]') ? ' selected' : '';
+							choices += '<div class="fs-option' + selected + '" data-value="' + $el.prop('value') +
+								'"><span class="fs-checkbox"><i></i></span><div class="fs-option-label">' + $el.html() + '</div></div>';
+						}
+					});
+					return choices;
+				},
+				reloadDropdownLabel: function() {
+					var settings = this.settings;
+					var labelText = [];
+					this.$wrap.find('.fs-option.selected').each(function(i, el) {
+						labelText.push($(el).find('.fs-option-label').text());
+					});
+					if (labelText.length < 1) {
+						labelText = settings.placeholder;
+					} else if (labelText.length > settings.numDisplayed) {
+						labelText = settings.overflowText.replace('{n}', labelText.length);
+					} else {
+						labelText = labelText.join(', ');
+					}
+					this.$wrap.find('.fs-label').html(labelText);
+					this.$select.change();
+				},
+				setwrap: function() {
+					return "123";
+				},
+			}
+			return this.each(function() {
+				var data = $(this).data('ySelect');
+				if (!data) {
+					data = new ySelect(this, settings);
+					$(this).data('ySelect', data);
+				}
+				if (typeof settings == 'string') {
+					data[settings]();
+				}
+			});
+		}
+		window.ySelect = {
+			'active': null,
+			'idx': -1
+		};
+	
+		function setIndexes($wrap) {
+			$wrap.find('.fs-option:not(.hidden)').each(function(i, el) {
+				$(el).attr('data-index', i);
+				$wrap.find('.fs-option').removeClass('hl');
+			});
+			$wrap.find('.fs-search input').focus();
+			window.ySelect.idx = -1;
+		}
+	
+		function setScroll($wrap) {
+			var $container = $wrap.find('.fs-options');
+			var $selected = $wrap.find('.fs-option.hl');
+			var itemMin = $selected.offset().top + $container.scrollTop();
+			var itemMax = itemMin + $selected.outerHeight();
+			var containerMin = $container.offset().top + $container.scrollTop();
+			var containerMax = containerMin + $container.outerHeight();
+			if (itemMax > containerMax) {
+				var to = $container.scrollTop() + itemMax - containerMax;
+				$container.scrollTop(to);
+			} else if (itemMin < containerMin) {
+				var to = $container.scrollTop() - containerMin - itemMin;
+				$container.scrollTop(to);
+			}
+		}
+		$(document).on('click', '.fs-selectAll', function() {
+			$(this).parent().next().find('.fs-option.selected').click();
+			$(this).parent().next().find('.fs-option').click();
+			$(this).addClass('selected');
+		});
+		$(document).on('click', '.fs-selectAll.selected', function() {
+			$(this).parent().next().find('.fs-option.selected').click();
+			$(this).removeClass('selected');
+		});
+		$(document).on('click', '.fs-option', function() {
+			var $wrap = $(this).closest('.fs-wrap');
+			if ($wrap.hasClass('multiple')) {
+				var selected = [];
+				$(this).toggleClass('selected');
+				$wrap.find('.fs-option.selected').each(function(i, el) {
+					selected.push($(el).attr('data-value'));
+				});
+			} else {
+				var selected = $(this).attr('data-value');
+				$wrap.find('.fs-option').removeClass('selected');
+				$(this).addClass('selected');
+				$wrap.find('.fs-dropdown').hide();
+			}
+			$wrap.find('select').val(selected);
+			$wrap.find('select').ySelect('reloadDropdownLabel');
+			$wrap.find('select').ySelect('setwrap');
+		});
+		$(document).on('keyup', '.fs-search input', function(e) {
+			if (40 == e.which) {
+				$(this).blur();
+				return;
+			}
+			var $wrap = $(this).closest('.fs-wrap');
+			var keywords = $(this).val();
+			$wrap.find('.fs-option, .fs-optgroup-label').removeClass('hidden');
+			if ('' != keywords) {
+				$wrap.find('.fs-option').each(function() {
+					var regex = new RegExp(keywords, 'gi');
+					if (null === $(this).find('.fs-option-label').text().match(regex)) {
+						$(this).addClass('hidden');
+					}
+				});
+				$wrap.find('.fs-optgroup-label').each(function() {
+					var num_visible = $(this).closest('.fs-optgroup').find('.fs-option:not(.hidden)').length;
+					if (num_visible < 1) {
+						$(this).addClass('hidden');
+					}
+				});
+			}
+			setIndexes($wrap);
+		});
+		$(document).on('click', function(e) {
+			var $el = $(e.target);
+			var $wrap = $el.closest('.fs-wrap');
+			if (0 < $wrap.length) {
+				if ($el.hasClass('fs-label') || $el.hasClass('fs-arrow')) {
+					window.ySelect.active = $wrap;
+					var is_hidden = $wrap.find('.fs-dropdown').hasClass('hidden');
+					$('.fs-dropdown').addClass('hidden');
+					if (is_hidden) {
+						$wrap.find('.fs-dropdown').removeClass('hidden');
+					} else {
+						$wrap.find('.fs-dropdown').addClass('hidden');
+					}
+					setIndexes($wrap);
+				}
+			} else {
+				$('.fs-dropdown').addClass('hidden');
+				window.ySelect.active = null;
+			}
+		});
+		$(document).on('keydown', function(e) {
+			var $wrap = window.ySelect.active;
+			if (null === $wrap) {
+				return;
+			} else if (38 == e.which) {
+				e.preventDefault();
+				$wrap.find('.fs-option').removeClass('hl');
+				if (window.ySelect.idx > 0) {
+					window.ySelect.idx--;
+					$wrap.find('.fs-option[data-index=' + window.ySelect.idx + ']').addClass('hl');
+					setScroll($wrap);
+				} else {
+					window.ySelect.idx = -1;
+					$wrap.find('.fs-search input').focus();
+				}
+			} else if (40 == e.which) {
+				e.preventDefault();
+				var last_index = $wrap.find('.fs-option:last').attr('data-index');
+				if (window.ySelect.idx < parseInt(last_index)) {
+					window.ySelect.idx++;
+					$wrap.find('.fs-option').removeClass('hl');
+					$wrap.find('.fs-option[data-index=' + window.ySelect.idx + ']').addClass('hl');
+					setScroll($wrap);
+				}
+			} else if (32 == e.which || 13 == e.which) {
+				$wrap.find('.fs-option.hl').click();
+			} else if (27 == e.which) {
+				$('.fs-dropdown').addClass('hidden');
+				window.ySelect.active = null;
+			}
+		});
+		$.fn.ySelectedValues = function(splitString) {
+			var result = "";
+			var $selects = this.find("option:selected");
+			for (var i = 0; i < $selects.length; i++) {
+				result += $selects[i].value + ((i == $selects.length - 1) ? "" : splitString);
+			}
+			return result;
+		}
+		$.fn.ySelectedTexts = function(splitString) {
+			var result = "";
+			var $selects = this.find("option:selected");
+			for (var i = 0; i < $selects.length; i++) {
+				result += $selects[i].text + ((i == $selects.length - 1) ? "" : splitString);
+			}
+			return result;
+		}
+	})(jQuery);
+	
+	
 	jQuery('.selectBox').ySelect({
 		placeholder: '请先选择要翻译为的语言',
 		searchText: '搜索~发现新世界~',
@@ -4343,7 +4492,7 @@ async function registeredAllEvents() //注册所有的事件
 {
 	jQuery("#addCustomName").click(async function() {
 		var inString = document.getElementById("comment_textarea");
-		inString.value += strRemarkPlaceholder;
+		inString.value += g_conf[0].strRemarkPlaceholder;
 	});
 	
 	//<留言时的时间戳-目标时间戳>
@@ -4354,8 +4503,6 @@ async function registeredAllEvents() //注册所有的事件
 	jQuery("#unsetTimeInterval").click(async function() {
 		
 	});
-	
-	
 	
 	jQuery("#setNoLeave").click(async function() {
 		var SpecialName = undefined;
@@ -4375,7 +4522,7 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 				
-				var nostrNoOperate = strNoOperate + "-N";
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 				
 				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
 					//获取备注
@@ -4402,7 +4549,7 @@ async function registeredAllEvents() //注册所有的事件
 							console.log("获取到的是备注");
 							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
 							steamName = undefined; //就没有名称
-							if (SpecialName.indexOf(strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
+							if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
 							{
 								jQuery("#log_body1")[0].innerHTML +=
 									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
@@ -4410,7 +4557,7 @@ async function registeredAllEvents() //注册所有的事件
 								continue;
 							}
 							name = SpecialName;
-							name = name + strNoOperate; //组合
+							name = name + g_conf[0].strNoOperate; //组合
 						} else if (nicknameObj.length == 0) {
 							console.log("获取到的是steam名称");
 							SpecialName = undefined; //就没有备注
@@ -4479,7 +4626,7 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 			
-				var nostrNoOperate = strNoOperate + "-N";
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 			
 				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
 					//获取备注
@@ -4510,9 +4657,9 @@ async function registeredAllEvents() //注册所有的事件
 								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(nostrNoOperate)); //去掉国籍标识
 								name = ""; //去掉备注
 							}
-							else if (SpecialName.lastIndexOf(strNoOperate) != -1) //检查是否设置了国籍标识
+							else if (SpecialName.lastIndexOf(g_conf[0].strNoOperate) != -1) //检查是否设置了国籍标识
 							{
-								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(strNoOperate)); //去掉国籍标识
+								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(g_conf[0].strNoOperate)); //去掉国籍标识
 								name = SpecialName; //使用原来的备注
 							}else {
 								jQuery("#log_body1")[0].innerHTML +=
@@ -5268,10 +5415,10 @@ async function registeredAllEvents() //注册所有的事件
 							
 							console.log("为" + steamName + "添加称呼: " + SpecialName);
 							let str = msg;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+							newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 						} else {
 							let str = msg;
-							newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+							newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 						}
 					} else if (mode == 0) { //直接发送内容
 						newMgs = msg;
@@ -5283,7 +5430,7 @@ async function registeredAllEvents() //注册所有的事件
 					let profileID = cur.getAttribute("data-steamid");
 		
 					if (SpecialName != undefined) {
-						if (SpecialName.indexOf(strNoOperate) != -1) {
+						if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1) {
 							jQuery("#log_body")[0].innerHTML +=
 								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
 								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
@@ -5326,7 +5473,7 @@ async function registeredAllEvents() //注册所有的事件
 						//}, i * 6000);
 		
 					})(i, profileID);
-					await sleep(delay * 1000)
+					await sleep(g_conf[0].delay * 1000)
 					//console.log(cur)
 				}
 		
@@ -5609,66 +5756,66 @@ async function registeredAllEvents() //注册所有的事件
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
 								if(msg_EN == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_EN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
 								if(msg_JP == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_JP;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
 								if(msg_CN_SG == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_SG;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
 								if(msg_CN_HANT == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HANT;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
 								if(msg_CN_HK == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HK;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
 								if(msg_CN_MO == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_MO;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
 								if(msg_CN_TW == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_TW;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
 							{
 								if (msg_EN != undefined && msg_EN != ""){
 									let str = msg_EN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}	
 								else if (msg_JP != undefined && msg_JP != ""){
 									let str = msg_JP;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}
 								else if (msg_CN != undefined && msg_CN != ""){
 									let str = msg_CN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}
 								else{
 									let str = msg;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),SpecialName); //把占位符全部替换为备注
 								}
 							}
 							console.log("DBG 3", steamName, SpecialName, name, strNationality);
@@ -5683,66 +5830,66 @@ async function registeredAllEvents() //注册所有的事件
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{EN}" || strNationality == "{EN-N}") {
 								if(msg_EN == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_EN;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{JP}" || strNationality == "{JP-N}") {
 								if(msg_JP == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_JP;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-SG}" || strNationality == "{CN-SG-N}") {
 								if(msg_CN_SG == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_SG;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-HANT}" || strNationality == "{CN-HANT-N}") {
 								if(msg_CN_HANT == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HANT;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-HK}" || strNationality == "{CN-HK-N}") {
 								if(msg_CN_HK == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_HK;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-MO}" || strNationality == "{CN-MO-N}") {
 								if(msg_CN_MO == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_MO;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else if (strNationality == "{CN-TW}" || strNationality == "{CN-TW-N}") {
 								if(msg_CN_TW == undefined){
 									return alert("您为选择的好友设置的国籍没有对应翻译过的文本，建议在'选择需要翻译的文本'那里的右上角选择全选，现在将停止运行.\n" + "好友名称:"+SpecialName+"国籍:"+strNationality);
 								}
 								let str = msg_CN_TW;
-								newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+								newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 							} else //没有设置国籍则默认使用英文,日语,简体中文,原始语言
 							{
 								if (msg_EN != undefined && msg_EN != ""){
 									let str = msg_EN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}	
 								else if (msg_JP != undefined && msg_JP != ""){
 									let str = msg_JP;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}
 								else if (msg_CN != undefined && msg_CN != ""){
 									let str = msg_CN;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}
 								else{
 									let str = msg;
-									newMgs = str.replace(new RegExp(strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
+									newMgs = str.replace(new RegExp(g_conf[0].strRemarkPlaceholder, 'g'),steamName); //把占位符全部替换为steam名称
 								}
 							}
 							console.log("DBG 4", steamName, SpecialName, name, strNationality);
@@ -5789,7 +5936,7 @@ async function registeredAllEvents() //注册所有的事件
 					let profileID = cur.getAttribute("data-steamid");
 					
 					if (SpecialName != undefined) {
-						if (SpecialName.indexOf(strNoOperate) != -1) {
+						if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1) {
 							jQuery("#log_body")[0].innerHTML +=
 								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
 								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过留言! ' + profileID + '  ' + name + "</a><br>";
@@ -5832,7 +5979,7 @@ async function registeredAllEvents() //注册所有的事件
 						//}, i * 6000);
 				
 					})(i, profileID);
-					await sleep(delay * 1000)
+					await sleep(g_conf[0].delay * 1000)
 					//console.log(cur)
 				}
 				
@@ -6335,29 +6482,9 @@ async function registeredAllEvents() //注册所有的事件
 	});
 }
 
-var delay = 4; // 设置你的留言时间间隔,单位秒
-var strNoOperate = "(不留言)"; //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-var strRemarkPlaceholder = "{name}"; //设置你的称呼占位符: 同上
-
-async function Main() {
-	if (document.URL.lastIndexOf("/friends") == -1 || document.URL.indexOf("https://steamcommunity.com") == -1) {
-		alert("请在打开的页面上,在Console(控制台)粘贴运行代码!");
-		open("https://steamcommunity.com/my/friends");
-	} else {
-		var date;
-		var startTime = 0,
-			endTime = 0;
-		
-		if (delay < 0) delay = 0;
-		
-		(async()=>{
-		var ui = new UI();
-		await ui.initUI();
+(async()=>{
+	var ui = new UI();
+	if(await ui.initUI() != false){
 		await ui.createUI();
-		})();
-		
 	}
-
-}
-
-Main();
+})();

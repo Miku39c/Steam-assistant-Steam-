@@ -2,11 +2,12 @@ var gc_friAct = null;
 
 class UI {
 	constructor(arg) {
-
+	
 	}
 	
 	async loadBaseResources(){
 		let arr = [];
+		var arrjsData = new Array(5);
 		//0.基本环境-加载css
 		arr.push(new Promise(function (resolve, reject){
 			//var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
@@ -29,17 +30,18 @@ class UI {
 				color: #aaa\
 				}'
 			); /* 覆盖layui的css样式 */
-			resolve('成功') // 数据处理完成
+			resolve('css') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
+		
 		//1.基本环境-加载js到页面上，方便调试
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
-			var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true);
+			var jsData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/layui.all.js",true); //
 			//console.log("数据获取成果",jsData);
 			addNewScript('layui_Script', jsData);
 			//console.log("layui_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('layui') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
@@ -48,477 +50,508 @@ class UI {
 			//console.log("数据获取成果",jsData);
 			addNewScript('localforage_Script', jsData);
 			//console.log("localforage_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('localforage') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highstock/highstock.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highstock/highstock.js",true);
+			arrjsData[0] = await getResourceByURL("https://code.highcharts.com.cn/highstock/highstock.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highstock_Script', jsData);
-			//console.log("highstock_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highstock') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/exporting.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/exporting.js",true);
+			arrjsData[1] = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/exporting.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_exporting_Script', jsData);
-			//console.log("highcharts_exporting_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts exporting') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/oldie.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/oldie.js",true);
+			arrjsData[2] = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/oldie.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_oldie_Script', jsData);
-			//console.log("highcharts_oldie_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts oldie') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js",true);
+			arrjsData[3] = await getResourceByURL("https://code.highcharts.com.cn/highcharts/modules/networkgraph.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_networkgraph_Script', jsData);
-			//console.log("highcharts_networkgraph_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts networkgraph') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
 		arr.push(new Promise(async function (resolve, reject){
 			//loadjscssFile("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js","js");
-			var jsData = await getResourceByURL("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js",true);
+			arrjsData[4] = await getResourceByURL("https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js",true);
 			//console.log("数据获取成果",jsData);
-			addNewScript('highcharts_zh_CN_Script', jsData);
-			//console.log("highcharts_zh_CN_Script success.");
-			resolve('成功') // 数据处理完成
+			resolve('highcharts zh_CN') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
-		// arr.push(new Promise(async function (resolve, reject){
-			
-		// }));
-		let res = await Promise.all(arr);
-		console.log("ret:",res);
 		
+		arr.push(new Promise(async function (resolve, reject){
+			addNewStyle('styles_js',
+				'::selection {color:#000;background: #35d5ff;}\
+					#addFriendToGroup,#unaddFriendToGroup,#setTimeInterval,#unsetTimeInterval,#setNoLeave,#unsetNoLeave,#addCustomName,#translationText,#setNationality,#unsetNationality,#NationalityGroup,#NationalitySortGroup,#OfflineTimeGroup,#ShowFriendData {font-family: "Motiva Sans", Sans-serif;font-weight: 300;\
+					padding: 2px 5px;border:0;outline:0;border-radius: 2px;color: #67c1f5 !important;background: rgba(0, 0, 0, 0.5 );}\
+					.persona.offline, a.persona.offline, .persona.offline.a {color:#ccc;}\
+					.persona, a.persona, .persona a, .friend_status_offline, .friend_status_offline div, .friend_status_offline a {color:#ccc;}\
+					.player_nickname_hint {color:#ccc;}\
+					#addFriendToGroup:hover,#unaddFriendToGroup:hover,#setTimeInterval:hover,#unsetTimeInterval:hover,#setNoLeave:hover,#unsetNoLeave:hover,#addCustomName:hover,#translationText:hover,#setNationality:hover,#unsetNationality:hover,#NationalityGroup:hover,#NationalitySortGroup:hover,#OfflineTimeGroup:hover,#ShowFriendData:hover {background-color: #0a6aa1;color: #fff !important;cursor: pointer;}'
+			); /* 选择的文本 */
+			addNewStyle('styles1_js',
+				'.fs-wrap {\
+					position: relative;\
+					display: inline-block;\
+					vertical-align: bottom;\
+					width: 200px;\
+					margin: 3px;\
+					font-size: 12px;\
+					line-height: 1\
+				}\
+				.fs-label-wrap {\
+					position: relative;\
+					border: 1px solid #34DEFF;\
+					cursor: default;\
+					color: #66ccff;\
+					border-radius: 4px;\
+					box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075)\
+				}\
+				.fs-label-wrap,\
+				.fs-dropdown {\
+					-webkit-user-select: none;\
+					-moz-user-select: none;\
+					-ms-user-select: none;\
+					user-select: none\
+				}\
+				.fs-label-wrap .fs-label {\
+					padding: 4px 22px 4px 8px;\
+					text-overflow: ellipsis;\
+					white-space: nowrap;\
+					overflow: hidden;\
+					cursor: pointer\
+				}\
+				.fs-arrow {\
+					width: 0;\
+					height: 0;\
+					border-left: 4px solid transparent;\
+					border-right: 4px solid transparent;\
+					border-top: 6px solid #fff;\
+					position: absolute;\
+					top: 0;\
+					right: 4px;\
+					bottom: 0;\
+					margin: auto;\
+					cursor: pointer\
+				}\
+				.fs-dropdown {\
+					position: absolute;\
+					background-color: #3E9AC6;\
+					border: 1px solid #000;\
+					width: 100%;\
+					z-index: 1000;\
+					border-radius: 4px\
+				}\
+				.fs-dropdown .fs-options {\
+					max-height: 200px;\
+					overflow: auto\
+				}\
+				\
+				.fs-search input {\
+					width: 90%;\
+					padding: 2px 4px;\
+					border: 0\
+					outline: 0;\
+				}\
+				.fs-selectAll {\
+					float: right;\
+					cursor: pointer;\
+					margin-top: 4px;\
+					height: auto\
+				}\
+				.fs-selectAll.selected {\
+					float: right;\
+					cursor: pointer;\
+					margin-top: 4px;\
+					height: auto;\
+					color: green\
+				}\
+				.fs-selectAll:hover {\
+					background-color: #35d5ff\
+				}\
+				.fs-option,\
+				.fs-search,\
+				.fs-optgroup-label {\
+					padding: 6px 8px;\
+					border-bottom: 1px solid #eee;\
+					cursor: default\
+				}\
+				.fs-option {cursor: pointer}\
+				.fs-option.hl {\
+					background-color: #f5f5f5\
+				}\
+				.fs-wrap.multiple .fs-option {\
+					position: relative;\
+					padding-left: 30px\
+				}\
+				.fs-wrap.multiple .fs-checkbox {\
+					position: absolute;\
+					display: block;\
+					width: 30px;\
+					top: 0;\
+					left: 0;\
+					bottom: 0\
+				}\
+				.fs-wrap.multiple .fs-option .fs-checkbox i {\
+					position: absolute;\
+					margin: auto;\
+					left: 0;\
+					right: 0;\
+					top: 0;\
+					bottom: 0;\
+					width: 14px;\
+					height: 14px;\
+					border: 1px solid #aeaeae;\
+					border-radius: 4px;\
+					background-color: #fff\
+				}\
+				.fs-wrap.multiple .fs-option.selected .fs-checkbox i {\
+					background-color: #11a911;\
+					border-color: transparent;\
+					background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABMSURBVAiZfc0xDkAAFIPhd2Kr1WRjcAExuIgzGUTIZ/AkImjSofnbNBAfHvzAHjOKNzhiQ42IDFXCDivaaxAJd0xYshT3QqBxqnxeHvhunpu23xnmAAAAAElFTkSuQmCC);\
+					background-repeat: no-repeat;\
+					background-position: center\
+				}\
+				.fs-wrap .fs-option:hover {\
+					background: #48E3FF;\
+					border-radius: 4px;\
+					margin-left: 2px;\
+					margin-right: 2px\
+				}\
+				.fs-optgroup-label {font-weight: 700}\
+				.hidden {display: none}\
+				.fs-options::-webkit-scrollbar {width: 6px}\
+				.fs-options::-webkit-scrollbar-track {\
+					-webkit-border-radius: 2em;\
+					-moz-border-radius: 2em;\
+					border-radius: 2em;\
+					-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
+					background: rgba(0, 0, 0, .1)}\
+				.fs-options::-webkit-scrollbar-thumb {\
+					-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
+					background: rgba(0, 0, 0, .2);\
+					-webkit-border-radius: 2em;\
+					-moz-border-radius: 2em;\
+					border-radius: 2em\
+				}'
+			); /* 选择的文本 */
+			
+			addNewScript('styles_Script',
+				"\
+							function wordCount(data) {\
+								var intLength = 0;\
+								for (var i = 0; i < data.length; i++) {\
+									if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
+										intLength = intLength + 3;\
+									else\
+										intLength = intLength + 1;\
+								}\
+								return intLength;\
+							}\
+							var comment_textareaHeight = [];\
+							function inBoxShrinkage(id,type){\
+							var index = -1;\
+							var iArr;\
+							for(let i=0;i<comment_textareaHeight.length;i++)\
+							{\
+								index = comment_textareaHeight[i].indexOf(id);\
+								if(index != -1)\
+								{\
+									iArr = i; /*记录旧节点的下标*/\
+									console.log('记录旧节点的下标','iArr',iArr);\
+									break;\
+								}\
+							}\
+							if(index == -1)\
+							{\
+								comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
+								iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
+								console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);\
+							}\
+							var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
+							if(nHeight==0)/*第一次,没有指定的样式*/\
+							{\
+								nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
+							}\
+							/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
+							var commentText = document.getElementById(id);if (type == true){commentText.removeEventListener('propertychange', change, false);\
+							commentText.removeEventListener('input', change, false);commentText.removeEventListener('focus', change, false);\
+							commentText.scrollTop = 0;document.body.scrollTop = 0;commentText.style.height = '28px';} else if (type == false){autoTextarea(commentText);\
+							commentText.style.height = nHeight + 'px';}\
+							}\
+							var change;\
+							var autoTextarea = function(elem, extra, maxHeight) {\
+								extra = extra || 0;\
+								var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
+									isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
+									addEvent = function(type, callback) {\
+										elem.addEventListener ?\
+											elem.addEventListener(type, callback, false) :\
+											elem.attachEvent('on' + type, callback);\
+									},\
+									getStyle = elem.currentStyle ? function(name) {\
+										var val = elem.currentStyle[name];\
+										if (name === 'height' && val.search(/px/i) !== 1) {\
+											var rect = elem.getBoundingClientRect();\
+											return rect.bottom - rect.top -\
+												parseFloat(getStyle('paddingTop')) -\
+												parseFloat(getStyle('paddingBottom')) + 'px';\
+										};\
+										return val;\
+									} : function(name) {\
+										return getComputedStyle(elem, null)[name];\
+									},\
+									minHeight = parseFloat(getStyle('height'));\
+								elem.style.resize = 'none';\
+								change = function(e,id) {\
+									var scrollTop, height,\
+										padding = 0,\
+										style = elem.style;\
+									var obj = document.getElementById('strInBytes');\
+									console.log(id);\
+									if(id == undefined || id == null)\
+										var commentText = document.getElementById(window.event.target.id);\
+									else\
+										var commentText = document.getElementById(id);\
+									var numText = wordCount(commentText.value);\
+									obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
+									if (wordCount(commentText.value) >= 1000) {\
+										document.getElementById('strInBytes_Text').style.color = '#FF0000';\
+										commentText.style.background = '#7b3863';\
+										jQuery('#log_head, #log_body').html('');\
+										jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
+									} else {\
+										document.getElementById('strInBytes_Text').style.color = '#32CD32';\
+										commentText.style.background = '#1b2838';\
+										jQuery('#log_head, #log_body').html('');\
+									}\
+									if (elem._length === elem.value.length) return;\
+									elem._length = elem.value.length;\
+									if (!isFirefox && !isOpera) {\
+										padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
+									};\
+									scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
+									elem.style.height = minHeight + 'px';\
+									if (elem.scrollHeight > minHeight) {\
+										if (maxHeight && elem.scrollHeight > maxHeight) {\
+											height = maxHeight - padding;\
+											style.overflowY = 'auto';\
+										} else {\
+											height = elem.scrollHeight - padding;\
+											style.overflowY = 'hidden';\
+										};\
+										style.height = height + extra + 'px';\
+										var nHeight1 = height + extra;\
+										var newStr = nHeight1.toString();\
+										/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
+										/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
+										/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
+										/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
+										var iIndex;\
+										for(let i=0;i<comment_textareaHeight.length;i++)\
+										{\
+											if(id == undefined || id == null)\
+											{\
+												if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
+												{\
+													iIndex = i;\
+													break;\
+												}\
+											}\
+											else\
+											{\
+												if(comment_textareaHeight[i].indexOf(id)==0)\
+												{\
+													iIndex = i;\
+													break;\
+												}\
+											}\
+										}\
+										/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
+										/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+										comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
+										/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+										comment_textareaHeight[iIndex] += newStr;/*存储*/\
+										/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
+										scrollTop += parseInt(style.height) - elem.currHeight;\
+										/*document.body.scrollTop = scrollTop;*/\
+										/*document.documentElement.scrollTop = scrollTop;*/\
+										elem.currHeight = parseInt(style.height);\
+									};\
+								};\
+								addEvent('propertychange', change);\
+								addEvent('input', change);\
+								addEvent('focus', change);\
+								change();\
+								};\
+								function closeAllinBoxShrinkage(){\
+									inBoxShrinkage('comment_textarea',true);\
+									inBoxShrinkage('comment_textarea_zhc',true);\
+									inBoxShrinkage('comment_textarea_en',true);\
+									inBoxShrinkage('comment_textarea_jp',true);\
+									inBoxShrinkage('comment_textarea_zh_sg',true);\
+									inBoxShrinkage('comment_textarea_zh_hant',true);\
+									inBoxShrinkage('comment_textarea_zh_hk',true);\
+									inBoxShrinkage('comment_textarea_zh_mo',true);\
+									inBoxShrinkage('comment_textarea_zh_tw',true);\
+								}\
+								var inBoxonblurID = 0;\
+								function addEmojiEvent(emojiCode)\
+								{\
+									switch (inBoxonblurID){\
+										case 0:\
+											let inObj = document.getElementById('comment_textarea');\
+											inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
+											break;\
+										case 1:\
+											let inObj1 = document.getElementById('comment_textarea_en');\
+											inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
+											break;\
+										case 2:\
+											let inObj2 = document.getElementById('comment_textarea_jp');\
+											inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
+											break;\
+										case 3:\
+											let inObj3 = document.getElementById('comment_textarea_zhc');\
+											inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
+											break;\
+										case 4:\
+											let inObj4 = document.getElementById('comment_textarea_zh_sg');\
+											inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
+											break;\
+										case 5:\
+											let inObj5 = document.getElementById('comment_textarea_zh_hant');\
+											inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
+											break;\
+										case 6:\
+											let inObj6 = document.getElementById('comment_textarea_zh_hk');\
+											inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
+											break;\
+										case 7:\
+											let inObj7 = document.getElementById('comment_textarea_zh_mo');\
+											inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
+											break;\
+										case 8:\
+											let inObj8 = document.getElementById('comment_textarea_zh_tw');\
+											inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
+											if(change != undefined)\
+												change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
+											break;\
+										default:\
+											break;\
+									}}\
+									"
+			);
+			
+			addNewScript('Utility_Script',
+				'\
+					function emojiFix() { /*修复表情*/\
+						console.log("表情开始修复...");\
+						let obj = document.getElementsByClassName("emoticon_popup es_emoticons")[0];\
+						if (obj != undefined) {\
+							obj.style.position = "relative";\
+							obj.style.zIndex = "999";\
+						}\
+					\
+						let obj1 = document.getElementsByClassName("emoticon_popup_ctn")[0];\
+						if (obj1 != undefined) {\
+							obj1.style.zIndex = "999";\
+						}\
+					\
+						let emojiObjArrs = document.getElementsByClassName("emoticon_option");\
+						if (emojiObjArrs.length > 0) {\
+							for (let i in emojiObjArrs) {\
+								emojiObjArrs[i].onclick = function() {\
+									addEmojiEvent(emojiObjArrs[i].getAttribute(\'data-emoticon\'));\
+								}\
+							}\
+							console.log("表情修复完毕!");\
+						}\
+						/*console.log("修复表情错误!");*/\
+					}\
+					\
+					function dvWidthFix() { /*用于修复PC端留言提示内容溢出导致布局发生错误的问题*/\
+						$("subpage_container").style.width = "calc(100% - 280px)";\
+					}\
+					'
+			);
+			resolve('css js') // 数据处理完成
+			// reject('失败') // 数据处理出错
+		}));
+		
+		arr.push(new Promise(async function (resolve, reject){
+			document.addEventListener("DOMContentLoaded", function(event) {
+			//console.log("DOM fully loaded and parsed");
+			resolve('DOM fully loaded') // 数据处理完成
+			// reject('失败') // 数据处理出错
+			});
+		}));
+		
+		let res = await Promise.all(arr);
+		
+		addNewScript('highstock_Script', arrjsData[0]);
+		//console.log("highstock_Script success.");
+		
+		addNewScript('highcharts_exporting_Script', arrjsData[1]);
+		//console.log("highcharts_exporting_Script success.");
+		
+		addNewScript('highcharts_oldie_Script', arrjsData[2]);
+		//console.log("highcharts_oldie_Script success.");
+		
+		addNewScript('highcharts_networkgraph_Script', arrjsData[3]);
+		//console.log("highcharts_networkgraph_Script success.");
+		
+		addNewScript('highcharts_zh_CN_Script', arrjsData[4]);
+		//console.log("highcharts_zh_CN_Script success.");
+		
+		console.log("ret:",res);
 	}
 	
 	async initUI() {
-		await this.loadBaseResources();
+		//提前加载资源，等待所有资源加载完毕后直接运行，以最大程序缩减脚本初始化等待的时间
+		await this.loadBaseResources(); //加载基础资源
 		
-		addNewStyle('styles_js',
-			'::selection {color:#000;background: #35d5ff;}\
-						#addFriendToGroup,#unaddFriendToGroup,#setTimeInterval,#unsetTimeInterval,#setNoLeave,#unsetNoLeave,#addCustomName,#translationText,#setNationality,#unsetNationality,#NationalityGroup,#NationalitySortGroup,#OfflineTimeGroup,#ShowFriendData {font-family: "Motiva Sans", Sans-serif;font-weight: 300;\
-						padding: 2px 5px;border:0;outline:0;border-radius: 2px;color: #67c1f5 !important;background: rgba(0, 0, 0, 0.5 );}\
-						.persona.offline, a.persona.offline, .persona.offline.a {color:#ccc;}\
-						.persona, a.persona, .persona a, .friend_status_offline, .friend_status_offline div, .friend_status_offline a {color:#ccc;}\
-						.player_nickname_hint {color:#ccc;}\
-						#addFriendToGroup:hover,#unaddFriendToGroup:hover,#setTimeInterval:hover,#unsetTimeInterval:hover,#setNoLeave:hover,#unsetNoLeave:hover,#addCustomName:hover,#translationText:hover,#setNationality:hover,#unsetNationality:hover,#NationalityGroup:hover,#NationalitySortGroup:hover,#OfflineTimeGroup:hover,#ShowFriendData:hover {background-color: #0a6aa1;color: #fff !important;cursor: pointer;}'
-		); /* 选择的文本 */
-		addNewStyle('styles1_js',
-			'.fs-wrap {\
-											position: relative;\
-											display: inline-block;\
-											vertical-align: bottom;\
-											width: 200px;\
-											margin: 3px;\
-											font-size: 12px;\
-											line-height: 1\
-										}\
-										.fs-label-wrap {\
-											position: relative;\
-											border: 1px solid #34DEFF;\
-											cursor: default;\
-											color: #66ccff;\
-											border-radius: 4px;\
-											box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075)\
-										}\
-										.fs-label-wrap,\
-										.fs-dropdown {\
-											-webkit-user-select: none;\
-											-moz-user-select: none;\
-											-ms-user-select: none;\
-											user-select: none\
-										}\
-										.fs-label-wrap .fs-label {\
-											padding: 4px 22px 4px 8px;\
-											text-overflow: ellipsis;\
-											white-space: nowrap;\
-											overflow: hidden;\
-											cursor: pointer\
-										}\
-										.fs-arrow {\
-											width: 0;\
-											height: 0;\
-											border-left: 4px solid transparent;\
-											border-right: 4px solid transparent;\
-											border-top: 6px solid #fff;\
-											position: absolute;\
-											top: 0;\
-											right: 4px;\
-											bottom: 0;\
-											margin: auto;\
-											cursor: pointer\
-										}\
-										.fs-dropdown {\
-											position: absolute;\
-											background-color: #3E9AC6;\
-											border: 1px solid #000;\
-											width: 100%;\
-											z-index: 1000;\
-											border-radius: 4px\
-										}\
-										.fs-dropdown .fs-options {\
-											max-height: 200px;\
-											overflow: auto\
-										}\
-										\
-										.fs-search input {\
-											width: 90%;\
-											padding: 2px 4px;\
-											border: 0\
-											outline: 0;\
-										}\
-										.fs-selectAll {\
-											float: right;\
-											cursor: pointer;\
-											margin-top: 4px;\
-											height: auto\
-										}\
-										.fs-selectAll.selected {\
-											float: right;\
-											cursor: pointer;\
-											margin-top: 4px;\
-											height: auto;\
-											color: green\
-										}\
-										.fs-selectAll:hover {\
-											background-color: #35d5ff\
-										}\
-										.fs-option,\
-										.fs-search,\
-										.fs-optgroup-label {\
-											padding: 6px 8px;\
-											border-bottom: 1px solid #eee;\
-											cursor: default\
-										}\
-										.fs-option {cursor: pointer}\
-										.fs-option.hl {\
-											background-color: #f5f5f5\
-										}\
-										.fs-wrap.multiple .fs-option {\
-											position: relative;\
-											padding-left: 30px\
-										}\
-										.fs-wrap.multiple .fs-checkbox {\
-											position: absolute;\
-											display: block;\
-											width: 30px;\
-											top: 0;\
-											left: 0;\
-											bottom: 0\
-										}\
-										.fs-wrap.multiple .fs-option .fs-checkbox i {\
-											position: absolute;\
-											margin: auto;\
-											left: 0;\
-											right: 0;\
-											top: 0;\
-											bottom: 0;\
-											width: 14px;\
-											height: 14px;\
-											border: 1px solid #aeaeae;\
-											border-radius: 4px;\
-											background-color: #fff\
-										}\
-										.fs-wrap.multiple .fs-option.selected .fs-checkbox i {\
-											background-color: #11a911;\
-											border-color: transparent;\
-											background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABMSURBVAiZfc0xDkAAFIPhd2Kr1WRjcAExuIgzGUTIZ/AkImjSofnbNBAfHvzAHjOKNzhiQ42IDFXCDivaaxAJd0xYshT3QqBxqnxeHvhunpu23xnmAAAAAElFTkSuQmCC);\
-											background-repeat: no-repeat;\
-											background-position: center\
-										}\
-										.fs-wrap .fs-option:hover {\
-											background: #48E3FF;\
-											border-radius: 4px;\
-											margin-left: 2px;\
-											margin-right: 2px\
-										}\
-										.fs-optgroup-label {font-weight: 700}\
-										.hidden {display: none}\
-										.fs-options::-webkit-scrollbar {width: 6px}\
-										.fs-options::-webkit-scrollbar-track {\
-											-webkit-border-radius: 2em;\
-											-moz-border-radius: 2em;\
-											border-radius: 2em;\
-											-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
-											background: rgba(0, 0, 0, .1)}\
-										.fs-options::-webkit-scrollbar-thumb {\
-											-webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
-											background: rgba(0, 0, 0, .2);\
-											-webkit-border-radius: 2em;\
-											-moz-border-radius: 2em;\
-											border-radius: 2em\
-										}'
-		); /* 选择的文本 */
-
-		addNewScript('styles_Script',
-			"\
-						function wordCount(data) {\
-							var intLength = 0;\
-							for (var i = 0; i < data.length; i++) {\
-								if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
-									intLength = intLength + 3;\
-								else\
-									intLength = intLength + 1;\
-							}\
-							return intLength;\
-						}\
-						var comment_textareaHeight = [];\
-						function inBoxShrinkage(id,type){\
-						var index = -1;\
-						var iArr;\
-						for(let i=0;i<comment_textareaHeight.length;i++)\
-						{\
-							index = comment_textareaHeight[i].indexOf(id);\
-							if(index != -1)\
-							{\
-								iArr = i; /*记录旧节点的下标*/\
-								console.log('记录旧节点的下标','iArr',iArr);\
-								break;\
-							}\
-						}\
-						if(index == -1)\
-						{\
-							comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
-							iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
-							console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);\
-						}\
-						var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
-						if(nHeight==0)/*第一次,没有指定的样式*/\
-						{\
-							nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
-						}\
-						/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
-						var commentText = document.getElementById(id);if (type == true){commentText.removeEventListener('propertychange', change, false);\
-						commentText.removeEventListener('input', change, false);commentText.removeEventListener('focus', change, false);\
-						commentText.scrollTop = 0;document.body.scrollTop = 0;commentText.style.height = '28px';} else if (type == false){autoTextarea(commentText);\
-						commentText.style.height = nHeight + 'px';}\
-						}\
-						var change;\
-						var autoTextarea = function(elem, extra, maxHeight) {\
-							extra = extra || 0;\
-							var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
-								isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
-								addEvent = function(type, callback) {\
-									elem.addEventListener ?\
-										elem.addEventListener(type, callback, false) :\
-										elem.attachEvent('on' + type, callback);\
-								},\
-								getStyle = elem.currentStyle ? function(name) {\
-									var val = elem.currentStyle[name];\
-									if (name === 'height' && val.search(/px/i) !== 1) {\
-										var rect = elem.getBoundingClientRect();\
-										return rect.bottom - rect.top -\
-											parseFloat(getStyle('paddingTop')) -\
-											parseFloat(getStyle('paddingBottom')) + 'px';\
-									};\
-									return val;\
-								} : function(name) {\
-									return getComputedStyle(elem, null)[name];\
-								},\
-								minHeight = parseFloat(getStyle('height'));\
-							elem.style.resize = 'none';\
-							change = function(e,id) {\
-								var scrollTop, height,\
-									padding = 0,\
-									style = elem.style;\
-								var obj = document.getElementById('strInBytes');\
-								console.log(id);\
-								if(id == undefined || id == null)\
-									var commentText = document.getElementById(window.event.target.id);\
-								else\
-									var commentText = document.getElementById(id);\
-								var numText = wordCount(commentText.value);\
-								obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
-								if (wordCount(commentText.value) >= 1000) {\
-									document.getElementById('strInBytes_Text').style.color = '#FF0000';\
-									commentText.style.background = '#7b3863';\
-									jQuery('#log_head, #log_body').html('');\
-									jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
-								} else {\
-									document.getElementById('strInBytes_Text').style.color = '#32CD32';\
-									commentText.style.background = '#1b2838';\
-									jQuery('#log_head, #log_body').html('');\
-								}\
-								if (elem._length === elem.value.length) return;\
-								elem._length = elem.value.length;\
-								if (!isFirefox && !isOpera) {\
-									padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
-								};\
-								scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
-								elem.style.height = minHeight + 'px';\
-								if (elem.scrollHeight > minHeight) {\
-									if (maxHeight && elem.scrollHeight > maxHeight) {\
-										height = maxHeight - padding;\
-										style.overflowY = 'auto';\
-									} else {\
-										height = elem.scrollHeight - padding;\
-										style.overflowY = 'hidden';\
-									};\
-									style.height = height + extra + 'px';\
-									var nHeight1 = height + extra;\
-									var newStr = nHeight1.toString();\
-									/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
-									/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
-									/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
-									/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
-									var iIndex;\
-									for(let i=0;i<comment_textareaHeight.length;i++)\
-									{\
-										if(id == undefined || id == null)\
-										{\
-											if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
-											{\
-												iIndex = i;\
-												break;\
-											}\
-										}\
-										else\
-										{\
-											if(comment_textareaHeight[i].indexOf(id)==0)\
-											{\
-												iIndex = i;\
-												break;\
-											}\
-										}\
-									}\
-									/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
-									/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-									comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
-									/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-									comment_textareaHeight[iIndex] += newStr;/*存储*/\
-									/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
-									scrollTop += parseInt(style.height) - elem.currHeight;\
-									/*document.body.scrollTop = scrollTop;*/\
-									/*document.documentElement.scrollTop = scrollTop;*/\
-									elem.currHeight = parseInt(style.height);\
-								};\
-							};\
-							addEvent('propertychange', change);\
-							addEvent('input', change);\
-							addEvent('focus', change);\
-							change();\
-							};\
-							function closeAllinBoxShrinkage(){\
-								inBoxShrinkage('comment_textarea',true);\
-								inBoxShrinkage('comment_textarea_zhc',true);\
-								inBoxShrinkage('comment_textarea_en',true);\
-								inBoxShrinkage('comment_textarea_jp',true);\
-								inBoxShrinkage('comment_textarea_zh_sg',true);\
-								inBoxShrinkage('comment_textarea_zh_hant',true);\
-								inBoxShrinkage('comment_textarea_zh_hk',true);\
-								inBoxShrinkage('comment_textarea_zh_mo',true);\
-								inBoxShrinkage('comment_textarea_zh_tw',true);\
-							}\
-							var inBoxonblurID = 0;\
-							function addEmojiEvent(emojiCode)\
-							{\
-								switch (inBoxonblurID){\
-									case 0:\
-										let inObj = document.getElementById('comment_textarea');\
-										inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
-										break;\
-									case 1:\
-										let inObj1 = document.getElementById('comment_textarea_en');\
-										inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
-										break;\
-									case 2:\
-										let inObj2 = document.getElementById('comment_textarea_jp');\
-										inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
-										break;\
-									case 3:\
-										let inObj3 = document.getElementById('comment_textarea_zhc');\
-										inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
-										break;\
-									case 4:\
-										let inObj4 = document.getElementById('comment_textarea_zh_sg');\
-										inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
-										break;\
-									case 5:\
-										let inObj5 = document.getElementById('comment_textarea_zh_hant');\
-										inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
-										break;\
-									case 6:\
-										let inObj6 = document.getElementById('comment_textarea_zh_hk');\
-										inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
-										break;\
-									case 7:\
-										let inObj7 = document.getElementById('comment_textarea_zh_mo');\
-										inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
-										break;\
-									case 8:\
-										let inObj8 = document.getElementById('comment_textarea_zh_tw');\
-										inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
-										if(change != undefined)\
-											change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
-										break;\
-									default:\
-										break;\
-								}}\
-								"
-		);
-
-		addNewScript('Utility_Script',
-			'\
-				function emojiFix() { /*修复表情*/\
-					console.log("表情开始修复...");\
-					let obj = document.getElementsByClassName("emoticon_popup es_emoticons")[0];\
-					if (obj != undefined) {\
-						obj.style.position = "relative";\
-						obj.style.zIndex = "999";\
-					}\
-				\
-					let obj1 = document.getElementsByClassName("emoticon_popup_ctn")[0];\
-					if (obj1 != undefined) {\
-						obj1.style.zIndex = "999";\
-					}\
-				\
-					let emojiObjArrs = document.getElementsByClassName("emoticon_option");\
-					if (emojiObjArrs.length > 0) {\
-						for (let i in emojiObjArrs) {\
-							emojiObjArrs[i].onclick = function() {\
-								addEmojiEvent(emojiObjArrs[i].getAttribute(\'data-emoticon\'));\
-							}\
-						}\
-						console.log("表情修复完毕!");\
-					}\
-					/*console.log("修复表情错误!");*/\
-				}\
-				\
-				function dvWidthFix() { /*用于修复PC端留言提示内容溢出导致布局发生错误的问题*/\
-					$("subpage_container").style.width = "calc(100% - 280px)";\
-				}\
-				'
-		);
+		if(getLoginStatus() == false){ //判断是否登录，如果没有登录则不需要继续运行
+			layer.alert('请先登录Steam，才能继续使用哦~', {icon: 0},function(index){
+				if(g_conf[0].autoLogin == 1){
+					var obj = document.getElementsByClassName("global_action_link");
+					for (let i = 0; i < obj.length; i++) {
+						if(obj[i].className == "global_action_link"){
+							obj[i].click(); //跳转到登录页面
+						}
+					}
+				}
+			});
+			return false;
+		}
 		
+		readConfInfo(g_steamID); //读取已保存的对应配置信息
 	}
 	async createUI() {
 		//正常html代码
