@@ -1,15 +1,16 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
+// @version      1.2.3.3.4
+// @date         2020.4.27
+// @source       https://github.com/Mikuof39/Steam-assistant-Steam-
+// @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
+// @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
+// @author       Miku39
+// @license      GPL License
 // @namespace    https://steamcommunity.com/id/miku-39/
 // @namespace    https://www.tampermonkey.net/
 // @namespace    https://greasyfork.org/
-// @namespace    Steam Tampermonkey Script
-// @icon         http://store.steampowered.com/favicon.ico
-// @icon64       http://store.steampowered.com/favicon.ico
-// @version      1.2.3.3.3
-// @date         2020.4.26
-// @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @require      file://D:\Desktop\图片\steam\git steam\common.js
 // @require      file://D:\Desktop\图片\steam\git steam\websocket.js
 // @require      file://D:\Desktop\图片\steam\git steam\databaseConf.js
@@ -21,10 +22,9 @@
 // @require      file://D:\Desktop\图片\steam\git steam\uiHandler.js
 // @require      file://D:\Desktop\图片\steam\git steam\event.js
 // @require      file://D:\Desktop\图片\steam\git steam\cityList.js
-// @author       Miku39
-// @license      GPL License
+// @icon         http://store.steampowered.com/favicon.ico
+// @icon64       http://store.steampowered.com/favicon.ico
 // @updateURL    https://greasyfork.org/zh-CN/scripts/397073
-// @supportURL   https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
@@ -64,6 +64,7 @@
 
 (async()=>{
 	var ui = new UI();
+	gc_ui = ui;
 	if(await ui.initUI() != false){
 		await ui.createUI();
 	}
