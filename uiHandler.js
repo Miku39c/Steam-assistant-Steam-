@@ -938,9 +938,6 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	}
 	ToggleManageFriends();
 	
-	console.log("GameFreeInfoHelper call...");
-	GameFreeInfoHelper(); //游戏免费信息助手
-	
 	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#commentthread_Profile_0_textarea'));
 	//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
 	//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
@@ -961,5 +958,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	}, 0);
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件
-	addRemoveFriendRemind(); /*添加删除好友提醒*/
+	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
+		console.log("添加删除好友提醒失败了~!");
+	}
 }

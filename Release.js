@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.3.4
+// @version      1.2.3.3.5
 // @date         2020.4.27
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
@@ -743,6 +743,9 @@ function readUserConfInfoToCurrConfInfo(i){ //读取用户配置信息到当前�
 	g_conf[0].steamID = g_conf[i].steamID;
 }
 
+function getProfilesInfo(){ //获取配置文件信息
+	
+}
 function readConfInfo(steamID){ //读取已保存的对应配置信息
 	
 	if(g_conf.length == 1){ //说明没有格外的配置信息
@@ -1024,6 +1027,9 @@ async function CNTranslateRequest(newLanguage, strText) {
 	return returnData_cn;
 }
 
+var g_ai = null;
+var g_steamdb = null;
+
 class intelligenceAI //智能AI模块
 {
 	constructor(name) { //public 构造方法
@@ -1055,95 +1061,58 @@ class intelligenceAI //智能AI模块
 		});
 	}
 }
-//var ai = new intelligenceAI();
-//ai.getWeather('北京');
 
+// if(!g_ai)
+// {
+// 	g_ai = new intelligenceAI();
+// 	ai.getWeather('北京');
+// }
+//-------------------------------------------------------------------------------------------------------------
 class SteamDB
 {
-	getProfilesInfo()
-	{
+	constructor(){
+		this.mainURL = "https://steamdb.info/";
+		this.freeGameURL = "upcoming/free/";
+	}
+	async initUI(gameInfo){ //初始化UI
+		// jQuery(".friends_header_ctn").after(
+		// 	'<div id="GameFreeInfo">\
+		// 			<div id="add1_head">喜加一</div>\
+		// 			<div id="add1_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
+		// 			</div>\
+		// 			<div id="limitedTime_head">限时免费</div>\
+		// 			<div id="limitedTime_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
+		// 			</div>\
+		// 			<div id="prediction_head">预告</div>\
+		// 			<div id="prediction_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
+		// 			</div>\
+		// 	</div>'
+		// );
+		console.log("initUI success!");
+	}
+	async GameFreeInfoHelper(){ //游戏免费信息助手
+		console.log("GameFreeInfoHelper call...");
+		initUI(data); //初始化UI
 		
+		console.log("GameFreeInfoHelper success!");
 	}
-	
-	
-}
-
-//-------------------------------------------------------------------------------------------------------------
-var waitStatus_getGameDiscountsInfoBysteamDB = true; //等待状态
-var returnData__getGameDiscountsInfoBysteamDB;
-async function getGameDiscountsInfoBysteamDB() //获取游戏折扣信息(SteamDB)
-{
-	waitStatus_getGameDiscountsInfoBysteamDB = true;
-	var baseURL = "https://steamdb.info/upcoming/free/";
-	var requestURL = baseURL;
-
-	//console.log("requestURL: ",requestURL);
-
-	GM_xmlhttpRequest({
-		method: 'GET',
-		url: requestURL,
-		headers: {
-			'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
-			//'Accept': 'application/atom+xml,application/xml,text/xml',
-			//"Content-Type": "application/x-www-form-urlencoded",
-		},
-		onload: function(response) {
-			if (response.status === 200) {
-				console.log('请求成功!', response.responseText);
-
-				var retData = "";
-				// for (var j = 0; j < JSON_jsObj[0].length; j++) {
-				// 	if (JSON_jsObj[0][j][0] != null) {
-				// 		retData += JSON_jsObj[0][j][0]; //组合每一句翻译
-				// 	}
-				// }
-				// returnData = retData; //存储数据
-				//console.log('谷歌翻译:',retData);
-				//waitStatus_getGameDiscountsInfoBysteamDB = false; //不等待
-
-			} else {
-				console.log('请求失败!');
-				//console.log(response);
-				//console.log(response.responseText);
-			}
-		},
-		onerror: function(err) {
-			console.log('请求错误!', err);
-		}
-	});
-
-	while (waitStatus_getGameDiscountsInfoBysteamDB) //强制等待异步函数执行完毕后再执行
-	{
-		console.log("wait...");
-		await sleep(100); //延迟0.1秒
+	async getFreeGameInfo(){ //获取游戏喜加一信息(SteamDB)
+		var url = this.mainURL + this.freeGameURL;
+		var jsData = await getResourceByURL(url,true); //
+		console.log("数据获取成果",jsData);
 	}
-	return returnData;
+	async getGameDiscountsInfoBysteamDB(){ //获取游戏折扣信息(SteamDB,HB,F站...)
+		const url_fanatical = "https://www.fanatical.com/";
+		const url_humblebundle = "https://www.humblebundle.com/";
+		const url_indiegala = "http://indiegala.com/";
+		const url_steam = "https://store.steampowered.com/search/?filter=topsellers&specials=1";
+	}
 }
-
-function initUI(gameInfo){ //初始化UI
-	// jQuery(".friends_header_ctn").after(
-	// 	'<div id="GameFreeInfo">\
-	// 			<div id="add1_head">喜加一</div>\
-	// 			<div id="add1_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
-	// 			</div>\
-	// 			<div id="limitedTime_head">限时免费</div>\
-	// 			<div id="limitedTime_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
-	// 			</div>\
-	// 			<div id="prediction_head">预告</div>\
-	// 			<div id="prediction_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/">\
-	// 			</div>\
-	// 	</div>'
-	// );
-	console.log("initUI success!");
-}
-
-async function GameFreeInfoHelper(){ //游戏免费信息助手
-	let data = "";
-	//data = await getGameDiscountsInfoBysteamDB();
-	initUI(data); //初始化UI
-
-	console.log("GameFreeInfoHelper success!");
-}
+// if(!g_steamdb)
+// {
+// 	g_steamdb = new SteamDB();
+// 	g_steamdb.getFreeGameInfo();
+// }
 
 //-------------------------------------------------------------------------------------------------------------
 // steam api
@@ -3670,18 +3639,46 @@ class UI {
 		}
 	}
 	
-	remoreLoadUI(){ //移除加载UI
-		var obj = document.getElementsByClassName("v6 game_bg responsive_page")[0]; //body
-		var objChildNodes = obj.childNodes; //childNodes
-		for (let i = 0; i < objChildNodes.length; i++) {
-			if(objChildNodes[i].id == "loadingUI"){
-				obj.removeChild(objChildNodes[i]);
-				return true;
-			}
-		}
-		return false;
-	}
+	remoreLoadUI(){ //移除加载UI和css
 	
+		if((()=>{
+			var obj = document.getElementsByClassName("v6 game_bg responsive_page")[0]; //body
+			var objChildNodes = obj.childNodes; //childNodes
+			for (let i = 0; i < objChildNodes.length; i++) {
+				if(objChildNodes[i].id == "loadingUI"){
+					obj.removeChild(objChildNodes[i]); //移除加载UI
+					return true;
+				}
+			}
+			return false;
+		})() == false){
+			console.log("移除加载UI失败~!");
+			return false;
+		}
+		
+		if((()=>{
+			var obj = document.getElementsByTagName("head")[0]; //head
+			var objChildNodes = obj.childNodes; //childNodes
+			for (let i = 0; i < objChildNodes.length; i++) {
+				if(objChildNodes[i].id == "styles_loading"){
+					obj.removeChild(objChildNodes[i]); //移除css
+					return true;
+				}
+			}
+			return false;
+		})() == false){
+			console.log("移除css失败~!");
+			return false;
+		}
+		
+		return true;
+	}
+		// 添加留言高级设置UI
+		// 设置多个留言框按顺序留言+++
+		// 设置多次留言
+		// 设置留言队列(包含多个 多个留言框按顺序留言+++和多次留言)和留言对象
+		// 设置留言优先级
+		// 设置简单留言自动回复和特殊留言提醒功能
 	//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
 	async loadBaseResources(){
@@ -3703,12 +3700,19 @@ class UI {
 			//覆盖layui的css
 			addNewStyle('styles_js0',
 				'a {\
-				color:#ebebeb;\
-				text-decoration: none;\
+					color:#ebebeb;\
+					text-decoration: none;\
 				}\
 				a:hover {\
-				color: #aaa\
-				}'
+					color: #aaa\
+				}\
+				.layui-form-checkbox[lay-skin=primary] span{\
+					color: #ebebeb;\
+				}\
+				.layui-checkbox-disbaled[lay-skin=primary] span{\
+					color: #999;\
+				}\
+				'
 			); /* 覆盖layui的css样式 */
 			gc_ui.loadTextChange(true); //改变当前加载进度
 			resolve('css') // 数据处理完成
@@ -4687,10 +4691,54 @@ class UI {
 			      <fieldset class="layui-elem-field">\
 			        <legend>喜加一助手</legend>\
 			        <div class="layui-field-box">\
-						<div>是否启动喜加一助手</div>\
-						<div>自动获取喜加一信息</div>\
-						<div>自动领取喜加一游戏</div>\
-						<div>设置喜加一数据来源</div>\
+						<!-- <div>是否启动喜加一助手</div> -->\
+					<form class="layui-form" action="" lay-filter="example">\
+						<div class="layui-form-item" pane="">\
+						   <label class="layui-form-label">总开关</label>\
+						   <div class="layui-input-block">\
+							<!-- checked="" -->\
+						     <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭" id="FreeGameSwitch">\
+						   </div>\
+						 </div>\
+					</form>\
+					<form class="layui-form" action="">\
+						<div class="layui-form-item">\
+							<label class="layui-form-label">设置:</label>\
+							<div class="layui-row">\
+							   <div class="layui-input-block">\
+									 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+										  <input type="checkbox" name="like[1]" lay-skin="primary" title="自动获取喜加一信息" checked=""><br>\
+									 </div>\
+									<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+										  <input type="checkbox" name="like[6]" lay-skin="primary" title="自动领取喜加一游戏" checked=""><br>\
+									</div>\
+									<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+										  <input type="checkbox" name="like[11]" lay-skin="primary" title="置顶显示在上方" checked=""><br>\
+									</div>\
+							   </div>\
+							  </div>\
+						  </div>\
+					 </form>\
+					 \
+					 <div>设置喜加一数据来源</div>\
+					 <form class="layui-form" action="">\
+					 	<div class="layui-form-item">\
+					 		<label class="layui-form-label">设置:</label>\
+					 		<div class="layui-row">\
+					 		   <div class="layui-input-block">\
+					 				 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+					 					  <input type="checkbox" name="like[1]" lay-skin="primary" title="SteamDB" checked=""><br>\
+					 				 </div>\
+					 				<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+					 					  <input type="checkbox" name="like[6]" lay-skin="primary" title="humblebundle" disabled=""><br>\
+					 				</div>\
+					 				<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+					 					  <input type="checkbox" name="like[11]" lay-skin="primary" title="fanatical" disabled=""><br>\
+					 				</div>\
+					 		   </div>\
+					 		  </div>\
+					 	  </div>\
+					  </form>\
 			        </div>\
 			      </fieldset>\
 			    </div>\
@@ -4701,13 +4749,6 @@ class UI {
 					  <div class="layui-field-box">\
 						  \
 						  <form class="layui-form" action="" lay-filter="example">\
-							 <div class="layui-form-item" pane="">\
-							    <label class="layui-form-label">喜加一助手</label>\
-							    <div class="layui-input-block">\
-									<!-- checked="" -->\
-							      <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭">\
-							    </div>\
-							  </div>\
 							  <div class="layui-form-item" pane="">\
 							     <label class="layui-form-label">Debug模式</label>\
 							     <div class="layui-input-block">\
@@ -5833,9 +5874,6 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	}
 	ToggleManageFriends();
 	
-	console.log("GameFreeInfoHelper call...");
-	GameFreeInfoHelper(); //游戏免费信息助手
-	
 	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#commentthread_Profile_0_textarea'));
 	//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
 	//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
@@ -5856,7 +5894,9 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	}, 0);
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件
-	addRemoveFriendRemind(); /*添加删除好友提醒*/
+	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
+		console.log("添加删除好友提醒失败了~!");
+	}
 }
 
 async function registeredAllEvents() //注册所有的事件

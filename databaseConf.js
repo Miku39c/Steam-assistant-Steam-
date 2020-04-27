@@ -199,6 +199,9 @@ function readUserConfInfoToCurrConfInfo(i){ //读取用户配置信息到当前�
 	g_conf[0].steamID = g_conf[i].steamID;
 }
 
+function getProfilesInfo(){ //获取配置文件信息
+	
+}
 function readConfInfo(steamID){ //读取已保存的对应配置信息
 	
 	if(g_conf.length == 1){ //说明没有格外的配置信息

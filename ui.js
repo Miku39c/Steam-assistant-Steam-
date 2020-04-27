@@ -1194,18 +1194,46 @@ class UI {
 		}
 	}
 	
-	remoreLoadUI(){ //移除加载UI
-		var obj = document.getElementsByClassName("v6 game_bg responsive_page")[0]; //body
-		var objChildNodes = obj.childNodes; //childNodes
-		for (let i = 0; i < objChildNodes.length; i++) {
-			if(objChildNodes[i].id == "loadingUI"){
-				obj.removeChild(objChildNodes[i]);
-				return true;
-			}
-		}
-		return false;
-	}
+	remoreLoadUI(){ //移除加载UI和css
 	
+		if((()=>{
+			var obj = document.getElementsByClassName("v6 game_bg responsive_page")[0]; //body
+			var objChildNodes = obj.childNodes; //childNodes
+			for (let i = 0; i < objChildNodes.length; i++) {
+				if(objChildNodes[i].id == "loadingUI"){
+					obj.removeChild(objChildNodes[i]); //移除加载UI
+					return true;
+				}
+			}
+			return false;
+		})() == false){
+			console.log("移除加载UI失败~!");
+			return false;
+		}
+		
+		if((()=>{
+			var obj = document.getElementsByTagName("head")[0]; //head
+			var objChildNodes = obj.childNodes; //childNodes
+			for (let i = 0; i < objChildNodes.length; i++) {
+				if(objChildNodes[i].id == "styles_loading"){
+					obj.removeChild(objChildNodes[i]); //移除css
+					return true;
+				}
+			}
+			return false;
+		})() == false){
+			console.log("移除css失败~!");
+			return false;
+		}
+		
+		return true;
+	}
+		// 添加留言高级设置UI
+		// 设置多个留言框按顺序留言+++
+		// 设置多次留言
+		// 设置留言队列(包含多个 多个留言框按顺序留言+++和多次留言)和留言对象
+		// 设置留言优先级
+		// 设置简单留言自动回复和特殊留言提醒功能
 	//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
 	async loadBaseResources(){
@@ -1227,12 +1255,19 @@ class UI {
 			//覆盖layui的css
 			addNewStyle('styles_js0',
 				'a {\
-				color:#ebebeb;\
-				text-decoration: none;\
+					color:#ebebeb;\
+					text-decoration: none;\
 				}\
 				a:hover {\
-				color: #aaa\
-				}'
+					color: #aaa\
+				}\
+				.layui-form-checkbox[lay-skin=primary] span{\
+					color: #ebebeb;\
+				}\
+				.layui-checkbox-disbaled[lay-skin=primary] span{\
+					color: #999;\
+				}\
+				'
 			); /* 覆盖layui的css样式 */
 			gc_ui.loadTextChange(true); //改变当前加载进度
 			resolve('css') // 数据处理完成
@@ -2211,10 +2246,54 @@ class UI {
 			      <fieldset class="layui-elem-field">\
 			        <legend>喜加一助手</legend>\
 			        <div class="layui-field-box">\
-						<div>是否启动喜加一助手</div>\
-						<div>自动获取喜加一信息</div>\
-						<div>自动领取喜加一游戏</div>\
-						<div>设置喜加一数据来源</div>\
+						<!-- <div>是否启动喜加一助手</div> -->\
+					<form class="layui-form" action="" lay-filter="example">\
+						<div class="layui-form-item" pane="">\
+						   <label class="layui-form-label">总开关</label>\
+						   <div class="layui-input-block">\
+							<!-- checked="" -->\
+						     <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭" id="FreeGameSwitch">\
+						   </div>\
+						 </div>\
+					</form>\
+					<form class="layui-form" action="">\
+						<div class="layui-form-item">\
+							<label class="layui-form-label">设置:</label>\
+							<div class="layui-row">\
+							   <div class="layui-input-block">\
+									 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+										  <input type="checkbox" name="like[1]" lay-skin="primary" title="自动获取喜加一信息" checked=""><br>\
+									 </div>\
+									<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+										  <input type="checkbox" name="like[6]" lay-skin="primary" title="自动领取喜加一游戏" checked=""><br>\
+									</div>\
+									<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+										  <input type="checkbox" name="like[11]" lay-skin="primary" title="置顶显示在上方" checked=""><br>\
+									</div>\
+							   </div>\
+							  </div>\
+						  </div>\
+					 </form>\
+					 \
+					 <div>设置喜加一数据来源</div>\
+					 <form class="layui-form" action="">\
+					 	<div class="layui-form-item">\
+					 		<label class="layui-form-label">设置:</label>\
+					 		<div class="layui-row">\
+					 		   <div class="layui-input-block">\
+					 				 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+					 					  <input type="checkbox" name="like[1]" lay-skin="primary" title="SteamDB" checked=""><br>\
+					 				 </div>\
+					 				<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+					 					  <input type="checkbox" name="like[6]" lay-skin="primary" title="humblebundle" disabled=""><br>\
+					 				</div>\
+					 				<div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
+					 					  <input type="checkbox" name="like[11]" lay-skin="primary" title="fanatical" disabled=""><br>\
+					 				</div>\
+					 		   </div>\
+					 		  </div>\
+					 	  </div>\
+					  </form>\
 			        </div>\
 			      </fieldset>\
 			    </div>\
@@ -2225,13 +2304,6 @@ class UI {
 					  <div class="layui-field-box">\
 						  \
 						  <form class="layui-form" action="" lay-filter="example">\
-							 <div class="layui-form-item" pane="">\
-							    <label class="layui-form-label">喜加一助手</label>\
-							    <div class="layui-input-block">\
-									<!-- checked="" -->\
-							      <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭">\
-							    </div>\
-							  </div>\
 							  <div class="layui-form-item" pane="">\
 							     <label class="layui-form-label">Debug模式</label>\
 							     <div class="layui-input-block">\
