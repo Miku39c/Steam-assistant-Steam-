@@ -18,13 +18,153 @@ function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	return 0;
 }
 
+var func_PageRefreshAndCloseWarn = function(event){
+	event.returnValue = '当前脚本正在运行中，您确定要离开吗?';
+};
+function setPageRefreshAndCloseWarn(mode){ //设置页面刷新和关闭警告
+	if (mode) {
+		window.addEventListener("beforeunload", func_PageRefreshAndCloseWarn, true);
+	} else{
+		window.removeEventListener("beforeunload", func_PageRefreshAndCloseWarn, true)
+	}
+}
+//setPageRefreshAndCloseWarn(true); //设置页面刷新和关闭警告
+//setPageRefreshAndCloseWarn(false); //取消设置页面刷新和关闭警告
+//-----------------------------------------------------------------------------------
+var func_autoPageRefreshAndCloseWarn = function(event){
+	if(g_conf[0].YunStatus == true){
+		if(g_conf[0].isAddYunBreakWarn == true){
+			event.returnValue = '当前脚本正在运行中，您确定要离开吗?';
+		}
+	}
+};
+function autoSetPageRefreshAndCloseWarn(mode){ //自动判断状态并设置页面刷新和关闭警告
+	if (mode) {
+		window.addEventListener("beforeunload", func_autoPageRefreshAndCloseWarn, true);
+	} else{
+		window.removeEventListener("beforeunload", func_autoPageRefreshAndCloseWarn, true)
+	}
+}
+//autoSetPageRefreshAndCloseWarn(true); //自动判断状态并设置页面刷新和关闭警告
+//autoSetPageRefreshAndCloseWarn(false); //取消自动判断状态并设置页面刷新和关闭警告
+
 function getLoginStatus(){
 	if(g_steamID == false)
 		return false; //没有登陆
 	else if(typeof g_steamID == "string" && g_steamID.indexOf('7656119')==0)
 		return true; //成功登陆
 }
-
+//-------------------------------------------------------------------------------------------------------------
+var key_mode = 0;
+var index_arr = [2];
+index_arr[0] = undefined;
+index_arr[1] = undefined;
+function addFriendMultipleSelectionMode(){ //添加好友多选模式
+	document.getElementById("search_text_box").blur(); //搜索框取消获得的焦点
+	
+	jQuery("#search_results .selectable").click(function(e) {
+		var id = jQuery(this).attr("id"); //id
+		var index = jQuery(this).index(); //下标
+		//console.log(id,index);//得到点击的a标签的title值
+		
+		switch (key_mode){
+			case 0:
+				index_arr[0] = index-2;
+				//console.log(index_arr[0]);
+				break;
+			case 1: //~ 反选
+				break;
+			case 2: //alt 重新选择
+				break;
+			case 3: //shift 好友快速多选模式
+				if(index_arr[0] == undefined)
+					index_arr[0] = index-2;
+				else if(index_arr[0] == index-2){ //同一个元素
+					
+				}
+				else{
+					//取消选择文字
+					document.selection && document.selection.empty && ( document.selection.empty(), 1)
+					|| window.getSelection && window.getSelection().removeAllRanges();
+					//遍历并选择之间的内容
+					index_arr[1] = index-2;
+					var obj = jQuery("#search_results .selectable");
+					for (let i = index_arr[0]; i < index_arr[1]; i++) {
+						obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = true; //选中
+					}
+					console.log("好友快速多选已完成!",index_arr[0],index_arr[1]);
+					//index_arr[0] = undefined;
+					//index_arr[1] = undefined;
+				}
+				break;
+			default:
+				break;
+		}
+	}); //选择的朋友总数
+	
+	document.addEventListener("keydown", function(e){ //~ 反选
+		//console.log(e.keyCode);
+		//console.log(e.shiftKey,e.altKey);
+		if(e.keyCode == 192){
+			key_mode = 1;
+			//console.log("~ down");
+			
+			var obj = jQuery("#search_results .selectable");
+			for (let i = 0; i < obj.length; i++) {
+				var bool = obj[i].getElementsByClassName("select_friend_checkbox")[0].checked;
+				obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = !bool; //全部取消选中
+			}
+			console.log("~ 反选");
+			return false;
+		}
+	}, false);
+	//-----------------------------------------------------------------------------------
+	shortcut.add("Esc",function() { //alt 重新选择
+		key_mode = 2;
+		//console.log("Alt");
+		
+		var obj = jQuery("#search_results .selectable");
+		for (let i = 0; i < obj.length; i++) {
+			obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = false; //全部取消选中
+		}
+		console.log("Esc 重新选择");
+	}, {
+		'type':'keydown', //事件
+		'propagate':false, //是否支持冒泡
+		'disable_in_input':false, //是否在输入框内有效
+		'target':document, //作用范围
+	});
+	//-----------------------------------------------------------------------------------
+	shortcut.add("Shift",function() { //shift 好友快速多选模式
+		key_mode = 3;
+		//console.log("Shift");
+	}, {
+		'type':'keydown', //事件
+		'propagate':false, //是否支持冒泡
+		'disable_in_input':false, //是否在输入框内有效
+		'target':document, //作用范围
+	});
+	//-----------------------------------------------------------------------------------
+	document.addEventListener("keyup", function(e){
+		//console.log(e.keyCode);
+		//console.log(e.shiftKey,e.altKey);
+		if(e.keyCode == 192){
+			key_mode = 0;
+			//console.log("~ UP");
+			return false;
+		}
+		else if(e.keyCode == 27){
+			key_mode = 0;
+			//console.log("Esc UP");
+			return false;
+		}
+		else if(e.keyCode == 16){
+			key_mode = 0;
+			//console.log("Shift UP");
+			return false;
+		}
+	}, false);
+}
 //-------------------------------------------------------------------------------------------------------------
 // API
 function getCityCodeByEnglishName(cityEnglishName) {
@@ -206,3 +346,4 @@ function countRgbColor(r, g, b) //计算RGB渐变颜色
 //-------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------------
+

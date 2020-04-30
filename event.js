@@ -1,8 +1,14 @@
 async function registeredAllEvents() //注册所有的事件
 {
+	autoSetPageRefreshAndCloseWarn(true); //自动判断状态并设置页面刷新和关闭警告
+	addFriendMultipleSelectionMode(); //添加好友多选模式
+	
+	
 	jQuery("#addCustomName").click(async function() {
 		var inString = document.getElementById("comment_textarea");
 		inString.value += g_conf[0].strRemarkPlaceholder;
+		
+		document.getElementById("select_isCustom_checkbox").checked = true; //自动选择 自定义称呼模式
 	});
 	
 	//<留言时的时间戳-目标时间戳>
@@ -28,6 +34,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -114,6 +121,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(100);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	});
@@ -132,6 +140,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -222,6 +231,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	});
@@ -246,6 +256,8 @@ async function registeredAllEvents() //注册所有的事件
 		console.log("optionsValue", optionsValue);
 		//遍历选择的语言并创建输入框,然后翻译后设置值
 		for (let i = 0; i < selectLanguageArr.length; i++) {
+			g_conf[0].YunStatus = true; //正在运行
+			
 			var _id;
 			var newStrText;
 			switch (selectLanguageArr[i]) {
@@ -410,11 +422,11 @@ async function registeredAllEvents() //注册所有的事件
 						change(null, 'comment_textarea_zh_tw'); //统计翻译后的文字长度
 					break;
 				default:
+				g_conf[0].YunStatus = false; //没有运行
 					break;
 			}
-	
-	
-	
+			g_conf[0].isTranslationText = true; //进行了翻译
+			g_conf[0].YunStatus = false; //没有运行
 	
 		}
 	
@@ -446,6 +458,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -552,6 +565,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(100);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
@@ -574,6 +588,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -682,6 +697,7 @@ async function registeredAllEvents() //注册所有的事件
 				//await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			//window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
@@ -714,6 +730,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -817,6 +834,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
@@ -840,10 +858,10 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_head, #log_body").html("");
 				//jQuery(".selected").each(async function(i) {
 				var jqobj = jQuery("#search_results .selected.selectable");
-		
+				
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
-		
+					g_conf[0].YunStatus = true; //正在运行
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -1018,6 +1036,8 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_body")[0].innerHTML +=
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
+				
+				g_conf[0].YunStatus = false; //没有运行
 		
 			} else {
 				alert("请确保您输入了一条消息并选择了1个或更多好友。");
@@ -1031,7 +1051,12 @@ async function registeredAllEvents() //注册所有的事件
 		setTimeout(async()=>{
 			date = new Date();
 			startTime = date.getTime();
-				
+			
+			if(g_conf[0].isTranslationText == false){
+				layer.alert("这个功能需要配合翻译一起使用，以达到发送不同留言内容的目的.请先进行翻译(选择要翻译的语言，然后点击翻译按钮，修改翻译的文本，然后重新进行尝试!)",{icon: 0});
+				return;
+			}
+			
 			const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
 			const msg = jQuery("#comment_textarea").val(); //获取评论内容
 			const msg_CN = jQuery("#comment_textarea_zhc").val(); //获取评论内容
@@ -1042,6 +1067,7 @@ async function registeredAllEvents() //注册所有的事件
 			const msg_CN_HK = jQuery("#comment_textarea_zh_hk").val(); //获取评论内容
 			const msg_CN_MO = jQuery("#comment_textarea_zh_mo").val(); //获取评论内容
 			const msg_CN_TW = jQuery("#comment_textarea_zh_tw").val(); //获取评论内容
+			
 			var newMgs = "";
 			var mode = 0;
 			var SpecialName = undefined;
@@ -1057,7 +1083,7 @@ async function registeredAllEvents() //注册所有的事件
 				
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
-				
+					g_conf[0].YunStatus = true; //正在运行
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -1525,6 +1551,8 @@ async function registeredAllEvents() //注册所有的事件
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
 				
+				g_conf[0].YunStatus = false; //没有运行
+				
 			} else {
 				alert("请确保您输入了一条消息并选择了1个或更多好友。");
 			}
@@ -1945,7 +1973,7 @@ async function registeredAllEvents() //注册所有的事件
 					}
 					//console.log("[Debug] name:", name);
 				} //for
-	
+				
 				//console.log(ArrOfflineTime);
 				ArrOfflineTime.sort(function(a, b) {
 					if (a[0] > b[0])

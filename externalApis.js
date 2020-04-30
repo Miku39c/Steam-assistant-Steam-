@@ -84,3 +84,4 @@ class SteamDB
 // 	g_steamdb = new SteamDB();
 // 	g_steamdb.getFreeGameInfo();
 // }
+

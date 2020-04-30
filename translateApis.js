@@ -225,3 +225,4 @@ async function CNTranslateRequest(newLanguage, strText) {
 	}
 	return returnData_cn;
 }
+

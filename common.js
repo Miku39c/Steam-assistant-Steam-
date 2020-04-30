@@ -490,3 +490,4 @@ var log = new Log("Sophie");
 //log.test("Arguments.getArgumentsAllValueByDebug() successed!");
 //log.debug("Arguments.getArgumentsAllValueByDebug() 111");
 //log.debug(Arguments.getArgumentsAllValueByDebug, "111");
+

@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.3.5
-// @date         2020.4.27
+// @version      1.2.3.3.6
+// @date         2020.4.30
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -542,6 +542,229 @@ var log = new Log("Sophie");
 //log.debug("Arguments.getArgumentsAllValueByDebug() 111");
 //log.debug(Arguments.getArgumentsAllValueByDebug, "111");
 
+/**
+ * http://www.openjs.com/scripts/events/keyboard_shortcuts/
+ * Version : 2.01.B
+ * By Binny V A
+ * License : BSD
+ */
+shortcut = {
+	'all_shortcuts':{},//All the shortcuts are stored in this array
+	'add': function(shortcut_combination,callback,opt) {
+		//Provide a set of default options
+		var default_options = {
+			'type':'keydown',
+			'disable_in_input':false,
+			'target':document,
+			'keycode':false
+		}
+		if(!opt) opt = default_options;
+		else {
+			for(var dfo in default_options) {
+				if(typeof opt[dfo] == 'undefined') opt[dfo] = default_options[dfo];
+			}
+		}
+
+		var ele = opt.target;
+		if(typeof opt.target == 'string') ele = document.getElementById(opt.target);
+		var ths = this;
+		shortcut_combination = shortcut_combination.toLowerCase();
+
+		//The function to be called at keypress
+		var func = function(e) {
+			e = e || window.event;
+			
+			if(opt['disable_in_input']) { //Don't enable shortcut keys in Input, Textarea fields
+				var element;
+				if(e.target) element=e.target;
+				else if(e.srcElement) element=e.srcElement;
+				if(element.nodeType==3) element=element.parentNode;
+
+				if(element.tagName == 'INPUT' || element.tagName == 'TEXTAREA') return;
+			}
+	
+			//Find Which key is pressed
+			if (e.keyCode) code = e.keyCode;
+			else if (e.which) code = e.which;
+			var character = String.fromCharCode(code).toLowerCase();
+			
+			if(code == 188) character=","; //If the user presses , when the type is onkeydown
+			if(code == 190) character="."; //If the user presses , when the type is onkeydown
+
+			var keys = shortcut_combination.split("+");
+			//Key Pressed - counts the number of valid keypresses - if it is same as the number of keys, the shortcut function is invoked
+			var kp = 0;
+			
+			//Work around for stupid Shift key bug created by using lowercase - as a result the shift+num combination was broken
+			var shift_nums = {
+				"`":"~",
+				"1":"!",
+				"2":"@",
+				"3":"#",
+				"4":"$",
+				"5":"%",
+				"6":"^",
+				"7":"&",
+				"8":"*",
+				"9":"(",
+				"0":")",
+				"-":"_",
+				"=":"+",
+				";":":",
+				"'":"\"",
+				",":"<",
+				".":">",
+				"/":"?",
+				"\\":"|"
+			}
+			//Special Keys - and their codes
+			var special_keys = {
+				'esc':27,
+				'escape':27,
+				'tab':9,
+				'space':32,
+				'return':13,
+				'enter':13,
+				'backspace':8,
+	
+				'scrolllock':145,
+				'scroll_lock':145,
+				'scroll':145,
+				'capslock':20,
+				'caps_lock':20,
+				'caps':20,
+				'numlock':144,
+				'num_lock':144,
+				'num':144,
+				
+				'pause':19,
+				'break':19,
+				
+				'insert':45,
+				'home':36,
+				'delete':46,
+				'end':35,
+				
+				'pageup':33,
+				'page_up':33,
+				'pu':33,
+	
+				'pagedown':34,
+				'page_down':34,
+				'pd':34,
+	
+				'left':37,
+				'up':38,
+				'right':39,
+				'down':40,
+	
+				'f1':112,
+				'f2':113,
+				'f3':114,
+				'f4':115,
+				'f5':116,
+				'f6':117,
+				'f7':118,
+				'f8':119,
+				'f9':120,
+				'f10':121,
+				'f11':122,
+				'f12':123,
+			}
+	
+			var modifiers = { 
+				shift: { wanted:false, pressed:false},
+				ctrl : { wanted:false, pressed:false},
+				alt  : { wanted:false, pressed:false},
+				meta : { wanted:false, pressed:false}	//Meta is Mac specific
+			};
+                        
+			if(e.ctrlKey)	modifiers.ctrl.pressed = true;
+			if(e.shiftKey)	modifiers.shift.pressed = true;
+			if(e.altKey)	modifiers.alt.pressed = true;
+			if(e.metaKey)   modifiers.meta.pressed = true;
+                        
+			for(var i=0; k=keys[i],i<keys.length; i++) {
+				//Modifiers
+				if(k == 'ctrl' || k == 'control') {
+					kp++;
+					modifiers.ctrl.wanted = true;
+
+				} else if(k == 'shift') {
+					kp++;
+					modifiers.shift.wanted = true;
+
+				} else if(k == 'alt') {
+					kp++;
+					modifiers.alt.wanted = true;
+				} else if(k == 'meta') {
+					kp++;
+					modifiers.meta.wanted = true;
+				} else if(k.length > 1) { //If it is a special key
+					if(special_keys[k] == code) kp++;
+					
+				} else if(opt['keycode']) {
+					if(opt['keycode'] == code) kp++;
+
+				} else { //The special keys did not match
+					if(character == k) kp++;
+					else {
+						if(shift_nums[character] && e.shiftKey) { //Stupid Shift key bug created by using lowercase
+							character = shift_nums[character]; 
+							if(character == k) kp++;
+						}
+					}
+				}
+			}
+			
+			if(kp == keys.length && 
+						modifiers.ctrl.pressed == modifiers.ctrl.wanted &&
+						modifiers.shift.pressed == modifiers.shift.wanted &&
+						modifiers.alt.pressed == modifiers.alt.wanted &&
+						modifiers.meta.pressed == modifiers.meta.wanted) {
+				callback(e);
+	
+				if(!opt['propagate']) { //Stop the event
+					//e.cancelBubble is supported by IE - this will kill the bubbling process.
+					e.cancelBubble = true;
+					e.returnValue = false;
+	
+					//e.stopPropagation works in Firefox.
+					if (e.stopPropagation) {
+						e.stopPropagation();
+						e.preventDefault();
+					}
+					return false;
+				}
+			}
+		}
+		this.all_shortcuts[shortcut_combination] = {
+			'callback':func, 
+			'target':ele, 
+			'event': opt['type']
+		};
+		//Attach the function with the event
+		if(ele.addEventListener) ele.addEventListener(opt['type'], func, false);
+		else if(ele.attachEvent) ele.attachEvent('on'+opt['type'], func);
+		else ele['on'+opt['type']] = func;
+	},
+
+	//Remove the shortcut - just specify the shortcut and I will remove the binding
+	'remove':function(shortcut_combination) {
+		shortcut_combination = shortcut_combination.toLowerCase();
+		var binding = this.all_shortcuts[shortcut_combination];
+		delete(this.all_shortcuts[shortcut_combination])
+		if(!binding) return;
+		var type = binding['event'];
+		var ele = binding['target'];
+		var callback = binding['callback'];
+
+		if(ele.detachEvent) ele.detachEvent('on'+type, callback);
+		else if(ele.removeEventListener) ele.removeEventListener(type, callback, false);
+		else ele['on'+type] = false;
+	}
+}
+
 //保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表
 var g_conf = [
 	{steamID: ""
@@ -551,6 +774,11 @@ var g_conf = [
 	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
 	,autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
 	,isShowQuickNavigationBar: false //是否显示快速导航栏
+	,debug: true //是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)
+	,isTrackRunStatus: true //是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)
+	,isAddYunBreakWarn: true //是否添加运行中断警告
+	,YunStatus: false //当前运行状态(比如正在留言中之类的就是正在运行)
+	,isTranslationText: false //是否进行了翻译
 	}
 ]// g_conf[0].
 
@@ -2254,13 +2482,153 @@ function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	return 0;
 }
 
+var func_PageRefreshAndCloseWarn = function(event){
+	event.returnValue = '当前脚本正在运行中，您确定要离开吗?';
+};
+function setPageRefreshAndCloseWarn(mode){ //设置页面刷新和关闭警告
+	if (mode) {
+		window.addEventListener("beforeunload", func_PageRefreshAndCloseWarn, true);
+	} else{
+		window.removeEventListener("beforeunload", func_PageRefreshAndCloseWarn, true)
+	}
+}
+//setPageRefreshAndCloseWarn(true); //设置页面刷新和关闭警告
+//setPageRefreshAndCloseWarn(false); //取消设置页面刷新和关闭警告
+//-----------------------------------------------------------------------------------
+var func_autoPageRefreshAndCloseWarn = function(event){
+	if(g_conf[0].YunStatus == true){
+		if(g_conf[0].isAddYunBreakWarn == true){
+			event.returnValue = '当前脚本正在运行中，您确定要离开吗?';
+		}
+	}
+};
+function autoSetPageRefreshAndCloseWarn(mode){ //自动判断状态并设置页面刷新和关闭警告
+	if (mode) {
+		window.addEventListener("beforeunload", func_autoPageRefreshAndCloseWarn, true);
+	} else{
+		window.removeEventListener("beforeunload", func_autoPageRefreshAndCloseWarn, true)
+	}
+}
+//autoSetPageRefreshAndCloseWarn(true); //自动判断状态并设置页面刷新和关闭警告
+//autoSetPageRefreshAndCloseWarn(false); //取消自动判断状态并设置页面刷新和关闭警告
+
 function getLoginStatus(){
 	if(g_steamID == false)
 		return false; //没有登陆
 	else if(typeof g_steamID == "string" && g_steamID.indexOf('7656119')==0)
 		return true; //成功登陆
 }
-
+//-------------------------------------------------------------------------------------------------------------
+var key_mode = 0;
+var index_arr = [2];
+index_arr[0] = undefined;
+index_arr[1] = undefined;
+function addFriendMultipleSelectionMode(){ //添加好友多选模式
+	document.getElementById("search_text_box").blur(); //搜索框取消获得的焦点
+	
+	jQuery("#search_results .selectable").click(function(e) {
+		var id = jQuery(this).attr("id"); //id
+		var index = jQuery(this).index(); //下标
+		//console.log(id,index);//得到点击的a标签的title值
+		
+		switch (key_mode){
+			case 0:
+				index_arr[0] = index-2;
+				//console.log(index_arr[0]);
+				break;
+			case 1: //~ 反选
+				break;
+			case 2: //alt 重新选择
+				break;
+			case 3: //shift 好友快速多选模式
+				if(index_arr[0] == undefined)
+					index_arr[0] = index-2;
+				else if(index_arr[0] == index-2){ //同一个元素
+					
+				}
+				else{
+					//取消选择文字
+					document.selection && document.selection.empty && ( document.selection.empty(), 1)
+					|| window.getSelection && window.getSelection().removeAllRanges();
+					//遍历并选择之间的内容
+					index_arr[1] = index-2;
+					var obj = jQuery("#search_results .selectable");
+					for (let i = index_arr[0]; i < index_arr[1]; i++) {
+						obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = true; //选中
+					}
+					console.log("好友快速多选已完成!",index_arr[0],index_arr[1]);
+					//index_arr[0] = undefined;
+					//index_arr[1] = undefined;
+				}
+				break;
+			default:
+				break;
+		}
+	}); //选择的朋友总数
+	
+	document.addEventListener("keydown", function(e){ //~ 反选
+		//console.log(e.keyCode);
+		//console.log(e.shiftKey,e.altKey);
+		if(e.keyCode == 192){
+			key_mode = 1;
+			//console.log("~ down");
+			
+			var obj = jQuery("#search_results .selectable");
+			for (let i = 0; i < obj.length; i++) {
+				var bool = obj[i].getElementsByClassName("select_friend_checkbox")[0].checked;
+				obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = !bool; //全部取消选中
+			}
+			console.log("~ 反选");
+			return false;
+		}
+	}, false);
+	//-----------------------------------------------------------------------------------
+	shortcut.add("Esc",function() { //alt 重新选择
+		key_mode = 2;
+		//console.log("Alt");
+		
+		var obj = jQuery("#search_results .selectable");
+		for (let i = 0; i < obj.length; i++) {
+			obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = false; //全部取消选中
+		}
+		console.log("Esc 重新选择");
+	}, {
+		'type':'keydown', //事件
+		'propagate':false, //是否支持冒泡
+		'disable_in_input':false, //是否在输入框内有效
+		'target':document, //作用范围
+	});
+	//-----------------------------------------------------------------------------------
+	shortcut.add("Shift",function() { //shift 好友快速多选模式
+		key_mode = 3;
+		//console.log("Shift");
+	}, {
+		'type':'keydown', //事件
+		'propagate':false, //是否支持冒泡
+		'disable_in_input':false, //是否在输入框内有效
+		'target':document, //作用范围
+	});
+	//-----------------------------------------------------------------------------------
+	document.addEventListener("keyup", function(e){
+		//console.log(e.keyCode);
+		//console.log(e.shiftKey,e.altKey);
+		if(e.keyCode == 192){
+			key_mode = 0;
+			//console.log("~ UP");
+			return false;
+		}
+		else if(e.keyCode == 27){
+			key_mode = 0;
+			//console.log("Esc UP");
+			return false;
+		}
+		else if(e.keyCode == 16){
+			key_mode = 0;
+			//console.log("Shift UP");
+			return false;
+		}
+	}, false);
+}
 //-------------------------------------------------------------------------------------------------------------
 // API
 function getCityCodeByEnglishName(cityEnglishName) {
@@ -5901,9 +6269,15 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 
 async function registeredAllEvents() //注册所有的事件
 {
+	autoSetPageRefreshAndCloseWarn(true); //自动判断状态并设置页面刷新和关闭警告
+	addFriendMultipleSelectionMode(); //添加好友多选模式
+	
+	
 	jQuery("#addCustomName").click(async function() {
 		var inString = document.getElementById("comment_textarea");
 		inString.value += g_conf[0].strRemarkPlaceholder;
+		
+		document.getElementById("select_isCustom_checkbox").checked = true; //自动选择 自定义称呼模式
 	});
 	
 	//<留言时的时间戳-目标时间戳>
@@ -5929,6 +6303,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -6015,6 +6390,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(100);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	});
@@ -6033,6 +6409,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -6123,6 +6500,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	});
@@ -6147,6 +6525,8 @@ async function registeredAllEvents() //注册所有的事件
 		console.log("optionsValue", optionsValue);
 		//遍历选择的语言并创建输入框,然后翻译后设置值
 		for (let i = 0; i < selectLanguageArr.length; i++) {
+			g_conf[0].YunStatus = true; //正在运行
+			
 			var _id;
 			var newStrText;
 			switch (selectLanguageArr[i]) {
@@ -6311,11 +6691,11 @@ async function registeredAllEvents() //注册所有的事件
 						change(null, 'comment_textarea_zh_tw'); //统计翻译后的文字长度
 					break;
 				default:
+				g_conf[0].YunStatus = false; //没有运行
 					break;
 			}
-	
-	
-	
+			g_conf[0].isTranslationText = true; //进行了翻译
+			g_conf[0].YunStatus = false; //没有运行
 	
 		}
 	
@@ -6347,6 +6727,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -6453,6 +6834,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(100);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
@@ -6475,6 +6857,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -6583,6 +6966,7 @@ async function registeredAllEvents() //注册所有的事件
 				//await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			//window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
@@ -6615,6 +6999,7 @@ async function registeredAllEvents() //注册所有的事件
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -6718,6 +7103,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
@@ -6741,10 +7127,10 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_head, #log_body").html("");
 				//jQuery(".selected").each(async function(i) {
 				var jqobj = jQuery("#search_results .selected.selectable");
-		
+				
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
-		
+					g_conf[0].YunStatus = true; //正在运行
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -6919,6 +7305,8 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_body")[0].innerHTML +=
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
+				
+				g_conf[0].YunStatus = false; //没有运行
 		
 			} else {
 				alert("请确保您输入了一条消息并选择了1个或更多好友。");
@@ -6932,7 +7320,12 @@ async function registeredAllEvents() //注册所有的事件
 		setTimeout(async()=>{
 			date = new Date();
 			startTime = date.getTime();
-				
+			
+			if(g_conf[0].isTranslationText == false){
+				layer.alert("这个功能需要配合翻译一起使用，以达到发送不同留言内容的目的.请先进行翻译(选择要翻译的语言，然后点击翻译按钮，修改翻译的文本，然后重新进行尝试!)",{icon: 0});
+				return;
+			}
+			
 			const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
 			const msg = jQuery("#comment_textarea").val(); //获取评论内容
 			const msg_CN = jQuery("#comment_textarea_zhc").val(); //获取评论内容
@@ -6943,6 +7336,7 @@ async function registeredAllEvents() //注册所有的事件
 			const msg_CN_HK = jQuery("#comment_textarea_zh_hk").val(); //获取评论内容
 			const msg_CN_MO = jQuery("#comment_textarea_zh_mo").val(); //获取评论内容
 			const msg_CN_TW = jQuery("#comment_textarea_zh_tw").val(); //获取评论内容
+			
 			var newMgs = "";
 			var mode = 0;
 			var SpecialName = undefined;
@@ -6958,7 +7352,7 @@ async function registeredAllEvents() //注册所有的事件
 				
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
-				
+					g_conf[0].YunStatus = true; //正在运行
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -7426,6 +7820,8 @@ async function registeredAllEvents() //注册所有的事件
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
 				
+				g_conf[0].YunStatus = false; //没有运行
+				
 			} else {
 				alert("请确保您输入了一条消息并选择了1个或更多好友。");
 			}
@@ -7846,7 +8242,7 @@ async function registeredAllEvents() //注册所有的事件
 					}
 					//console.log("[Debug] name:", name);
 				} //for
-	
+				
 				//console.log(ArrOfflineTime);
 				ArrOfflineTime.sort(function(a, b) {
 					if (a[0] > b[0])

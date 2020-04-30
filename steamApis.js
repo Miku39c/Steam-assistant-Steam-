@@ -1117,3 +1117,4 @@ class SteamData{
 		newCurrentCommentNum = 0;
 	}
 }
+
