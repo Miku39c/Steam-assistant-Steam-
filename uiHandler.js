@@ -101,6 +101,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
 	});
 	
+	//尝试去屏蔽点按钮之类的导致输入框焦点丢失的问题
 	document.addEventListener("mousedown", function(e){
 		
 			if(e.target.id.indexOf("comment")!=0){

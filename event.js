@@ -6,7 +6,8 @@ async function registeredAllEvents() //注册所有的事件
 	
 	jQuery("#addCustomName").click(async function() {
 		var inString = document.getElementById("comment_textarea");
-		inString.value += g_conf[0].strRemarkPlaceholder;
+		var nSelectionStart = inString.selectionStart;//
+		inString.value = inString.value.substr(0,nSelectionStart) + g_conf[0].strRemarkPlaceholder + inString.value.substr(nSelectionStart);
 		
 		document.getElementById("select_isCustom_checkbox").checked = true; //自动选择 自定义称呼模式
 	});

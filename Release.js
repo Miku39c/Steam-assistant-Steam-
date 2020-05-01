@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.3.7
+// @version      1.2.3.3.8
 // @date         2020.5.1
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
@@ -2811,6 +2811,7 @@ async function setSelectTextMode(mode){
 	var str = getSelectedText(); //获取选择的文本内容
 	var oldText = ele.value; //输入框原来的值  document.activeElement.value
 	var selection = window.getSelection();
+	var selectionStr = selection.toString(); //为了区分是全选了还是根本就没有选择
 	var obj = ele; //当前焦点所在的元素 document.activeElement
 	var nSelectionStart;
 	var elTextArea;
@@ -2849,56 +2850,56 @@ async function setSelectTextMode(mode){
 	switch (mode){
 		case 1:
 			newMess += text_format[0].tag_start + str + text_format[0].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){ //为了区分是全选了还是根本就没有选择
 				elTextArea.selectionStart = nSelectionStart + (text_format[0].tag_start + str + text_format[0].tag_end).length;
 			}
 			break;
 		case 2:
 			newMess += text_format[1].tag_start + str + text_format[1].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){
 				elTextArea.selectionStart = nSelectionStart + (text_format[1].tag_start + str + text_format[1].tag_end).length;
 			}
 			break;
 		case 3:
 			newMess += text_format[2].tag_start + str + text_format[2].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){
 				elTextArea.selectionStart = nSelectionStart + (text_format[2].tag_start + str + text_format[2].tag_end).length;
 			}
 			break;
 		case 4:
 			newMess += text_format[3].tag_start + str + text_format[3].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){
 				elTextArea.selectionStart = nSelectionStart + (text_format[3].tag_start + str + text_format[3].tag_end).length
 			}
 			break;
 		case 5:
 			newMess += text_format[4].tag_start + str + text_format[4].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){
 				elTextArea.selectionStart = nSelectionStart + (text_format[4].tag_start + str + text_format[4].tag_end).length;
 			}
 			break;
 		case 6:
 			newMess += text_format[5].tag_start + str + text_format[5].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){
 				elTextArea.selectionStart = nSelectionStart + (text_format[5].tag_start + str + text_format[5].tag_end).length;
 			}
 			break;
 		case 7:
 			newMess += text_format[6].tag_start + str + text_format[6].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){
 				elTextArea.selectionStart = nSelectionStart + (text_format[6].tag_start + str + text_format[6].tag_end).length;
 			}
 			break;
 		case 8:
 			newMess += text_format[7].tag_start + text_format[7].tag_middle + str + text_format[7].tag_end; //处理选择的文本并添加
-			if(selection == ""){
+			if(selectionStr == "" && selection.toString() == ""){
 				elTextArea.selectionStart = nSelectionStart + (text_format[7].tag_start + str + text_format[7].tag_end).length;
 			}
 			break;
 		default:
 			break;
 	}
-	if(selection == ""){ //是否没有选择任何的文本
+	if(selectionStr == "" && selection.toString() == ""){ //是否没有选择任何的文本
 		newMess += elTextArea.value.substr(nSelectionStart)
 	}
 	else{
@@ -5807,6 +5808,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
 	});
 	
+	//尝试去屏蔽点按钮之类的导致输入框焦点丢失的问题
 	document.addEventListener("mousedown", function(e){
 		
 			if(e.target.id.indexOf("comment")!=0){
@@ -6785,7 +6787,8 @@ async function registeredAllEvents() //注册所有的事件
 	
 	jQuery("#addCustomName").click(async function() {
 		var inString = document.getElementById("comment_textarea");
-		inString.value += g_conf[0].strRemarkPlaceholder;
+		var nSelectionStart = inString.selectionStart;//
+		inString.value = inString.value.substr(0,nSelectionStart) + g_conf[0].strRemarkPlaceholder + inString.value.substr(nSelectionStart);
 		
 		document.getElementById("select_isCustom_checkbox").checked = true; //自动选择 自定义称呼模式
 	});
