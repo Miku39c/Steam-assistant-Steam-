@@ -101,6 +101,56 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
 	});
 	
+	document.addEventListener("mousedown", function(e){
+		
+			if(e.target.id.indexOf("comment")!=0){
+				//debugger
+				//if(e.target.id == "LAY-component-form-getval"){
+				e.stopPropagation();
+				e.stopImmediatePropagation();
+				e.preventDefault();
+				//  document.getElementById("LAY-component-form-getval").click();
+				return false;
+				//}
+			}
+	      
+	}, false); //点击指定区域,输入框不失去焦点
+	
+	//表单取值
+	layui.$('#LAY-component-form-getval').on('click', async function(){
+		var data = form.val('example');
+		//var jsonStr = JSON.stringify(data);
+		switch (data.modules){
+			case '1':
+				await setSelectTextMode(1);
+				break;
+			case '2':
+				await setSelectTextMode(2);
+				break;
+			case '3':
+				await setSelectTextMode(3);
+				break;	
+			case '4':
+				await setSelectTextMode(4);
+				break;	
+			case '5':
+				await setSelectTextMode(5);
+				break;	
+			case '6':
+				await setSelectTextMode(6);
+				break;	
+			case '7':
+				await setSelectTextMode(7);
+				break;	
+			case '8':
+				await setSelectTextMode(8);
+				break;	
+			default:
+				break;
+		}
+		console.log(data.modules);
+	});
+	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 留言数据统计 图表配置
 	// Highcharts.setOptions({
@@ -938,23 +988,81 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	}
 	ToggleManageFriends();
 	
-	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#commentthread_Profile_0_textarea'));
+	add_commentthread_textarea_allSelect(); //添加留言框全选
+	
+	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#comment_textarea'));
 	//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
 	//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
 	
+	CEmoticonPopup.prototype.GetEmoticonClickClosure = function(strEmoticonName) {
+	    var _this = this;
+	    var strTextToInsert = ':' + strEmoticonName + ':';
+	    return function() {
+			console.log("表情添加到 "+inBoxonblurID);
+			
+			let obj;
+				switch (inBoxonblurID){
+					case 0:
+						obj = document.getElementById("comment_textarea");
+						break;
+					case 1:
+						obj = document.getElementById("comment_textarea_en");
+						break;
+					case 2:
+						obj = document.getElementById("comment_textarea_jp");
+						break;
+					case 3:
+						obj = document.getElementById("comment_textarea_zhc");
+						break;
+					case 4:
+						obj = document.getElementById("comment_textarea_zh_sg");
+						break;
+					case 5:
+						obj = document.getElementById("comment_textarea_zh_hant");
+						break;
+					case 6:
+						obj = document.getElementById("comment_textarea_zh_hk");
+						break;
+					case 7:
+						obj = document.getElementById("comment_textarea_zh_mo");
+						break;
+					case 8:
+						obj = document.getElementById("comment_textarea_zh_tw");
+						break;
+					default:
+						break;
+				}
+			
+	        var elTextArea = obj; //设置为指定的留言框
+	        if (elTextArea) {
+	            var nSelectionStart = elTextArea.selectionStart;
+	            elTextArea.value = elTextArea.value.substr(0, nSelectionStart) + strTextToInsert + elTextArea.value.substr(nSelectionStart);
+	            elTextArea.selectionStart = nSelectionStart + strTextToInsert.length;
+	        }
+	
+	        obj.focus(); //获取焦点，如果不在视野里，会把镜头拉过去
+	
+	        _this.DismissPopup();
+	
+	        if (window.DismissEmoticonHover)
+	            window.setTimeout(DismissEmoticonHover, 1);
+	    }
+	    ;
+	}
+	;
+	
 	setTimeout(async function() {
 		Obj.LoadEmoticons();
-		CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
-			async function a() {
-				//console.log("loadDone");
-				if (!Obj.m_$Popup)
-					Obj.BuildPopup();
-				else
-					PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
-				await emojiFix();
-			}
-			a();
-		});
+		// CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
+		// 	(async function () {
+		// 		//console.log("loadDone");
+		// 		if (!Obj.m_$Popup)
+		// 			Obj.BuildPopup();
+		// 		else
+		// 			PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
+		// 		//await emojiFix();
+		// 	})();
+		// });
 	}, 0);
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件

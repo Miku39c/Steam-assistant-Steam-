@@ -5,6 +5,8 @@ class UI {
 	constructor(arg) {
 		this.loadProgress = 0; //加载进度
 		this.isDomLoaded = false; //dom是否加载完毕
+		registeMenu(); //注册脚本快捷菜单
+		//registeNotification(); //注册事件完成通知
 	}
 	
 	showLoadUI(){ //
@@ -1744,6 +1746,10 @@ class UI {
 					function dvWidthFix() { /*用于修复PC端留言提示内容溢出导致布局发生错误的问题*/\
 						$("subpage_container").style.width = "calc(100% - 280px)";\
 					}\
+					\
+					function deleteSelectText(){ /*删除选择的文本*/\
+						window.getSelection().deleteFromDocument(); /*删除选择的文本*/\
+					}\
 					'
 			);
 			gc_ui.loadTextChange(true); //改变当前加载进度
@@ -1826,9 +1832,30 @@ class UI {
 				  <!----------------------------------------------------------------------------------------------------------------->\
 				  <div class="commentthread_entry">\
 				  		<div class="commentthread_entry_quotebox">\
-				  			<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\
+				  			<!--<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>-->\
+							<textarea class="commentthread_textarea" id="comment_textarea" onfocus="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\
 				  		</div>\
-				  		<div id="strInBytes" style="color: #32CD32;">当前字符字节数: <span id="strInBytes_Text">0</span>/999</div>\
+						<form class="layui-form" action="" lay-filter="example">\
+							<div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\
+							<div class="layui-inline">\
+							     <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\
+							     <div class="layui-input-inline">\
+							       <select name="modules" lay-verify="required" lay-search="">\
+							         <option value="">直接选择或搜索选择</option>\
+							         <option value="1">[h1] 标题文字 [/h1]</option>\
+							         <option value="2">[b] 粗体文本 [/b]</option>\
+							         <option value="3">[u] 下划线文本 [/u]</option>\
+							         <option value="4">[i] 斜体文本 [/i]</option>\
+							         <option value="5">[strike] 删除文本 [/strike]</option>\
+							         <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\
+							         <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\
+							         <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\
+							       </select>\
+							     </div>\
+								 <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\
+							   </div>\
+						</form>\
+						  \
 				  		<fieldset class="layui-elem-field layui-field-title">\
 				  		  <legend>翻译模块(需要提前设置国籍):</legend>\
 						</fieldset>\

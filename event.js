@@ -273,7 +273,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为中文简体' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zhc\',false);" onClick="" onblur="inBoxonblurID=3;inBoxShrinkage(\'comment_textarea_zhc\',true);" placeholder="添加留言(中文简体)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=3;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zhc\',false);" onClick="" onblur="inBoxonblurID=3;inBoxShrinkage(\'comment_textarea_zhc\',true);" placeholder="添加留言(中文简体)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -293,7 +293,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为英语' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_en\',false);" onClick="" onblur="inBoxonblurID=1;inBoxShrinkage(\'comment_textarea_en\',true);" placeholder="添加留言(英语)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=1;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_en\',false);" onClick="" onblur="inBoxonblurID=1;inBoxShrinkage(\'comment_textarea_en\',true);" placeholder="添加留言(英语)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -313,7 +313,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为日语' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_jp\',false);" onClick="" onblur="inBoxonblurID=2;inBoxShrinkage(\'comment_textarea_jp\',true);" placeholder="添加留言(日语)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=2;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_jp\',false);" onClick="" onblur="inBoxonblurID=2;inBoxShrinkage(\'comment_textarea_jp\',true);" placeholder="添加留言(日语)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -333,7 +333,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为马新简体' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_sg\',false);" onClick="" onblur="inBoxonblurID=4;inBoxShrinkage(\'comment_textarea_zh_sg\',true);" placeholder="添加留言(马新简体)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=4;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_sg\',false);" onClick="" onblur="inBoxonblurID=4;inBoxShrinkage(\'comment_textarea_zh_sg\',true);" placeholder="添加留言(马新简体)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -353,7 +353,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hant\',false);" onClick="" onblur="inBoxonblurID=5;inBoxShrinkage(\'comment_textarea_zh_hant\',true);" placeholder="添加留言(繁體中文)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=5;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hant\',false);" onClick="" onblur="inBoxonblurID=5;inBoxShrinkage(\'comment_textarea_zh_hant\',true);" placeholder="添加留言(繁體中文)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -373,7 +373,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(香港)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hk\',false);" onClick="" onblur="inBoxonblurID=6;inBoxShrinkage(\'comment_textarea_zh_hk\',true);" placeholder="添加留言(繁體中文(香港))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=6;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hk\',false);" onClick="" onblur="inBoxonblurID=6;inBoxShrinkage(\'comment_textarea_zh_hk\',true);" placeholder="添加留言(繁體中文(香港))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -393,7 +393,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(澳门)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_mo\',false);" onClick="" onblur="inBoxonblurID=7;inBoxShrinkage(\'comment_textarea_zh_mo\',true);" placeholder="添加留言(繁體中文(澳门))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=7;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_mo\',false);" onClick="" onblur="inBoxonblurID=7;inBoxShrinkage(\'comment_textarea_zh_mo\',true);" placeholder="添加留言(繁體中文(澳门))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -413,7 +413,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(台湾)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_tw\',false);" onClick="" onblur="inBoxonblurID=8;inBoxShrinkage(\'comment_textarea_zh_tw\',true);" placeholder="添加留言(繁體中文(台湾))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=8;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_tw\',false);" onClick="" onblur="inBoxonblurID=8;inBoxShrinkage(\'comment_textarea_zh_tw\',true);" placeholder="添加留言(繁體中文(台湾))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}

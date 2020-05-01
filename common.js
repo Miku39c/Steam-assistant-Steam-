@@ -383,12 +383,12 @@ class Arguments {
 //-------------------------------------------------------------------------------------------------------------
 //调试类
 class Log {
-	constructor(moduleName, isDEBUG = true) { /*构造方法(模块名称,调试状态)*/ //默认开启调试
+	constructor(moduleName, debugStatus = true) { /*构造方法(模块名称,调试状态)*/ //默认开启调试
 		this.m_moduleNamel = moduleName; //设置模块名称
-		this.isDEBUG = isDEBUG; //设置调试状态
+		g_conf[0].is_Debug = debugStatus; //设置调试状态
 	}
-	setDebugStatus(isDEBUG) { //设置调试状态(调试状态) //控制是否进行调试输出
-		this.isDEBUG = isDEBUG;
+	setDebugStatus(debugStatus = true) { //设置调试状态(调试状态) //控制是否进行调试输出
+		g_conf[0].is_Debug = debugStatus;
 	}
 	clear() { //清除控制台输出
 		console.clear();
@@ -397,7 +397,7 @@ class Log {
 		if (strTestInfo == undefined)
 			strTestInfo = "默认测试内容";
 		log.out("模块名称:", this.m_moduleNamel);
-		log.out("是否开启调试:", this.isDEBUG);
+		log.out("是否开启调试:", g_conf[0].is_Debug);
 		log.debug(strTestInfo);
 		log.info(strTestInfo);
 		log.warn(strTestInfo);
@@ -420,8 +420,8 @@ class Log {
 		let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #1475b2;color: #fff;' + fontStyle;
 		let arr;
 		if (typeof $funcName == 'function') { //
-			if (this.isDEBUG) {
-				debugger;
+			if (g_conf[0].is_Debug) {
+				//debugger;
 				console.log($funcName);
 				$funcName = '.' + $funcName.name;
 
@@ -430,7 +430,7 @@ class Log {
 					'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
 			}
 		} else {
-			if (this.isDEBUG) {
+			if (g_conf[0].is_Debug) {
 				arr = Arguments.getArgumentsAllValueByDebug(arguments);
 				console.log('%c[' + this.m_moduleNamel + ' Debug-A]%c' + arr[0] + '%c' + arr[1],
 					'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
@@ -438,7 +438,7 @@ class Log {
 		}
 	}
 	info($strLogInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
@@ -450,7 +450,7 @@ class Log {
 		}
 	}
 	warn($strWarnInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
@@ -462,7 +462,7 @@ class Log {
 		}
 	}
 	error($strErrInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
@@ -474,7 +474,7 @@ class Log {
 		}
 	}
 	fatal($strFatalInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #606060;color: #fff;' + fontStyle;
@@ -486,7 +486,8 @@ class Log {
 		}
 	}
 }
-var log = new Log("Sophie");
+var log = new Log("Main");
+log.info("Test");
 //log.test("Arguments.getArgumentsAllValueByDebug() successed!");
 //log.debug("Arguments.getArgumentsAllValueByDebug() 111");
 //log.debug(Arguments.getArgumentsAllValueByDebug, "111");

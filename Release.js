@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.3.6
-// @date         2020.4.30
+// @version      1.2.3.3.7
+// @date         2020.5.1
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -12,7 +12,7 @@
 // @namespace    https://www.tampermonkey.net/
 // @namespace    https://greasyfork.org/
 // @icon         http://store.steampowered.com/favicon.ico
-// @icon64       http://store.steampowered.com/favicon.ico
+// @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
 // @updateURL    https://greasyfork.org/zh-CN/scripts/397073
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
 // @grant        GM_xmlhttpRequest
@@ -48,6 +48,498 @@
 // @noframes
 // @run-at       document-start
 // ==/UserScript==
+
+//保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表
+var g_conf = [
+	{steamID: ""
+	,language: "automatic" //语言: 自动检测
+	,delay: 4 // 设置你的留言时间间隔,单位秒
+	,strNoOperate: "(不留言)" //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
+	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
+	
+	,autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
+	,isShowQuickNavigationBar: false //是否显示快速导航栏
+	,is_Debug: true //是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)
+	,isTrackRunStatus: true //是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)
+	,isAddYunBreakWarn: true //是否添加运行中断警告
+	,YunStatus: false //当前运行状态(比如正在留言中之类的就是正在运行)
+	,isTranslationText: false //是否进行了翻译
+	
+	,isShow_menu_friend: true //好友列表
+	,isShow_menu_activity: true //动态列表
+	,isShow_menu_registerKey: true //激活key
+	,isShow_menu_redeemWalletCode: true //充值key
+	,isShow_menu_steamdbFree: true //SteamDB预告
+	}
+]// g_conf[0].
+
+//默认配置信息对象
+const g_default_configuration = {
+	steamID: ""
+	,language: "automatic" //语言: 自动检测
+	,delay: 4 // 设置你的留言时间间隔,单位秒
+	,strNoOperate: "(不留言)" //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
+	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
+	,autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
+	,isShowQuickNavigationBar: false //是否显示快速导航栏
+}
+
+//多语言支持-调试信息
+const g_debug_info = [
+	{
+		language: "简体中文"
+	},
+	{
+		language: "English"
+	}
+]
+
+//多语言支持-UI
+const g_languageList = [
+	{language: "简体中文"
+	,mainName: "Steam小助手"
+	,Tabs1: "留言"
+	,commentThread_textarea_Placeholder: "添加留言"
+	,strInBytes: "当前字符字节数: "
+	,translationModule: "翻译模块(需要提前设置国籍):"
+	// ,: "当前语言"
+	// ,: "自动检测"
+	// ,: "中文简体"
+	// ,: "英语"
+	// ,: "日语"
+	// ,: "目标语言:"
+	// ,: "请先选择要翻译为的语言"
+	// ,: "英语"
+	// ,: "日语"
+	// ,: "中文简体"
+	// ,: "马新简体[zh-sg]"
+	// ,: "繁體中文[zh-hant]"
+	// ,: "繁體中文(香港)[zh-hk]"
+	// ,: "繁體中文(澳门)[zh-mo]"
+	// ,: "繁體中文(台湾)[zh-tw]"
+	// ,: "翻译"
+	// ,: "添加称呼模块(需要提前设置备注):"
+	// ,: "自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)"
+	// ,: "在留言框添加自定义称呼标识符"
+	// ,: "是否为好友添加称呼 (如果好友没有备注则使用steam名称)"
+	// ,: "是否为好友添加称呼 (如果好友设置有备注则使用,否则不添加称呼)"
+	// ,: "格式化帮助"
+	// ,: "发送评论给选择的好友"
+	// ,: "根据国籍发送评论给选择的好友"
+	
+	,Tabs2: "留言设置"
+	// ,: "设置国籍:"
+	// ,: "请选择要设置的国籍:"
+	// ,: "简体中文"
+	// ,: "英语"
+	// ,: "日语"
+	// ,: "马新简体(马来西亚,新加坡)[zh-sg]"
+	// ,: "繁體中文[zh-hant]"
+	// ,: "繁體中文(香港)[zh-hk]"
+	// ,: "繁體中文(澳门)[zh-mo]"
+	// ,: "繁體中文(台湾)[zh-tw]"
+	// ,: "为选择的好友设置国籍标识"
+	// ,: "为选择的好友取消国籍标识"
+	// ,: "设置不留言:"
+	// ,: "为选择的好友设置不留言"
+	// ,: "为选择的好友取消设置不留言"
+	// ,: "设置留言时间间隔:"
+	// ,: "只选择日期则过n天后再留言，只选择时间则过x时后再留言(严格模式)，日期和时间都选择了则过n天x时后再留言(严格模式)"
+	// ,: "这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点"
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	,Tabs3: "数据分析"
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	
+	,Tabs4: "动态助手"
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	
+	,Tabs5: "拓展功能(测试)"
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	
+	,Tabs6: "设置",
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	// ,: ""
+	
+	},
+	{language: "English"
+	,mainName: "Steam assistant"
+	}
+]
+
+function fixConfInfo(i,steamID){ //修复配置信息
+	var isFix = false;
+	
+	if (g_conf[i].delay < 0){
+		isFix = true; g_conf[i].delay = 4;
+	}
+	if (g_conf[i].strNoOperate == ""){
+		isFix = true; g_conf[i].strNoOperate = "(不留言)";
+	}
+	if (g_conf[i].strRemarkPlaceholder == ""){
+		isFix = true; g_conf[i].strRemarkPlaceholder = "{name}";
+	}
+	
+	return isFix;
+}
+
+function newUserGuide(steamID){ //新用户引导
+	//新手引导
+	//console.log("欢迎使用Steam小助手. 当前版本: 更新时间:");
+	//显示简短的教程界面
+	//console.log("是否进入教程?");
+	//console.log("文字教程: 链接到指南 视频教程: 链接");
+	//对配置文件进行初始化，将默认设置作为当前用户的配置信息存储到第一格
+	var length = g_conf.push(g_default_configuration); //添加默认配置信息作为新配置信息
+	g_conf[length-1].steamID = steamID; //设置当前用户的steamID，作为当前用户的配置信息
+}
+
+function readUserConfInfoToCurrConfInfo(i){ //读取用户配置信息到当前配置信息处[0]
+	g_conf[0].autoLogin = g_conf[i].autoLogin;
+	g_conf[0].delay = g_conf[i].delay;
+	g_conf[0].strNoOperate = g_conf[i].strNoOperate;
+	g_conf[0].strRemarkPlaceholder = g_conf[i].strRemarkPlaceholder;
+	g_conf[0].steamID = g_conf[i].steamID;
+}
+
+function getProfilesInfo(){ //获取配置文件信息
+	
+}
+function readConfInfo(steamID){ //读取已保存的对应配置信息
+	
+	if(g_conf.length == 1){ //说明没有格外的配置信息
+		newUserGuide(steamID);
+	}
+	else
+	{
+		for (let i = 1; i < g_conf.length; i++) { //遍历所有的配置信息
+			if(g_conf[i].steamID == steamID){
+				readUserConfInfoToCurrConfInfo(i); //读取用户配置信息到当前配置信息处[0]
+				return true;
+			}
+		}
+		//如果没有查找到，则新建用户引导
+		newUserGuide(steamID);
+		return true;
+	}
+}
+
+function saveConfInfo(steamID){ //保存最新的配置信息
+	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+		console.log("尝试保存的配置信息无效，已经恢复至默认值. 请检查...");
+	}
+	//从0号中读取出来，存储到对应的位置
+	
+}
+
+function initConfInfo(i,steamID){ //配置信息初始化(恢复默认)
+	g_conf[i].autoLogin = g_default_configuration.autoLogin;
+	g_conf[i].delay = g_default_configuration.delay;
+	g_conf[i].strNoOperate = g_default_configuration.strNoOperate;
+	g_conf[i].strRemarkPlaceholder = g_default_configuration.strRemarkPlaceholder;
+	g_conf[i].steamID = g_default_configuration.steamID;
+}
+
+function exportConfInfo(steamID){ //导出配置信息(到文件)
+	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+		console.log("尝试导出的配置信息无效，已经恢复至默认值. 请检查...");
+	}
+	//从0号中读取出来，导出到文件
+	
+}
+
+function importConfInfo(steamID){ //导入配置信息(选择文件并读取)
+	//从文件中读取配置信息，导入到0号配置
+	
+	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+		console.log("尝试导入的配置信息无效，已经恢复至默认值. 请检查...");
+	}
+	
+	//保存配置文件
+}
+
+/**
+ * http://www.openjs.com/scripts/events/keyboard_shortcuts/
+ * Version : 2.01.B
+ * By Binny V A
+ * License : BSD
+ */
+shortcut = {
+	'all_shortcuts':{},//All the shortcuts are stored in this array
+	'add': function(shortcut_combination,callback,opt) {
+		//Provide a set of default options
+		var default_options = {
+			'type':'keydown',
+			'disable_in_input':false,
+			'target':document,
+			'keycode':false
+		}
+		if(!opt) opt = default_options;
+		else {
+			for(var dfo in default_options) {
+				if(typeof opt[dfo] == 'undefined') opt[dfo] = default_options[dfo];
+			}
+		}
+
+		var ele = opt.target;
+		if(typeof opt.target == 'string') ele = document.getElementById(opt.target);
+		var ths = this;
+		shortcut_combination = shortcut_combination.toLowerCase();
+
+		//The function to be called at keypress
+		var func = function(e) {
+			e = e || window.event;
+			
+			if(opt['disable_in_input']) { //Don't enable shortcut keys in Input, Textarea fields
+				var element;
+				if(e.target) element=e.target;
+				else if(e.srcElement) element=e.srcElement;
+				if(element.nodeType==3) element=element.parentNode;
+
+				if(element.tagName == 'INPUT' || element.tagName == 'TEXTAREA') return;
+			}
+	
+			//Find Which key is pressed
+			if (e.keyCode) code = e.keyCode;
+			else if (e.which) code = e.which;
+			var character = String.fromCharCode(code).toLowerCase();
+			
+			if(code == 188) character=","; //If the user presses , when the type is onkeydown
+			if(code == 190) character="."; //If the user presses , when the type is onkeydown
+
+			var keys = shortcut_combination.split("+");
+			//Key Pressed - counts the number of valid keypresses - if it is same as the number of keys, the shortcut function is invoked
+			var kp = 0;
+			
+			//Work around for stupid Shift key bug created by using lowercase - as a result the shift+num combination was broken
+			var shift_nums = {
+				"`":"~",
+				"1":"!",
+				"2":"@",
+				"3":"#",
+				"4":"$",
+				"5":"%",
+				"6":"^",
+				"7":"&",
+				"8":"*",
+				"9":"(",
+				"0":")",
+				"-":"_",
+				"=":"+",
+				";":":",
+				"'":"\"",
+				",":"<",
+				".":">",
+				"/":"?",
+				"\\":"|"
+			}
+			//Special Keys - and their codes
+			var special_keys = {
+				'esc':27,
+				'escape':27,
+				'tab':9,
+				'space':32,
+				'return':13,
+				'enter':13,
+				'backspace':8,
+	
+				'scrolllock':145,
+				'scroll_lock':145,
+				'scroll':145,
+				'capslock':20,
+				'caps_lock':20,
+				'caps':20,
+				'numlock':144,
+				'num_lock':144,
+				'num':144,
+				
+				'pause':19,
+				'break':19,
+				
+				'insert':45,
+				'home':36,
+				'delete':46,
+				'end':35,
+				
+				'pageup':33,
+				'page_up':33,
+				'pu':33,
+	
+				'pagedown':34,
+				'page_down':34,
+				'pd':34,
+	
+				'left':37,
+				'up':38,
+				'right':39,
+				'down':40,
+	
+				'f1':112,
+				'f2':113,
+				'f3':114,
+				'f4':115,
+				'f5':116,
+				'f6':117,
+				'f7':118,
+				'f8':119,
+				'f9':120,
+				'f10':121,
+				'f11':122,
+				'f12':123,
+			}
+	
+			var modifiers = { 
+				shift: { wanted:false, pressed:false},
+				ctrl : { wanted:false, pressed:false},
+				alt  : { wanted:false, pressed:false},
+				meta : { wanted:false, pressed:false}	//Meta is Mac specific
+			};
+                        
+			if(e.ctrlKey)	modifiers.ctrl.pressed = true;
+			if(e.shiftKey)	modifiers.shift.pressed = true;
+			if(e.altKey)	modifiers.alt.pressed = true;
+			if(e.metaKey)   modifiers.meta.pressed = true;
+                        
+			for(var i=0; k=keys[i],i<keys.length; i++) {
+				//Modifiers
+				if(k == 'ctrl' || k == 'control') {
+					kp++;
+					modifiers.ctrl.wanted = true;
+
+				} else if(k == 'shift') {
+					kp++;
+					modifiers.shift.wanted = true;
+
+				} else if(k == 'alt') {
+					kp++;
+					modifiers.alt.wanted = true;
+				} else if(k == 'meta') {
+					kp++;
+					modifiers.meta.wanted = true;
+				} else if(k.length > 1) { //If it is a special key
+					if(special_keys[k] == code) kp++;
+					
+				} else if(opt['keycode']) {
+					if(opt['keycode'] == code) kp++;
+
+				} else { //The special keys did not match
+					if(character == k) kp++;
+					else {
+						if(shift_nums[character] && e.shiftKey) { //Stupid Shift key bug created by using lowercase
+							character = shift_nums[character]; 
+							if(character == k) kp++;
+						}
+					}
+				}
+			}
+			
+			if(kp == keys.length && 
+						modifiers.ctrl.pressed == modifiers.ctrl.wanted &&
+						modifiers.shift.pressed == modifiers.shift.wanted &&
+						modifiers.alt.pressed == modifiers.alt.wanted &&
+						modifiers.meta.pressed == modifiers.meta.wanted) {
+				callback(e);
+	
+				if(!opt['propagate']) { //Stop the event
+					//e.cancelBubble is supported by IE - this will kill the bubbling process.
+					e.cancelBubble = true;
+					e.returnValue = false;
+	
+					//e.stopPropagation works in Firefox.
+					if (e.stopPropagation) {
+						e.stopPropagation();
+						e.preventDefault();
+					}
+					return false;
+				}
+			}
+		}
+		this.all_shortcuts[shortcut_combination] = {
+			'callback':func, 
+			'target':ele, 
+			'event': opt['type']
+		};
+		//Attach the function with the event
+		if(ele.addEventListener) ele.addEventListener(opt['type'], func, false);
+		else if(ele.attachEvent) ele.attachEvent('on'+opt['type'], func);
+		else ele['on'+opt['type']] = func;
+	},
+
+	//Remove the shortcut - just specify the shortcut and I will remove the binding
+	'remove':function(shortcut_combination) {
+		shortcut_combination = shortcut_combination.toLowerCase();
+		var binding = this.all_shortcuts[shortcut_combination];
+		delete(this.all_shortcuts[shortcut_combination])
+		if(!binding) return;
+		var type = binding['event'];
+		var ele = binding['target'];
+		var callback = binding['callback'];
+
+		if(ele.detachEvent) ele.detachEvent('on'+type, callback);
+		else if(ele.removeEventListener) ele.removeEventListener(type, callback, false);
+		else ele['on'+type] = false;
+	}
+}
 
 //-------------------------------------------------------------------------------------------------------------
 // 实用函数集
@@ -434,12 +926,12 @@ class Arguments {
 //-------------------------------------------------------------------------------------------------------------
 //调试类
 class Log {
-	constructor(moduleName, isDEBUG = true) { /*构造方法(模块名称,调试状态)*/ //默认开启调试
+	constructor(moduleName, debugStatus = true) { /*构造方法(模块名称,调试状态)*/ //默认开启调试
 		this.m_moduleNamel = moduleName; //设置模块名称
-		this.isDEBUG = isDEBUG; //设置调试状态
+		g_conf[0].is_Debug = debugStatus; //设置调试状态
 	}
-	setDebugStatus(isDEBUG) { //设置调试状态(调试状态) //控制是否进行调试输出
-		this.isDEBUG = isDEBUG;
+	setDebugStatus(debugStatus = true) { //设置调试状态(调试状态) //控制是否进行调试输出
+		g_conf[0].is_Debug = debugStatus;
 	}
 	clear() { //清除控制台输出
 		console.clear();
@@ -448,7 +940,7 @@ class Log {
 		if (strTestInfo == undefined)
 			strTestInfo = "默认测试内容";
 		log.out("模块名称:", this.m_moduleNamel);
-		log.out("是否开启调试:", this.isDEBUG);
+		log.out("是否开启调试:", g_conf[0].is_Debug);
 		log.debug(strTestInfo);
 		log.info(strTestInfo);
 		log.warn(strTestInfo);
@@ -471,8 +963,8 @@ class Log {
 		let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #1475b2;color: #fff;' + fontStyle;
 		let arr;
 		if (typeof $funcName == 'function') { //
-			if (this.isDEBUG) {
-				debugger;
+			if (g_conf[0].is_Debug) {
+				//debugger;
 				console.log($funcName);
 				$funcName = '.' + $funcName.name;
 
@@ -481,7 +973,7 @@ class Log {
 					'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
 			}
 		} else {
-			if (this.isDEBUG) {
+			if (g_conf[0].is_Debug) {
 				arr = Arguments.getArgumentsAllValueByDebug(arguments);
 				console.log('%c[' + this.m_moduleNamel + ' Debug-A]%c' + arr[0] + '%c' + arr[1],
 					'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
@@ -489,7 +981,7 @@ class Log {
 		}
 	}
 	info($strLogInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
@@ -501,7 +993,7 @@ class Log {
 		}
 	}
 	warn($strWarnInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
@@ -513,7 +1005,7 @@ class Log {
 		}
 	}
 	error($strErrInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
@@ -525,7 +1017,7 @@ class Log {
 		}
 	}
 	fatal($strFatalInfo) {
-		if (this.isDEBUG) {
+		if (g_conf[0].is_Debug) {
 			let fontStyle =
 				'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
 			let titleStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #606060;color: #fff;' + fontStyle;
@@ -537,495 +1029,11 @@ class Log {
 		}
 	}
 }
-var log = new Log("Sophie");
+var log = new Log("Main");
+log.info("Test");
 //log.test("Arguments.getArgumentsAllValueByDebug() successed!");
 //log.debug("Arguments.getArgumentsAllValueByDebug() 111");
 //log.debug(Arguments.getArgumentsAllValueByDebug, "111");
-
-/**
- * http://www.openjs.com/scripts/events/keyboard_shortcuts/
- * Version : 2.01.B
- * By Binny V A
- * License : BSD
- */
-shortcut = {
-	'all_shortcuts':{},//All the shortcuts are stored in this array
-	'add': function(shortcut_combination,callback,opt) {
-		//Provide a set of default options
-		var default_options = {
-			'type':'keydown',
-			'disable_in_input':false,
-			'target':document,
-			'keycode':false
-		}
-		if(!opt) opt = default_options;
-		else {
-			for(var dfo in default_options) {
-				if(typeof opt[dfo] == 'undefined') opt[dfo] = default_options[dfo];
-			}
-		}
-
-		var ele = opt.target;
-		if(typeof opt.target == 'string') ele = document.getElementById(opt.target);
-		var ths = this;
-		shortcut_combination = shortcut_combination.toLowerCase();
-
-		//The function to be called at keypress
-		var func = function(e) {
-			e = e || window.event;
-			
-			if(opt['disable_in_input']) { //Don't enable shortcut keys in Input, Textarea fields
-				var element;
-				if(e.target) element=e.target;
-				else if(e.srcElement) element=e.srcElement;
-				if(element.nodeType==3) element=element.parentNode;
-
-				if(element.tagName == 'INPUT' || element.tagName == 'TEXTAREA') return;
-			}
-	
-			//Find Which key is pressed
-			if (e.keyCode) code = e.keyCode;
-			else if (e.which) code = e.which;
-			var character = String.fromCharCode(code).toLowerCase();
-			
-			if(code == 188) character=","; //If the user presses , when the type is onkeydown
-			if(code == 190) character="."; //If the user presses , when the type is onkeydown
-
-			var keys = shortcut_combination.split("+");
-			//Key Pressed - counts the number of valid keypresses - if it is same as the number of keys, the shortcut function is invoked
-			var kp = 0;
-			
-			//Work around for stupid Shift key bug created by using lowercase - as a result the shift+num combination was broken
-			var shift_nums = {
-				"`":"~",
-				"1":"!",
-				"2":"@",
-				"3":"#",
-				"4":"$",
-				"5":"%",
-				"6":"^",
-				"7":"&",
-				"8":"*",
-				"9":"(",
-				"0":")",
-				"-":"_",
-				"=":"+",
-				";":":",
-				"'":"\"",
-				",":"<",
-				".":">",
-				"/":"?",
-				"\\":"|"
-			}
-			//Special Keys - and their codes
-			var special_keys = {
-				'esc':27,
-				'escape':27,
-				'tab':9,
-				'space':32,
-				'return':13,
-				'enter':13,
-				'backspace':8,
-	
-				'scrolllock':145,
-				'scroll_lock':145,
-				'scroll':145,
-				'capslock':20,
-				'caps_lock':20,
-				'caps':20,
-				'numlock':144,
-				'num_lock':144,
-				'num':144,
-				
-				'pause':19,
-				'break':19,
-				
-				'insert':45,
-				'home':36,
-				'delete':46,
-				'end':35,
-				
-				'pageup':33,
-				'page_up':33,
-				'pu':33,
-	
-				'pagedown':34,
-				'page_down':34,
-				'pd':34,
-	
-				'left':37,
-				'up':38,
-				'right':39,
-				'down':40,
-	
-				'f1':112,
-				'f2':113,
-				'f3':114,
-				'f4':115,
-				'f5':116,
-				'f6':117,
-				'f7':118,
-				'f8':119,
-				'f9':120,
-				'f10':121,
-				'f11':122,
-				'f12':123,
-			}
-	
-			var modifiers = { 
-				shift: { wanted:false, pressed:false},
-				ctrl : { wanted:false, pressed:false},
-				alt  : { wanted:false, pressed:false},
-				meta : { wanted:false, pressed:false}	//Meta is Mac specific
-			};
-                        
-			if(e.ctrlKey)	modifiers.ctrl.pressed = true;
-			if(e.shiftKey)	modifiers.shift.pressed = true;
-			if(e.altKey)	modifiers.alt.pressed = true;
-			if(e.metaKey)   modifiers.meta.pressed = true;
-                        
-			for(var i=0; k=keys[i],i<keys.length; i++) {
-				//Modifiers
-				if(k == 'ctrl' || k == 'control') {
-					kp++;
-					modifiers.ctrl.wanted = true;
-
-				} else if(k == 'shift') {
-					kp++;
-					modifiers.shift.wanted = true;
-
-				} else if(k == 'alt') {
-					kp++;
-					modifiers.alt.wanted = true;
-				} else if(k == 'meta') {
-					kp++;
-					modifiers.meta.wanted = true;
-				} else if(k.length > 1) { //If it is a special key
-					if(special_keys[k] == code) kp++;
-					
-				} else if(opt['keycode']) {
-					if(opt['keycode'] == code) kp++;
-
-				} else { //The special keys did not match
-					if(character == k) kp++;
-					else {
-						if(shift_nums[character] && e.shiftKey) { //Stupid Shift key bug created by using lowercase
-							character = shift_nums[character]; 
-							if(character == k) kp++;
-						}
-					}
-				}
-			}
-			
-			if(kp == keys.length && 
-						modifiers.ctrl.pressed == modifiers.ctrl.wanted &&
-						modifiers.shift.pressed == modifiers.shift.wanted &&
-						modifiers.alt.pressed == modifiers.alt.wanted &&
-						modifiers.meta.pressed == modifiers.meta.wanted) {
-				callback(e);
-	
-				if(!opt['propagate']) { //Stop the event
-					//e.cancelBubble is supported by IE - this will kill the bubbling process.
-					e.cancelBubble = true;
-					e.returnValue = false;
-	
-					//e.stopPropagation works in Firefox.
-					if (e.stopPropagation) {
-						e.stopPropagation();
-						e.preventDefault();
-					}
-					return false;
-				}
-			}
-		}
-		this.all_shortcuts[shortcut_combination] = {
-			'callback':func, 
-			'target':ele, 
-			'event': opt['type']
-		};
-		//Attach the function with the event
-		if(ele.addEventListener) ele.addEventListener(opt['type'], func, false);
-		else if(ele.attachEvent) ele.attachEvent('on'+opt['type'], func);
-		else ele['on'+opt['type']] = func;
-	},
-
-	//Remove the shortcut - just specify the shortcut and I will remove the binding
-	'remove':function(shortcut_combination) {
-		shortcut_combination = shortcut_combination.toLowerCase();
-		var binding = this.all_shortcuts[shortcut_combination];
-		delete(this.all_shortcuts[shortcut_combination])
-		if(!binding) return;
-		var type = binding['event'];
-		var ele = binding['target'];
-		var callback = binding['callback'];
-
-		if(ele.detachEvent) ele.detachEvent('on'+type, callback);
-		else if(ele.removeEventListener) ele.removeEventListener(type, callback, false);
-		else ele['on'+type] = false;
-	}
-}
-
-//保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表
-var g_conf = [
-	{steamID: ""
-	,language: "automatic" //语言: 自动检测
-	,delay: 4 // 设置你的留言时间间隔,单位秒
-	,strNoOperate: "(不留言)" //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
-	,autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
-	,isShowQuickNavigationBar: false //是否显示快速导航栏
-	,debug: true //是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)
-	,isTrackRunStatus: true //是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)
-	,isAddYunBreakWarn: true //是否添加运行中断警告
-	,YunStatus: false //当前运行状态(比如正在留言中之类的就是正在运行)
-	,isTranslationText: false //是否进行了翻译
-	}
-]// g_conf[0].
-
-//默认配置信息对象
-const g_default_configuration = {
-	steamID: ""
-	,language: "automatic" //语言: 自动检测
-	,delay: 4 // 设置你的留言时间间隔,单位秒
-	,strNoOperate: "(不留言)" //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
-	,autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
-	,isShowQuickNavigationBar: false //是否显示快速导航栏
-}
-
-//多语言支持-调试信息
-const g_debug_info = [
-	{
-		language: "简体中文"
-	},
-	{
-		language: "English"
-	}
-]
-
-//多语言支持-UI
-const g_languageList = [
-	{language: "简体中文"
-	,mainName: "Steam小助手"
-	,Tabs1: "留言"
-	,commentThread_textarea_Placeholder: "添加留言"
-	,strInBytes: "当前字符字节数: "
-	,translationModule: "翻译模块(需要提前设置国籍):"
-	// ,: "当前语言"
-	// ,: "自动检测"
-	// ,: "中文简体"
-	// ,: "英语"
-	// ,: "日语"
-	// ,: "目标语言:"
-	// ,: "请先选择要翻译为的语言"
-	// ,: "英语"
-	// ,: "日语"
-	// ,: "中文简体"
-	// ,: "马新简体[zh-sg]"
-	// ,: "繁體中文[zh-hant]"
-	// ,: "繁體中文(香港)[zh-hk]"
-	// ,: "繁體中文(澳门)[zh-mo]"
-	// ,: "繁體中文(台湾)[zh-tw]"
-	// ,: "翻译"
-	// ,: "添加称呼模块(需要提前设置备注):"
-	// ,: "自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)"
-	// ,: "在留言框添加自定义称呼标识符"
-	// ,: "是否为好友添加称呼 (如果好友没有备注则使用steam名称)"
-	// ,: "是否为好友添加称呼 (如果好友设置有备注则使用,否则不添加称呼)"
-	// ,: "格式化帮助"
-	// ,: "发送评论给选择的好友"
-	// ,: "根据国籍发送评论给选择的好友"
-	
-	,Tabs2: "留言设置"
-	// ,: "设置国籍:"
-	// ,: "请选择要设置的国籍:"
-	// ,: "简体中文"
-	// ,: "英语"
-	// ,: "日语"
-	// ,: "马新简体(马来西亚,新加坡)[zh-sg]"
-	// ,: "繁體中文[zh-hant]"
-	// ,: "繁體中文(香港)[zh-hk]"
-	// ,: "繁體中文(澳门)[zh-mo]"
-	// ,: "繁體中文(台湾)[zh-tw]"
-	// ,: "为选择的好友设置国籍标识"
-	// ,: "为选择的好友取消国籍标识"
-	// ,: "设置不留言:"
-	// ,: "为选择的好友设置不留言"
-	// ,: "为选择的好友取消设置不留言"
-	// ,: "设置留言时间间隔:"
-	// ,: "只选择日期则过n天后再留言，只选择时间则过x时后再留言(严格模式)，日期和时间都选择了则过n天x时后再留言(严格模式)"
-	// ,: "这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	,Tabs3: "数据分析"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	,Tabs4: "动态助手"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	,Tabs5: "拓展功能(测试)"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	,Tabs6: "设置",
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	},
-	{language: "English"
-	,mainName: "Steam assistant"
-	}
-]
-
-function fixConfInfo(i,steamID){ //修复配置信息
-	var isFix = false;
-	
-	if (g_conf[i].delay < 0){
-		isFix = true; g_conf[i].delay = 4;
-	}
-	if (g_conf[i].strNoOperate == ""){
-		isFix = true; g_conf[i].strNoOperate = "(不留言)";
-	}
-	if (g_conf[i].strRemarkPlaceholder == ""){
-		isFix = true; g_conf[i].strRemarkPlaceholder = "{name}";
-	}
-	
-	return isFix;
-}
-
-function newUserGuide(steamID){ //新用户引导
-	//新手引导
-	//console.log("欢迎使用Steam小助手. 当前版本: 更新时间:");
-	//显示简短的教程界面
-	//console.log("是否进入教程?");
-	//console.log("文字教程: 链接到指南 视频教程: 链接");
-	//对配置文件进行初始化，将默认设置作为当前用户的配置信息存储到第一格
-	var length = g_conf.push(g_default_configuration); //添加默认配置信息作为新配置信息
-	g_conf[length-1].steamID = steamID; //设置当前用户的steamID，作为当前用户的配置信息
-}
-
-function readUserConfInfoToCurrConfInfo(i){ //读取用户配置信息到当前配置信息处[0]
-	g_conf[0].autoLogin = g_conf[i].autoLogin;
-	g_conf[0].delay = g_conf[i].delay;
-	g_conf[0].strNoOperate = g_conf[i].strNoOperate;
-	g_conf[0].strRemarkPlaceholder = g_conf[i].strRemarkPlaceholder;
-	g_conf[0].steamID = g_conf[i].steamID;
-}
-
-function getProfilesInfo(){ //获取配置文件信息
-	
-}
-function readConfInfo(steamID){ //读取已保存的对应配置信息
-	
-	if(g_conf.length == 1){ //说明没有格外的配置信息
-		newUserGuide(steamID);
-	}
-	else
-	{
-		for (let i = 1; i < g_conf.length; i++) { //遍历所有的配置信息
-			if(g_conf[i].steamID == steamID){
-				readUserConfInfoToCurrConfInfo(i); //读取用户配置信息到当前配置信息处[0]
-				return true;
-			}
-		}
-		//如果没有查找到，则新建用户引导
-		newUserGuide(steamID);
-		return true;
-	}
-}
-
-function saveConfInfo(steamID){ //保存最新的配置信息
-	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
-		console.log("尝试保存的配置信息无效，已经恢复至默认值. 请检查...");
-	}
-	//从0号中读取出来，存储到对应的位置
-	
-}
-
-function initConfInfo(i,steamID){ //配置信息初始化(恢复默认)
-	g_conf[i].autoLogin = g_default_configuration.autoLogin;
-	g_conf[i].delay = g_default_configuration.delay;
-	g_conf[i].strNoOperate = g_default_configuration.strNoOperate;
-	g_conf[i].strRemarkPlaceholder = g_default_configuration.strRemarkPlaceholder;
-	g_conf[i].steamID = g_default_configuration.steamID;
-}
-
-function exportConfInfo(steamID){ //导出配置信息(到文件)
-	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
-		console.log("尝试导出的配置信息无效，已经恢复至默认值. 请检查...");
-	}
-	//从0号中读取出来，导出到文件
-	
-}
-
-function importConfInfo(steamID){ //导入配置信息(选择文件并读取)
-	//从文件中读取配置信息，导入到0号配置
-	
-	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
-		console.log("尝试导入的配置信息无效，已经恢复至默认值. 请检查...");
-	}
-	
-	//保存配置文件
-}
 
 //-------------------------------------------------------------------------------------------------------------
 // 翻译API
@@ -2482,6 +2490,58 @@ function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	return 0;
 }
 
+var arrMenuID = [5];
+function registeMenu(){ //注册脚本快捷菜单
+	if(g_conf[0].isShow_menu_friend){
+		arrMenuID[0] = GM_registerMenuCommand("好友列表", function(){
+			window.open("https://steamcommunity.com/my/friends", "_blank");
+		});
+	}
+	if(g_conf[0].isShow_menu_activity){
+		arrMenuID[1] = GM_registerMenuCommand("动态列表", function(){
+			window.open("https://steamcommunity.com/my/home", "_blank");
+		});
+	}
+	if(g_conf[0].isShow_menu_registerKey){
+		arrMenuID[2] = GM_registerMenuCommand("激活key", function(){
+			window.open("https://store.steampowered.com/account/registerkey", "_blank");
+		});
+	}
+	if(g_conf[0].isShow_menu_redeemWalletCode){
+		arrMenuID[3] = GM_registerMenuCommand("充值key", function(){
+			window.open("https://store.steampowered.com/account/redeemwalletcode", "_blank");
+		});
+	}
+	if(g_conf[0].isShow_menu_steamdbFree){
+		arrMenuID[4] = GM_registerMenuCommand("SteamDB预告", function(){
+			window.open("https://steamdb.info/upcoming/free/", "_blank");
+		});
+	}
+}
+
+function unRegisteMenu(){ //取消注册脚本快捷菜单
+	GM_unregisterMenuCommand(arrMenuID[0]);
+	GM_unregisterMenuCommand(arrMenuID[1]);
+	GM_unregisterMenuCommand(arrMenuID[2]);
+	GM_unregisterMenuCommand(arrMenuID[3]);
+	GM_unregisterMenuCommand(arrMenuID[4]);
+}
+
+function registeNotification(){ //注册事件完成通知
+	var options = {
+		text: "文本.",
+		title: "标题!",
+		image: "https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png",
+		ondone: function() {
+			console.log("完成.");
+		},
+		onclick: function() {
+			console.log("点击.");
+		}
+	}
+	GM_notification(options);
+}
+
 var func_PageRefreshAndCloseWarn = function(event){
 	event.returnValue = '当前脚本正在运行中，您确定要离开吗?';
 };
@@ -2552,10 +2612,13 @@ function addFriendMultipleSelectionMode(){ //添加好友多选模式
 					|| window.getSelection && window.getSelection().removeAllRanges();
 					//遍历并选择之间的内容
 					index_arr[1] = index-2;
-					var obj = jQuery("#search_results .selectable");
-					for (let i = index_arr[0]; i < index_arr[1]; i++) {
-						obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = true; //选中
+					var obj = jQuery("#search_results>.selectable");
+					var arr = obj.slice( index_arr[0],index_arr[1]);
+					arr.addClass("selected");
+					for (let i = 0; i < arr.length; i++) {
+						arr[i].getElementsByClassName("select_friend_checkbox")[0].checked = true; //选中
 					}
+					UpdateSelection(); //官方，更新计数
 					console.log("好友快速多选已完成!",index_arr[0],index_arr[1]);
 					//index_arr[0] = undefined;
 					//index_arr[1] = undefined;
@@ -2573,11 +2636,13 @@ function addFriendMultipleSelectionMode(){ //添加好友多选模式
 			key_mode = 1;
 			//console.log("~ down");
 			
-			var obj = jQuery("#search_results .selectable");
+			var obj = jQuery("#search_results>.selectable");
+			obj.toggleClass("selected");
 			for (let i = 0; i < obj.length; i++) {
 				var bool = obj[i].getElementsByClassName("select_friend_checkbox")[0].checked;
 				obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = !bool; //全部取消选中
 			}
+			UpdateSelection(); //官方，更新计数
 			console.log("~ 反选");
 			return false;
 		}
@@ -2587,10 +2652,12 @@ function addFriendMultipleSelectionMode(){ //添加好友多选模式
 		key_mode = 2;
 		//console.log("Alt");
 		
-		var obj = jQuery("#search_results .selectable");
+		var obj = jQuery("#search_results>.selectable");
+		obj.removeClass("selected");
 		for (let i = 0; i < obj.length; i++) {
 			obj[i].getElementsByClassName("select_friend_checkbox")[0].checked = false; //全部取消选中
 		}
+		UpdateSelection(); //官方，更新计数
 		console.log("Esc 重新选择");
 	}, {
 		'type':'keydown', //事件
@@ -2625,6 +2692,314 @@ function addFriendMultipleSelectionMode(){ //添加好友多选模式
 		else if(e.keyCode == 16){
 			key_mode = 0;
 			//console.log("Shift UP");
+			return false;
+		}
+	}, false);
+}
+//-------------------------------------------------------------------------------------------------------------------------------------------------
+function getSelectedText() {
+    if (window.getSelection) {
+      return window.getSelection().toString();
+    } else if (document.selection) {
+      return document.selection.createRange().text;
+    }
+    return '';
+}
+
+function selectText(element) {
+	var text = document.getElementById(element);
+	text.focus();
+	text.select();
+	var selection = window.getSelection();
+	return selection.toString();
+}
+
+function getDifferentIndex(str1,str2){
+	var length =  str1.length < str2.length ? str2.length : str1.length; //取最大长度
+	var value; //相差的长度
+	if(length == str1.length)
+		value= str1.length - str2.length;
+	else
+		value= str2.length - str1.length;
+	
+	var i;
+	for (i = 0; i < length; i++) {
+		if(str1.charCodeAt(i) != str2.charCodeAt(i)) //如果超出范围charCodeAt()返回NaN
+		{
+			if(str1.charCodeAt(i) == NaN || str2.charCodeAt(i) == NaN)
+				return i+value; //选择的是末尾，从不一样的位置+不一样的长度
+			else
+				return i; //选择的是中间，两个数不一样，返回不一样的位置
+		}
+		
+	}
+	return -1; //没有找到返回-1
+}
+
+async function setSelectTextMode(mode){
+	var eleName;
+	
+	const text_format = [{
+			tag_start: "[h1]",
+			tag_end: "[/h1]"
+		},{
+			tag_start: "[b]",
+			tag_end: "[/b]"
+		},{
+			tag_start: "[u]",
+			tag_end: "[/u]"
+		},{
+			tag_start: "[i]",
+			tag_end: "[/i]"
+		},{
+			tag_start: "[strike]",
+			tag_end: "[/strike]"
+		},{
+			tag_start: "[spoiler]",
+			tag_end: "[/spoiler]"
+		},{
+			tag_start: "[noparse]",
+			tag_end: "[/noparse]"
+		},{
+			tag_start: "[url=",
+			tag_middle: "]",
+			tag_end: "[/url]"
+		}
+	]
+	var ele;
+		switch (inBoxonblurID){
+			case 0:
+				ele = document.getElementById("comment_textarea");
+				eleName = "comment_textarea";
+				break;
+			case 1:
+				ele = document.getElementById("comment_textarea_en");
+				eleName = "comment_textarea_en";
+				break;
+			case 2:
+				ele = document.getElementById("comment_textarea_jp");
+				eleName = "comment_textarea_jp";
+				break;
+			case 3:
+				ele = document.getElementById("comment_textarea_zhc");
+				eleName = "comment_textarea_zhc";
+				break;
+			case 4:
+				ele = document.getElementById("comment_textarea_zh_sg");
+				eleName = "comment_textarea_zh_sg";
+				break;
+			case 5:
+				ele = document.getElementById("comment_textarea_zh_hant");
+				eleName = "comment_textarea_zh_hant";
+				break;
+			case 6:
+				ele = document.getElementById("comment_textarea_zh_hk");
+				eleName = "comment_textarea_zh_hk";
+				break;
+			case 7:
+				ele = document.getElementById("comment_textarea_zh_mo");
+				eleName = "comment_textarea_zh_mo";
+				break;
+			case 8:
+				ele = document.getElementById("comment_textarea_zh_tw");
+				eleName = "comment_textarea_zh_tw";
+				break;
+			default:
+				break;
+		}
+		//debugger
+	var str = getSelectedText(); //获取选择的文本内容
+	var oldText = ele.value; //输入框原来的值  document.activeElement.value
+	var selection = window.getSelection();
+	var obj = ele; //当前焦点所在的元素 document.activeElement
+	var nSelectionStart;
+	var elTextArea;
+	if(str == ""){ //是否没有选择任何的文本
+		elTextArea = ele; //设置为指定的留言框 document.activeElement
+		if (elTextArea) {
+			nSelectionStart = elTextArea.selectionStart;//
+			if(nSelectionStart == undefined) //如果没有输入
+			{
+				nSelectionStart = 0;
+				elTextArea.value = "";
+			}
+		    newMess = elTextArea.value.substr(0, nSelectionStart);
+		}
+	}
+	else{
+		var iindex = ele.selectionStart; //
+		await window.getSelection().deleteFromDocument(); /*删除选择的文本*/
+		var newText = selectText(eleName); //输入框现在的值
+		if(newText == oldText){
+			//debugger
+			return;
+		}
+		//debugger
+		var index;
+		// if(iindex != 0 )//是否在开头(针对于相同的字符)
+		// 	index = getDifferentIndex(oldText,newText); //getDifferentIndex(oldText,newText); //ele.selectionStart
+		// else
+			index = iindex;
+		
+		console.log("index",index);
+		var endIndex = index + str.length;
+		
+		var newMess = oldText.slice(0,index); //添加开头
+	}
+	switch (mode){
+		case 1:
+			newMess += text_format[0].tag_start + str + text_format[0].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[0].tag_start + str + text_format[0].tag_end).length;
+			}
+			break;
+		case 2:
+			newMess += text_format[1].tag_start + str + text_format[1].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[1].tag_start + str + text_format[1].tag_end).length;
+			}
+			break;
+		case 3:
+			newMess += text_format[2].tag_start + str + text_format[2].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[2].tag_start + str + text_format[2].tag_end).length;
+			}
+			break;
+		case 4:
+			newMess += text_format[3].tag_start + str + text_format[3].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[3].tag_start + str + text_format[3].tag_end).length
+			}
+			break;
+		case 5:
+			newMess += text_format[4].tag_start + str + text_format[4].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[4].tag_start + str + text_format[4].tag_end).length;
+			}
+			break;
+		case 6:
+			newMess += text_format[5].tag_start + str + text_format[5].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[5].tag_start + str + text_format[5].tag_end).length;
+			}
+			break;
+		case 7:
+			newMess += text_format[6].tag_start + str + text_format[6].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[6].tag_start + str + text_format[6].tag_end).length;
+			}
+			break;
+		case 8:
+			newMess += text_format[7].tag_start + text_format[7].tag_middle + str + text_format[7].tag_end; //处理选择的文本并添加
+			if(selection == ""){
+				elTextArea.selectionStart = nSelectionStart + (text_format[7].tag_start + str + text_format[7].tag_end).length;
+			}
+			break;
+		default:
+			break;
+	}
+	if(selection == ""){ //是否没有选择任何的文本
+		newMess += elTextArea.value.substr(nSelectionStart)
+	}
+	else{
+		newMess += oldText.slice(endIndex); //添加结尾
+	}
+	obj.value = newMess; //重新赋值给输入框
+	obj.focus(); //获取焦点，如果不在视野里，会把镜头拉过去
+}
+//setSelectTextMode(1)
+//-------------------------------------------------------------------------------------------------------------------------------------------------
+function add_commentthread_textarea_allSelect(){ //添加留言框全选
+	document.addEventListener("mousedown", function(e){
+		//console.log(e.button);
+		if(e.button == 1){
+			if(document.activeElement.id.indexOf("comment_textarea") != -1){ //当前焦点所在的元素如果是留言框才全选
+				let obj;
+					switch (inBoxonblurID){
+						case 0:
+							obj = document.getElementById("comment_textarea");
+							break;
+						case 1:
+							obj = document.getElementById("comment_textarea_en");
+							break;
+						case 2:
+							obj = document.getElementById("comment_textarea_jp");
+							break;
+						case 3:
+							obj = document.getElementById("comment_textarea_zhc");
+							break;
+						case 4:
+							obj = document.getElementById("comment_textarea_zh_sg");
+							break;
+						case 5:
+							obj = document.getElementById("comment_textarea_zh_hant");
+							break;
+						case 6:
+							obj = document.getElementById("comment_textarea_zh_hk");
+							break;
+						case 7:
+							obj = document.getElementById("comment_textarea_zh_mo");
+							break;
+						case 8:
+							obj = document.getElementById("comment_textarea_zh_tw");
+							break;
+						default:
+							break;
+					}
+					obj.focus();
+					obj.select();
+					e.stopPropagation(); 
+					e.stopImmediatePropagation();
+					e.preventDefault();
+				return false;
+			}
+			return false;
+		}
+	}, false);
+	
+	
+	document.addEventListener("keyup", function(e){
+		//console.log(e.keyCode);
+		//console.log(e.shiftKey,e.altKey);
+		if(e.keyCode == 18){ //Alt
+		let obj;
+			switch (inBoxonblurID){
+				case 0:
+					obj = document.getElementById("comment_textarea");
+					break;
+				case 1:
+					obj = document.getElementById("comment_textarea_en");
+					break;
+				case 2:
+					obj = document.getElementById("comment_textarea_jp");
+					break;
+				case 3:
+					obj = document.getElementById("comment_textarea_zhc");
+					break;
+				case 4:
+					obj = document.getElementById("comment_textarea_zh_sg");
+					break;
+				case 5:
+					obj = document.getElementById("comment_textarea_zh_hant");
+					break;
+				case 6:
+					obj = document.getElementById("comment_textarea_zh_hk");
+					break;
+				case 7:
+					obj = document.getElementById("comment_textarea_zh_mo");
+					break;
+				case 8:
+					obj = document.getElementById("comment_textarea_zh_tw");
+					break;
+				default:
+					break;
+			}
+			obj.focus();
+			obj.select();
+			e.stopPropagation(); 
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			//console.log("Alt UP");
 			return false;
 		}
 	}, false);
@@ -2818,6 +3193,8 @@ class UI {
 	constructor(arg) {
 		this.loadProgress = 0; //加载进度
 		this.isDomLoaded = false; //dom是否加载完毕
+		registeMenu(); //注册脚本快捷菜单
+		//registeNotification(); //注册事件完成通知
 	}
 	
 	showLoadUI(){ //
@@ -4557,6 +4934,10 @@ class UI {
 					function dvWidthFix() { /*用于修复PC端留言提示内容溢出导致布局发生错误的问题*/\
 						$("subpage_container").style.width = "calc(100% - 280px)";\
 					}\
+					\
+					function deleteSelectText(){ /*删除选择的文本*/\
+						window.getSelection().deleteFromDocument(); /*删除选择的文本*/\
+					}\
 					'
 			);
 			gc_ui.loadTextChange(true); //改变当前加载进度
@@ -4639,9 +5020,30 @@ class UI {
 				  <!----------------------------------------------------------------------------------------------------------------->\
 				  <div class="commentthread_entry">\
 				  		<div class="commentthread_entry_quotebox">\
-				  			<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\
+				  			<!--<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>-->\
+							<textarea class="commentthread_textarea" id="comment_textarea" onfocus="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\
 				  		</div>\
-				  		<div id="strInBytes" style="color: #32CD32;">当前字符字节数: <span id="strInBytes_Text">0</span>/999</div>\
+						<form class="layui-form" action="" lay-filter="example">\
+							<div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\
+							<div class="layui-inline">\
+							     <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\
+							     <div class="layui-input-inline">\
+							       <select name="modules" lay-verify="required" lay-search="">\
+							         <option value="">直接选择或搜索选择</option>\
+							         <option value="1">[h1] 标题文字 [/h1]</option>\
+							         <option value="2">[b] 粗体文本 [/b]</option>\
+							         <option value="3">[u] 下划线文本 [/u]</option>\
+							         <option value="4">[i] 斜体文本 [/i]</option>\
+							         <option value="5">[strike] 删除文本 [/strike]</option>\
+							         <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\
+							         <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\
+							         <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\
+							       </select>\
+							     </div>\
+								 <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\
+							   </div>\
+						</form>\
+						  \
 				  		<fieldset class="layui-elem-field layui-field-title">\
 				  		  <legend>翻译模块(需要提前设置国籍):</legend>\
 						</fieldset>\
@@ -5403,6 +5805,56 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	//监听锁定操作
 	form.on('checkbox(lockDemo)', function(obj){
 	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
+	});
+	
+	document.addEventListener("mousedown", function(e){
+		
+			if(e.target.id.indexOf("comment")!=0){
+				//debugger
+				//if(e.target.id == "LAY-component-form-getval"){
+				e.stopPropagation();
+				e.stopImmediatePropagation();
+				e.preventDefault();
+				//  document.getElementById("LAY-component-form-getval").click();
+				return false;
+				//}
+			}
+	      
+	}, false); //点击指定区域,输入框不失去焦点
+	
+	//表单取值
+	layui.$('#LAY-component-form-getval').on('click', async function(){
+		var data = form.val('example');
+		//var jsonStr = JSON.stringify(data);
+		switch (data.modules){
+			case '1':
+				await setSelectTextMode(1);
+				break;
+			case '2':
+				await setSelectTextMode(2);
+				break;
+			case '3':
+				await setSelectTextMode(3);
+				break;	
+			case '4':
+				await setSelectTextMode(4);
+				break;	
+			case '5':
+				await setSelectTextMode(5);
+				break;	
+			case '6':
+				await setSelectTextMode(6);
+				break;	
+			case '7':
+				await setSelectTextMode(7);
+				break;	
+			case '8':
+				await setSelectTextMode(8);
+				break;	
+			default:
+				break;
+		}
+		console.log(data.modules);
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6242,23 +6694,81 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	}
 	ToggleManageFriends();
 	
-	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#commentthread_Profile_0_textarea'));
+	add_commentthread_textarea_allSelect(); //添加留言框全选
+	
+	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#comment_textarea'));
 	//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
 	//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
 	
+	CEmoticonPopup.prototype.GetEmoticonClickClosure = function(strEmoticonName) {
+	    var _this = this;
+	    var strTextToInsert = ':' + strEmoticonName + ':';
+	    return function() {
+			console.log("表情添加到 "+inBoxonblurID);
+			
+			let obj;
+				switch (inBoxonblurID){
+					case 0:
+						obj = document.getElementById("comment_textarea");
+						break;
+					case 1:
+						obj = document.getElementById("comment_textarea_en");
+						break;
+					case 2:
+						obj = document.getElementById("comment_textarea_jp");
+						break;
+					case 3:
+						obj = document.getElementById("comment_textarea_zhc");
+						break;
+					case 4:
+						obj = document.getElementById("comment_textarea_zh_sg");
+						break;
+					case 5:
+						obj = document.getElementById("comment_textarea_zh_hant");
+						break;
+					case 6:
+						obj = document.getElementById("comment_textarea_zh_hk");
+						break;
+					case 7:
+						obj = document.getElementById("comment_textarea_zh_mo");
+						break;
+					case 8:
+						obj = document.getElementById("comment_textarea_zh_tw");
+						break;
+					default:
+						break;
+				}
+			
+	        var elTextArea = obj; //设置为指定的留言框
+	        if (elTextArea) {
+	            var nSelectionStart = elTextArea.selectionStart;
+	            elTextArea.value = elTextArea.value.substr(0, nSelectionStart) + strTextToInsert + elTextArea.value.substr(nSelectionStart);
+	            elTextArea.selectionStart = nSelectionStart + strTextToInsert.length;
+	        }
+	
+	        obj.focus(); //获取焦点，如果不在视野里，会把镜头拉过去
+	
+	        _this.DismissPopup();
+	
+	        if (window.DismissEmoticonHover)
+	            window.setTimeout(DismissEmoticonHover, 1);
+	    }
+	    ;
+	}
+	;
+	
 	setTimeout(async function() {
 		Obj.LoadEmoticons();
-		CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
-			async function a() {
-				//console.log("loadDone");
-				if (!Obj.m_$Popup)
-					Obj.BuildPopup();
-				else
-					PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
-				await emojiFix();
-			}
-			a();
-		});
+		// CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
+		// 	(async function () {
+		// 		//console.log("loadDone");
+		// 		if (!Obj.m_$Popup)
+		// 			Obj.BuildPopup();
+		// 		else
+		// 			PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
+		// 		//await emojiFix();
+		// 	})();
+		// });
 	}, 0);
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件
@@ -6542,7 +7052,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为中文简体' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zhc\',false);" onClick="" onblur="inBoxonblurID=3;inBoxShrinkage(\'comment_textarea_zhc\',true);" placeholder="添加留言(中文简体)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=3;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zhc\',false);" onClick="" onblur="inBoxonblurID=3;inBoxShrinkage(\'comment_textarea_zhc\',true);" placeholder="添加留言(中文简体)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -6562,7 +7072,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为英语' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_en\',false);" onClick="" onblur="inBoxonblurID=1;inBoxShrinkage(\'comment_textarea_en\',true);" placeholder="添加留言(英语)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=1;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_en\',false);" onClick="" onblur="inBoxonblurID=1;inBoxShrinkage(\'comment_textarea_en\',true);" placeholder="添加留言(英语)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -6582,7 +7092,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为日语' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_jp\',false);" onClick="" onblur="inBoxonblurID=2;inBoxShrinkage(\'comment_textarea_jp\',true);" placeholder="添加留言(日语)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=2;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_jp\',false);" onClick="" onblur="inBoxonblurID=2;inBoxShrinkage(\'comment_textarea_jp\',true);" placeholder="添加留言(日语)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -6602,7 +7112,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为马新简体' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_sg\',false);" onClick="" onblur="inBoxonblurID=4;inBoxShrinkage(\'comment_textarea_zh_sg\',true);" placeholder="添加留言(马新简体)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=4;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_sg\',false);" onClick="" onblur="inBoxonblurID=4;inBoxShrinkage(\'comment_textarea_zh_sg\',true);" placeholder="添加留言(马新简体)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -6622,7 +7132,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hant\',false);" onClick="" onblur="inBoxonblurID=5;inBoxShrinkage(\'comment_textarea_zh_hant\',true);" placeholder="添加留言(繁體中文)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=5;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hant\',false);" onClick="" onblur="inBoxonblurID=5;inBoxShrinkage(\'comment_textarea_zh_hant\',true);" placeholder="添加留言(繁體中文)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -6642,7 +7152,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(香港)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hk\',false);" onClick="" onblur="inBoxonblurID=6;inBoxShrinkage(\'comment_textarea_zh_hk\',true);" placeholder="添加留言(繁體中文(香港))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=6;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hk\',false);" onClick="" onblur="inBoxonblurID=6;inBoxShrinkage(\'comment_textarea_zh_hk\',true);" placeholder="添加留言(繁體中文(香港))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -6662,7 +7172,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(澳门)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_mo\',false);" onClick="" onblur="inBoxonblurID=7;inBoxShrinkage(\'comment_textarea_zh_mo\',true);" placeholder="添加留言(繁體中文(澳门))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=7;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_mo\',false);" onClick="" onblur="inBoxonblurID=7;inBoxShrinkage(\'comment_textarea_zh_mo\',true);" placeholder="添加留言(繁體中文(澳门))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
@@ -6682,7 +7192,7 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(台湾)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="this.focus();this.select();closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_tw\',false);" onClick="" onblur="inBoxonblurID=8;inBoxShrinkage(\'comment_textarea_zh_tw\',true);" placeholder="添加留言(繁體中文(台湾))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=8;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_tw\',false);" onClick="" onblur="inBoxonblurID=8;inBoxShrinkage(\'comment_textarea_zh_tw\',true);" placeholder="添加留言(繁體中文(台湾))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
