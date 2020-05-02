@@ -1495,225 +1495,249 @@ class UI {
 			
 			addNewScript('styles_Script',
 				"\
-							function wordCount(data) {\
-								var intLength = 0;\
-								for (var i = 0; i < data.length; i++) {\
-									if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
-										intLength = intLength + 3;\
-									else\
-										intLength = intLength + 1;\
-								}\
-								return intLength;\
+			function wordCount(data) {\
+				var intLength = 0;\
+				for (var i = 0; i < data.length; i++) {\
+					if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
+						intLength = intLength + 3;\
+					else\
+						intLength = intLength + 1;\
+				}\
+				return intLength;\
+			}\
+			var comment_textareaHeight = [];\
+			var Shrinkage_scrollTop = 0; /*存储收缩状态下的进度条*/\
+			\
+			function inBoxShrinkage(id,type){\
+				var index = -1;\
+				var iArr;\
+				for(let i=0;i<comment_textareaHeight.length;i++)\
+				{\
+					index = comment_textareaHeight[i].indexOf(id);\
+					if(index != -1)\
+					{\
+						iArr = i; /*记录旧节点的下标*/\
+						/*console.log('记录旧节点的下标','iArr',iArr);*/\
+						break;\
+					}\
+				}\
+				if(index == -1)\
+				{\
+					comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
+					iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
+					/*console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);*/\
+				}\
+				var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
+				if(nHeight==0)/*第一次,没有指定的样式*/\
+				{\
+					nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
+				}\
+				/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
+				var commentText = document.getElementById(id);\
+				if (type == true){\
+					commentText.removeEventListener('propertychange', change, false);\
+					commentText.removeEventListener('input', change, false);\
+					commentText.removeEventListener('focus', change, false);\
+					commentText.scrollTop = 0;\
+					document.body.scrollTop = Shrinkage_scrollTop;\
+					document.documentElement.scrollTop = Shrinkage_scrollTop;\
+					commentText.style.height = '28px';\
+				}\
+				else if (type == false){\
+					autoTextarea(commentText);\
+					Shrinkage_scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					commentText.style.height = nHeight + 'px';\
+				}\
+			}\
+			\
+			var change;\
+			var autoTextarea = function(elem, extra, maxHeight) {\
+				extra = extra || 0;\
+				var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
+					isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
+					addEvent = function(type, callback) {\
+						elem.addEventListener ?\
+							elem.addEventListener(type, callback, false) :\
+							elem.attachEvent('on' + type, callback);\
+					},\
+					getStyle = elem.currentStyle ? function(name) {\
+						var val = elem.currentStyle[name];\
+						if (name === 'height' && val.search(/px/i) !== 1) {\
+							var rect = elem.getBoundingClientRect();\
+							return rect.bottom - rect.top -\
+								parseFloat(getStyle('paddingTop')) -\
+								parseFloat(getStyle('paddingBottom')) + 'px';\
+						};\
+						return val;\
+					} : function(name) {\
+						return getComputedStyle(elem, null)[name];\
+					},\
+					minHeight = parseFloat(getStyle('height'));\
+				elem.style.resize = 'none';\
+				\
+				change = function(e,id) {\
+						var scrollTop, height,\
+							padding = 0,\
+							style = elem.style;\
+						var obj = document.getElementById('strInBytes');\
+						var commentText;\
+						if(id == undefined || id == null)\
+							commentText = document.getElementById(window.event.target.id);\
+						else\
+							commentText = document.getElementById(id);\
+						var numText = wordCount(commentText.value);\
+						obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
+						if (wordCount(commentText.value) >= 1000) {\
+							document.getElementById('strInBytes_Text').style.color = '#FF0000';\
+							commentText.style.background = '#7b3863';\
+							if(g_conf[0].isCommentRunStatus == false)/*如果正在留言则不清除(没有留言则清除)*/\
+								jQuery('#log_head').html('');\
+							jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
+							g_conf[0].isWarnInfo = true;\
+						} else {\
+							document.getElementById('strInBytes_Text').style.color = '#32CD32';\
+							commentText.style.background = '#1b2838';\
+							if(g_conf[0].isCommentRunStatus == false && g_conf[0].isWarnInfo == true){ /*没有留言并且有警告信息才清除*/\
+								jQuery('#log_head').html('');\
+								g_conf[0].isWarnInfo = false;\
 							}\
-							var comment_textareaHeight = [];\
-							function inBoxShrinkage(id,type){\
-							var index = -1;\
-							var iArr;\
+						}\
+						if (elem._length === elem.value.length) return;\
+						elem._length = elem.value.length;\
+						if (!isFirefox && !isOpera) {\
+							padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
+						};\
+						scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
+						elem.style.height = minHeight + 'px';\
+						if (elem.scrollHeight >= minHeight) {\
+							if (maxHeight && elem.scrollHeight > maxHeight) {\
+								height = maxHeight - padding;\
+								style.overflowY = 'auto';\
+							} else {\
+								height = elem.scrollHeight - padding;\
+								style.overflowY = 'hidden';\
+							};\
+							style.height = height + extra + 'px';\
+							var nHeight1 = height + extra;\
+							var newStr = nHeight1.toString();\
+							/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
+							/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
+							/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
+							/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
+							var iIndex;\
 							for(let i=0;i<comment_textareaHeight.length;i++)\
 							{\
-								index = comment_textareaHeight[i].indexOf(id);\
-								if(index != -1)\
+								if(id == undefined || id == null)\
 								{\
-									iArr = i; /*记录旧节点的下标*/\
-									console.log('记录旧节点的下标','iArr',iArr);\
-									break;\
-								}\
-							}\
-							if(index == -1)\
-							{\
-								comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
-								iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
-								console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);\
-							}\
-							var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
-							if(nHeight==0)/*第一次,没有指定的样式*/\
-							{\
-								nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
-							}\
-							/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
-							var commentText = document.getElementById(id);if (type == true){commentText.removeEventListener('propertychange', change, false);\
-							commentText.removeEventListener('input', change, false);commentText.removeEventListener('focus', change, false);\
-							commentText.scrollTop = 0;document.body.scrollTop = 0;commentText.style.height = '28px';} else if (type == false){autoTextarea(commentText);\
-							commentText.style.height = nHeight + 'px';}\
-							}\
-							var change;\
-							var autoTextarea = function(elem, extra, maxHeight) {\
-								extra = extra || 0;\
-								var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
-									isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
-									addEvent = function(type, callback) {\
-										elem.addEventListener ?\
-											elem.addEventListener(type, callback, false) :\
-											elem.attachEvent('on' + type, callback);\
-									},\
-									getStyle = elem.currentStyle ? function(name) {\
-										var val = elem.currentStyle[name];\
-										if (name === 'height' && val.search(/px/i) !== 1) {\
-											var rect = elem.getBoundingClientRect();\
-											return rect.bottom - rect.top -\
-												parseFloat(getStyle('paddingTop')) -\
-												parseFloat(getStyle('paddingBottom')) + 'px';\
-										};\
-										return val;\
-									} : function(name) {\
-										return getComputedStyle(elem, null)[name];\
-									},\
-									minHeight = parseFloat(getStyle('height'));\
-								elem.style.resize = 'none';\
-								change = function(e,id) {\
-									var scrollTop, height,\
-										padding = 0,\
-										style = elem.style;\
-									var obj = document.getElementById('strInBytes');\
-									console.log(id);\
-									if(id == undefined || id == null)\
-										var commentText = document.getElementById(window.event.target.id);\
-									else\
-										var commentText = document.getElementById(id);\
-									var numText = wordCount(commentText.value);\
-									obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
-									if (wordCount(commentText.value) >= 1000) {\
-										document.getElementById('strInBytes_Text').style.color = '#FF0000';\
-										commentText.style.background = '#7b3863';\
-										jQuery('#log_head, #log_body').html('');\
-										jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
-									} else {\
-										document.getElementById('strInBytes_Text').style.color = '#32CD32';\
-										commentText.style.background = '#1b2838';\
-										jQuery('#log_head, #log_body').html('');\
+									if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
+									{\
+										iIndex = i;\
+										break;\
 									}\
-									if (elem._length === elem.value.length) return;\
-									elem._length = elem.value.length;\
-									if (!isFirefox && !isOpera) {\
-										padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
-									};\
-									scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
-									elem.style.height = minHeight + 'px';\
-									if (elem.scrollHeight > minHeight) {\
-										if (maxHeight && elem.scrollHeight > maxHeight) {\
-											height = maxHeight - padding;\
-											style.overflowY = 'auto';\
-										} else {\
-											height = elem.scrollHeight - padding;\
-											style.overflowY = 'hidden';\
-										};\
-										style.height = height + extra + 'px';\
-										var nHeight1 = height + extra;\
-										var newStr = nHeight1.toString();\
-										/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
-										/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
-										/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
-										/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
-										var iIndex;\
-										for(let i=0;i<comment_textareaHeight.length;i++)\
-										{\
-											if(id == undefined || id == null)\
-											{\
-												if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
-												{\
-													iIndex = i;\
-													break;\
-												}\
-											}\
-											else\
-											{\
-												if(comment_textareaHeight[i].indexOf(id)==0)\
-												{\
-													iIndex = i;\
-													break;\
-												}\
-											}\
-										}\
-										/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
-										/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-										comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
-										/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-										comment_textareaHeight[iIndex] += newStr;/*存储*/\
-										/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
-										scrollTop += parseInt(style.height) - elem.currHeight;\
-										/*document.body.scrollTop = scrollTop;*/\
-										/*document.documentElement.scrollTop = scrollTop;*/\
-										elem.currHeight = parseInt(style.height);\
-									};\
-								};\
-								addEvent('propertychange', change);\
-								addEvent('input', change);\
-								addEvent('focus', change);\
-								change();\
-								};\
-								function closeAllinBoxShrinkage(){\
-									inBoxShrinkage('comment_textarea',true);\
-									inBoxShrinkage('comment_textarea_zhc',true);\
-									inBoxShrinkage('comment_textarea_en',true);\
-									inBoxShrinkage('comment_textarea_jp',true);\
-									inBoxShrinkage('comment_textarea_zh_sg',true);\
-									inBoxShrinkage('comment_textarea_zh_hant',true);\
-									inBoxShrinkage('comment_textarea_zh_hk',true);\
-									inBoxShrinkage('comment_textarea_zh_mo',true);\
-									inBoxShrinkage('comment_textarea_zh_tw',true);\
 								}\
-								var inBoxonblurID = 0;\
-								function addEmojiEvent(emojiCode)\
+								else\
 								{\
-									switch (inBoxonblurID){\
-										case 0:\
-											let inObj = document.getElementById('comment_textarea');\
-											inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
-											break;\
-										case 1:\
-											let inObj1 = document.getElementById('comment_textarea_en');\
-											inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
-											break;\
-										case 2:\
-											let inObj2 = document.getElementById('comment_textarea_jp');\
-											inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
-											break;\
-										case 3:\
-											let inObj3 = document.getElementById('comment_textarea_zhc');\
-											inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
-											break;\
-										case 4:\
-											let inObj4 = document.getElementById('comment_textarea_zh_sg');\
-											inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
-											break;\
-										case 5:\
-											let inObj5 = document.getElementById('comment_textarea_zh_hant');\
-											inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
-											break;\
-										case 6:\
-											let inObj6 = document.getElementById('comment_textarea_zh_hk');\
-											inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
-											break;\
-										case 7:\
-											let inObj7 = document.getElementById('comment_textarea_zh_mo');\
-											inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
-											break;\
-										case 8:\
-											let inObj8 = document.getElementById('comment_textarea_zh_tw');\
-											inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
-											break;\
-										default:\
-											break;\
-									}}\
-									"
+									if(comment_textareaHeight[i].indexOf(id)==0)\
+									{\
+										iIndex = i;\
+										break;\
+									}\
+								}\
+							}\
+							/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
+							/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+							comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
+							/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+							comment_textareaHeight[iIndex] += newStr;/*存储*/\
+							/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
+							scrollTop += parseInt(style.height) - elem.currHeight;\
+							if(!isNaN(scrollTop)){\
+								document.body.scrollTop = scrollTop;\
+								document.documentElement.scrollTop = scrollTop;\
+							}\
+							elem.currHeight = parseInt(style.height);\
+						};\
+				};\
+				addEvent('propertychange', change);\
+				addEvent('input', change);\
+				addEvent('focus', change);\
+				change();\
+			};\
+			\
+			function closeAllinBoxShrinkage(){\
+				inBoxShrinkage('comment_textarea',true);\
+				inBoxShrinkage('comment_textarea_zhc',true);\
+				inBoxShrinkage('comment_textarea_en',true);\
+				inBoxShrinkage('comment_textarea_jp',true);\
+				inBoxShrinkage('comment_textarea_zh_sg',true);\
+				inBoxShrinkage('comment_textarea_zh_hant',true);\
+				inBoxShrinkage('comment_textarea_zh_hk',true);\
+				inBoxShrinkage('comment_textarea_zh_mo',true);\
+				inBoxShrinkage('comment_textarea_zh_tw',true);\
+			}\
+			\
+			var inBoxonblurID = 0;\
+			function addEmojiEvent(emojiCode)\
+			{\
+				switch (inBoxonblurID){\
+					case 0:\
+						let inObj = document.getElementById('comment_textarea');\
+						inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
+						break;\
+					case 1:\
+						let inObj1 = document.getElementById('comment_textarea_en');\
+						inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
+						break;\
+					case 2:\
+						let inObj2 = document.getElementById('comment_textarea_jp');\
+						inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
+						break;\
+					case 3:\
+						let inObj3 = document.getElementById('comment_textarea_zhc');\
+						inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
+						break;\
+					case 4:\
+						let inObj4 = document.getElementById('comment_textarea_zh_sg');\
+						inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
+						break;\
+					case 5:\
+						let inObj5 = document.getElementById('comment_textarea_zh_hant');\
+						inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
+						break;\
+					case 6:\
+						let inObj6 = document.getElementById('comment_textarea_zh_hk');\
+						inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
+						break;\
+					case 7:\
+						let inObj7 = document.getElementById('comment_textarea_zh_mo');\
+						inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
+						break;\
+					case 8:\
+						let inObj8 = document.getElementById('comment_textarea_zh_tw');\
+						inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
+						break;\
+					default:\
+						break;\
+				}}\
+				"
 			);
 			
 			addNewScript('Utility_Script',
@@ -1840,7 +1864,7 @@ class UI {
 							<div class="layui-inline">\
 							     <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\
 							     <div class="layui-input-inline">\
-							       <select name="modules" lay-verify="required" lay-search="">\
+							       <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\
 							         <option value="">直接选择或搜索选择</option>\
 							         <option value="1">[h1] 标题文字 [/h1]</option>\
 							         <option value="2">[b] 粗体文本 [/b]</option>\
@@ -1906,16 +1930,16 @@ class UI {
 							<fieldset class="layui-elem-field layui-field-title" style="padding: 10px 0px;">\
 				  			<span style="display: block;text-align: right;">\
 								<a class="btn_grey_black btn_small_thin" href="javascript:CCommentThread.FormattingHelpPopup( \'Profile\' );">\
-									<span>格式化帮助</span>\
+									<span class="btn_grey_black btn_small_thin_text">格式化帮助</span>\
 								</a>\
 								<span class="emoticon_container">\
 									<span class="emoticon_button small" id="emoticonbtn"></span>\
 								</span>\
 								<span class="btn_green_white_innerfade btn_small" id="comment_submit">\
-									<span>发送评论给选择的好友</span>\
+									<span id="comment_submit_text">发送评论给选择的好友</span>\
 								</span>\
 								<span class="btn_green_white_innerfade btn_small" id="comment_submit_special">\
-									<span>根据国籍发送评论给选择的好友</span>\
+									<span id="comment_submit_special_text">根据国籍发送评论给选择的好友</span>\
 								</span>\
 							</span>\
 				  		</div>\

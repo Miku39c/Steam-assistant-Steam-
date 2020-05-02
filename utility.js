@@ -18,6 +18,22 @@ function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	return 0;
 }
 
+function _addIDtoHandleLostfocus(){ //添加ID来处理丢失的焦点
+	var parentObj = document.getElementById("steamTextStyle").parentNode;
+	Obj = parentObj.getElementsByTagName('input');
+	for (let i = 0; i < Obj.length; i++) {
+		Obj[i].id = "steamTextStyle_1";
+	}
+	Obj = parentObj.getElementsByTagName('dl');
+	for (let i = 0; i < Obj.length; i++) {
+		Obj[i].id = "steamTextStyle_1";
+	}
+	Obj = parentObj.getElementsByTagName('dd');
+	for (let i = 0; i < Obj.length; i++) {
+		Obj[i].id = "steamTextStyle_1";
+	}
+}
+
 var arrMenuID = [5];
 function registeMenu(){ //注册脚本快捷菜单
 	if(g_conf[0].isShow_menu_friend){

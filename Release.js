@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.3.8
-// @date         2020.5.1
+// @version      1.2.3.3.9
+// @date         2020.5.2
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -49,185 +49,197 @@
 // @run-at       document-start
 // ==/UserScript==
 
-//保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表
-var g_conf = [
-	{steamID: ""
-	,language: "automatic" //语言: 自动检测
-	,delay: 4 // 设置你的留言时间间隔,单位秒
-	,strNoOperate: "(不留言)" //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
-	
-	,autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
-	,isShowQuickNavigationBar: false //是否显示快速导航栏
-	,is_Debug: true //是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)
-	,isTrackRunStatus: true //是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)
-	,isAddYunBreakWarn: true //是否添加运行中断警告
-	,YunStatus: false //当前运行状态(比如正在留言中之类的就是正在运行)
-	,isTranslationText: false //是否进行了翻译
-	
-	,isShow_menu_friend: true //好友列表
-	,isShow_menu_activity: true //动态列表
-	,isShow_menu_registerKey: true //激活key
-	,isShow_menu_redeemWalletCode: true //充值key
-	,isShow_menu_steamdbFree: true //SteamDB预告
-	}
-]// g_conf[0].
+ addNewScript('g_conf_Script',
+'\
+/*保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表*/\n\
+var g_conf = [\n\
+	{steamID: ""\n\
+	,language: "automatic" /*语言: 自动检测*/\n\
+	,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
+	,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
+	,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
+	\n\
+	,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
+	,isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
+	,is_Debug: true /*是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)*/\n\
+	,isTrackRunStatus: true /*是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)*/\n\
+	,isAddYunBreakWarn: true /*是否添加运行中断警告*/\n\
+	,YunStatus: false /*当前运行状态(比如正在留言中之类的就是正在运行)*/\n\
+	,isTranslationText: false /*是否进行了翻译*/\n\
+	\n\
+	,isWarnInfo: false /*是否出现警告信息(如果没有则不需要清空)*/\n\
+	,isCommentRunStatus: false /*是否正在留言*/\n\
+	,isNationalityRunStatus: false /*是否正在设置国籍*/\n\
+	,isNoCommentRunStatus: false /*是否正在设置不留言*/\n\
+	,isTimeIntervalRunStatus: false /*是否正在设置留言时间间隔*/\n\
+	,isAutoCommentRunStatus: false /*是否正在设置自动留言计划*/\n\
+	,isFriendToGroupRunStatus: false /*是否正在设置好友分组*/\n\
+	\n\
+	,isShow_menu_friend: true /*好友列表*/\n\
+	,isShow_menu_activity: true /*动态列表*/\n\
+	,isShow_menu_registerKey: true /*激活key*/\n\
+	,isShow_menu_redeemWalletCode: true /*充值key*/\n\
+	,isShow_menu_steamdbFree: true /*SteamDB预告*/\n\
+	}\n\
+];/* g_conf[0].*/\n\
+\n\
+/*默认配置信息对象*/\n\
+const g_default_configuration = {\n\
+	steamID: ""\n\
+	,language: "automatic" /*语言: 自动检测*/\n\
+	,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
+	,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
+	,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
+	,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
+	,isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
+};\n\
+\n\
+/*多语言支持-调试信息*/\n\
+const g_debug_info = [\n\
+	{\n\
+		language: "简体中文"\n\
+	},\n\
+	{\n\
+		language: "English"\n\
+	}\n\
+];\n\
+\n\
+/*多语言支持-UI*/\n\
+const g_languageList = [\n\
+	{language: "简体中文"\n\
+	,mainName: "Steam小助手"\n\
+	,Tabs1: "留言"\n\
+	,commentThread_textarea_Placeholder: "添加留言"\n\
+	,strInBytes: "当前字符字节数: "\n\
+	,translationModule: "翻译模块(需要提前设置国籍):"\n\
+	/* ,: "当前语言"\n\
+	 ,: "自动检测"\n\
+	 ,: "中文简体"\n\
+	 ,: "英语"\n\
+	 ,: "日语"\n\
+	 ,: "目标语言:"\n\
+	 ,: "请先选择要翻译为的语言"\n\
+	 ,: "英语"\n\
+	 ,: "日语"\n\
+	 ,: "中文简体"\n\
+	 ,: "马新简体[zh-sg]"\n\
+	 ,: "繁體中文[zh-hant]"\n\
+	 ,: "繁體中文(香港)[zh-hk]"\n\
+	 ,: "繁體中文(澳门)[zh-mo]"\n\
+	 ,: "繁體中文(台湾)[zh-tw]"\n\
+	 ,: "翻译"\n\
+	 ,: "添加称呼模块(需要提前设置备注):"\n\
+	 ,: "自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)"\n\
+	 ,: "在留言框添加自定义称呼标识符"\n\
+	 ,: "是否为好友添加称呼 (如果好友没有备注则使用steam名称)"\n\
+	 ,: "是否为好友添加称呼 (如果好友设置有备注则使用,否则不添加称呼)"\n\
+	 ,: "格式化帮助"\n\
+	 ,: "发送评论给选择的好友"\n\
+	 ,: "根据国籍发送评论给选择的好友"\n\
+	\n\
+	,Tabs2: "留言设置"\n\
+	 ,: "设置国籍:"\n\
+	 ,: "请选择要设置的国籍:"\n\
+	 ,: "简体中文"\n\
+	 ,: "英语"\n\
+	 ,: "日语"\n\
+	 ,: "马新简体(马来西亚,新加坡)[zh-sg]"\n\
+	 ,: "繁體中文[zh-hant]"\n\
+	 ,: "繁體中文(香港)[zh-hk]"\n\
+	 ,: "繁體中文(澳门)[zh-mo]"\n\
+	 ,: "繁體中文(台湾)[zh-tw]"\n\
+	 ,: "为选择的好友设置国籍标识"\n\
+	 ,: "为选择的好友取消国籍标识"\n\
+	 ,: "设置不留言:"\n\
+	 ,: "为选择的好友设置不留言"\n\
+	 ,: "为选择的好友取消设置不留言"\n\
+	 ,: "设置留言时间间隔:"\n\
+	 ,: "只选择日期则过n天后再留言，只选择时间则过x时后再留言(严格模式)，日期和时间都选择了则过n天x时后再留言(严格模式)"\n\
+	 ,: "这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点"\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	,Tabs3: "数据分析"\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	\n\
+	,Tabs4: "动态助手"\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	\n\
+	,Tabs5: "拓展功能(测试)"\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	\n\
+	,Tabs6: "设置",\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""\n\
+	 ,: ""*/\n\
+	\n\
+	},\n\
+	{language: "English"\n\
+	,mainName: "Steam assistant"\n\
+	}\n\
+];\n\
+'
+);
 
-//默认配置信息对象
-const g_default_configuration = {
-	steamID: ""
-	,language: "automatic" //语言: 自动检测
-	,delay: 4 // 设置你的留言时间间隔,单位秒
-	,strNoOperate: "(不留言)" //设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符
-	,strRemarkPlaceholder: "{name}" //设置你的称呼占位符: 同上
-	,autoLogin: 1 //没有登录时是否自动跳转到登录页面 //点击确定跳转，点击关闭不跳转
-	,isShowQuickNavigationBar: false //是否显示快速导航栏
-}
-
-//多语言支持-调试信息
-const g_debug_info = [
-	{
-		language: "简体中文"
-	},
-	{
-		language: "English"
-	}
-]
-
-//多语言支持-UI
-const g_languageList = [
-	{language: "简体中文"
-	,mainName: "Steam小助手"
-	,Tabs1: "留言"
-	,commentThread_textarea_Placeholder: "添加留言"
-	,strInBytes: "当前字符字节数: "
-	,translationModule: "翻译模块(需要提前设置国籍):"
-	// ,: "当前语言"
-	// ,: "自动检测"
-	// ,: "中文简体"
-	// ,: "英语"
-	// ,: "日语"
-	// ,: "目标语言:"
-	// ,: "请先选择要翻译为的语言"
-	// ,: "英语"
-	// ,: "日语"
-	// ,: "中文简体"
-	// ,: "马新简体[zh-sg]"
-	// ,: "繁體中文[zh-hant]"
-	// ,: "繁體中文(香港)[zh-hk]"
-	// ,: "繁體中文(澳门)[zh-mo]"
-	// ,: "繁體中文(台湾)[zh-tw]"
-	// ,: "翻译"
-	// ,: "添加称呼模块(需要提前设置备注):"
-	// ,: "自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)"
-	// ,: "在留言框添加自定义称呼标识符"
-	// ,: "是否为好友添加称呼 (如果好友没有备注则使用steam名称)"
-	// ,: "是否为好友添加称呼 (如果好友设置有备注则使用,否则不添加称呼)"
-	// ,: "格式化帮助"
-	// ,: "发送评论给选择的好友"
-	// ,: "根据国籍发送评论给选择的好友"
-	
-	,Tabs2: "留言设置"
-	// ,: "设置国籍:"
-	// ,: "请选择要设置的国籍:"
-	// ,: "简体中文"
-	// ,: "英语"
-	// ,: "日语"
-	// ,: "马新简体(马来西亚,新加坡)[zh-sg]"
-	// ,: "繁體中文[zh-hant]"
-	// ,: "繁體中文(香港)[zh-hk]"
-	// ,: "繁體中文(澳门)[zh-mo]"
-	// ,: "繁體中文(台湾)[zh-tw]"
-	// ,: "为选择的好友设置国籍标识"
-	// ,: "为选择的好友取消国籍标识"
-	// ,: "设置不留言:"
-	// ,: "为选择的好友设置不留言"
-	// ,: "为选择的好友取消设置不留言"
-	// ,: "设置留言时间间隔:"
-	// ,: "只选择日期则过n天后再留言，只选择时间则过x时后再留言(严格模式)，日期和时间都选择了则过n天x时后再留言(严格模式)"
-	// ,: "这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	,Tabs3: "数据分析"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	,Tabs4: "动态助手"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	,Tabs5: "拓展功能(测试)"
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	,Tabs6: "设置",
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	// ,: ""
-	
-	},
-	{language: "English"
-	,mainName: "Steam assistant"
-	}
-]
-
-function fixConfInfo(i,steamID){ //修复配置信息
+function fixConfInfo(i,steamID){ /*修复配置信息*/
 	var isFix = false;
 	
 	if (g_conf[i].delay < 0){
@@ -243,18 +255,18 @@ function fixConfInfo(i,steamID){ //修复配置信息
 	return isFix;
 }
 
-function newUserGuide(steamID){ //新用户引导
-	//新手引导
-	//console.log("欢迎使用Steam小助手. 当前版本: 更新时间:");
-	//显示简短的教程界面
-	//console.log("是否进入教程?");
-	//console.log("文字教程: 链接到指南 视频教程: 链接");
-	//对配置文件进行初始化，将默认设置作为当前用户的配置信息存储到第一格
-	var length = g_conf.push(g_default_configuration); //添加默认配置信息作为新配置信息
-	g_conf[length-1].steamID = steamID; //设置当前用户的steamID，作为当前用户的配置信息
+function newUserGuide(steamID){ /*新用户引导*/
+	/*新手引导*/
+	/*console.log("欢迎使用Steam小助手. 当前版本: 更新时间:");*/
+	/*显示简短的教程界面*/
+	/*console.log("是否进入教程?");*/
+	/*console.log("文字教程: 链接到指南 视频教程: 链接");*/
+	/*对配置文件进行初始化，将默认设置作为当前用户的配置信息存储到第一格*/
+	var length = g_conf.push(g_default_configuration); /*添加默认配置信息作为新配置信息*/
+	g_conf[length-1].steamID = steamID; /*设置当前用户的steamID，作为当前用户的配置信息*/
 }
 
-function readUserConfInfoToCurrConfInfo(i){ //读取用户配置信息到当前配置信息处[0]
+function readUserConfInfoToCurrConfInfo(i){ /*读取用户配置信息到当前配置信息处[0]*/
 	g_conf[0].autoLogin = g_conf[i].autoLogin;
 	g_conf[0].delay = g_conf[i].delay;
 	g_conf[0].strNoOperate = g_conf[i].strNoOperate;
@@ -262,37 +274,37 @@ function readUserConfInfoToCurrConfInfo(i){ //读取用户配置信息到当前�
 	g_conf[0].steamID = g_conf[i].steamID;
 }
 
-function getProfilesInfo(){ //获取配置文件信息
+function getProfilesInfo(){ /*获取配置文件信息*/
 	
 }
-function readConfInfo(steamID){ //读取已保存的对应配置信息
+function readConfInfo(steamID){ /*读取已保存的对应配置信息*/
 	
-	if(g_conf.length == 1){ //说明没有格外的配置信息
+	if(g_conf.length == 1){ /*说明没有格外的配置信息*/
 		newUserGuide(steamID);
 	}
 	else
 	{
-		for (let i = 1; i < g_conf.length; i++) { //遍历所有的配置信息
+		for (let i = 1; i < g_conf.length; i++) { /*遍历所有的配置信息*/
 			if(g_conf[i].steamID == steamID){
-				readUserConfInfoToCurrConfInfo(i); //读取用户配置信息到当前配置信息处[0]
+				readUserConfInfoToCurrConfInfo(i); /*读取用户配置信息到当前配置信息处[0]*/
 				return true;
 			}
 		}
-		//如果没有查找到，则新建用户引导
+		/*如果没有查找到，则新建用户引导*/
 		newUserGuide(steamID);
 		return true;
 	}
 }
 
-function saveConfInfo(steamID){ //保存最新的配置信息
-	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+function saveConfInfo(steamID){ /*保存最新的配置信息*/
+	if(fixConfInfo(0,steamID)){ /*尝试 修复配置信息*/
 		console.log("尝试保存的配置信息无效，已经恢复至默认值. 请检查...");
 	}
-	//从0号中读取出来，存储到对应的位置
+	/*从0号中读取出来，存储到对应的位置*/
 	
 }
 
-function initConfInfo(i,steamID){ //配置信息初始化(恢复默认)
+function initConfInfo(i,steamID){ /*配置信息初始化(恢复默认)*/
 	g_conf[i].autoLogin = g_default_configuration.autoLogin;
 	g_conf[i].delay = g_default_configuration.delay;
 	g_conf[i].strNoOperate = g_default_configuration.strNoOperate;
@@ -300,22 +312,22 @@ function initConfInfo(i,steamID){ //配置信息初始化(恢复默认)
 	g_conf[i].steamID = g_default_configuration.steamID;
 }
 
-function exportConfInfo(steamID){ //导出配置信息(到文件)
-	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+function exportConfInfo(steamID){ /*导出配置信息(到文件)*/
+	if(fixConfInfo(0,steamID)){ /*尝试 修复配置信息*/
 		console.log("尝试导出的配置信息无效，已经恢复至默认值. 请检查...");
 	}
-	//从0号中读取出来，导出到文件
+	/*从0号中读取出来，导出到文件*/
 	
 }
 
-function importConfInfo(steamID){ //导入配置信息(选择文件并读取)
-	//从文件中读取配置信息，导入到0号配置
+function importConfInfo(steamID){ /*导入配置信息(选择文件并读取)*/
+	/*从文件中读取配置信息，导入到0号配置*/
 	
-	if(fixConfInfo(0,steamID)){ //尝试 修复配置信息
+	if(fixConfInfo(0,steamID)){ /*尝试 修复配置信息*/
 		console.log("尝试导入的配置信息无效，已经恢复至默认值. 请检查...");
 	}
 	
-	//保存配置文件
+	/*保存配置文件*/
 }
 
 /**
@@ -447,7 +459,7 @@ shortcut = {
 				'f11':122,
 				'f12':123,
 			}
-	
+			
 			var modifiers = { 
 				shift: { wanted:false, pressed:false},
 				ctrl : { wanted:false, pressed:false},
@@ -540,6 +552,7 @@ shortcut = {
 		else ele['on'+type] = false;
 	}
 }
+
 
 //-------------------------------------------------------------------------------------------------------------
 // 实用函数集
@@ -1349,6 +1362,31 @@ class SteamDB
 // 	g_steamdb = new SteamDB();
 // 	g_steamdb.getFreeGameInfo();
 // }
+//-------------------------------------------------------------------------------------------------------------
+// 模块 Steam游戏搜索集合 与 Steam游戏页面/捆绑包页面
+
+//杉果游戏
+//1.请求 http://www.sonkwo.hk/store/search?keyword=GameName，手动解析数据
+//2.判断搜索结果
+//3.处理并打包数据，添加到Steam游戏助手
+//-------------------------------------------------------------------------------------------------------------
+//Fanatical (慢速警告)
+//1.请求 https://www.fanatical.com/zh-hans/search?search=GameName，手动解析数据
+//2.判断搜索结果
+//3.处理并打包数据，添加到Steam游戏助手
+//-------------------------------------------------------------------------------------------------------------
+//humblebundle (慢速警告)
+//1.请求 https://www.humblebundle.com/store/search?sort=bestselling&search=GameName，手动解析数据
+//2.判断搜索结果
+//3.处理并打包数据，添加到Steam游戏助手
+//-------------------------------------------------------------------------------------------------------------
+//驰游商城
+//1.请求 https://www.ccyyshop.com/bundles，手动解析数据
+//2.遍历所有页面，存储游戏数据
+//3.判断存储的数据是否有目标搜索结果
+//4.如果有则处理并打包数据，添加到Steam游戏助手
+//-------------------------------------------------------------------------------------------------------------
+//第三方网站抓取，比如  https://isthereanydeal.com/ajax/game/info?plain=nierautomata
 
 //-------------------------------------------------------------------------------------------------------------
 // steam api
@@ -2488,6 +2526,22 @@ function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 		}
 	}
 	return 0;
+}
+
+function _addIDtoHandleLostfocus(){ //添加ID来处理丢失的焦点
+	var parentObj = document.getElementById("steamTextStyle").parentNode;
+	Obj = parentObj.getElementsByTagName('input');
+	for (let i = 0; i < Obj.length; i++) {
+		Obj[i].id = "steamTextStyle_1";
+	}
+	Obj = parentObj.getElementsByTagName('dl');
+	for (let i = 0; i < Obj.length; i++) {
+		Obj[i].id = "steamTextStyle_1";
+	}
+	Obj = parentObj.getElementsByTagName('dd');
+	for (let i = 0; i < Obj.length; i++) {
+		Obj[i].id = "steamTextStyle_1";
+	}
 }
 
 var arrMenuID = [5];
@@ -4684,225 +4738,249 @@ class UI {
 			
 			addNewScript('styles_Script',
 				"\
-							function wordCount(data) {\
-								var intLength = 0;\
-								for (var i = 0; i < data.length; i++) {\
-									if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
-										intLength = intLength + 3;\
-									else\
-										intLength = intLength + 1;\
-								}\
-								return intLength;\
+			function wordCount(data) {\
+				var intLength = 0;\
+				for (var i = 0; i < data.length; i++) {\
+					if ((data.charCodeAt(i) < 0) || (data.charCodeAt(i) > 255))\
+						intLength = intLength + 3;\
+					else\
+						intLength = intLength + 1;\
+				}\
+				return intLength;\
+			}\
+			var comment_textareaHeight = [];\
+			var Shrinkage_scrollTop = 0; /*存储收缩状态下的进度条*/\
+			\
+			function inBoxShrinkage(id,type){\
+				var index = -1;\
+				var iArr;\
+				for(let i=0;i<comment_textareaHeight.length;i++)\
+				{\
+					index = comment_textareaHeight[i].indexOf(id);\
+					if(index != -1)\
+					{\
+						iArr = i; /*记录旧节点的下标*/\
+						/*console.log('记录旧节点的下标','iArr',iArr);*/\
+						break;\
+					}\
+				}\
+				if(index == -1)\
+				{\
+					comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
+					iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
+					/*console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);*/\
+				}\
+				var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
+				if(nHeight==0)/*第一次,没有指定的样式*/\
+				{\
+					nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
+				}\
+				/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
+				var commentText = document.getElementById(id);\
+				if (type == true){\
+					commentText.removeEventListener('propertychange', change, false);\
+					commentText.removeEventListener('input', change, false);\
+					commentText.removeEventListener('focus', change, false);\
+					commentText.scrollTop = 0;\
+					document.body.scrollTop = Shrinkage_scrollTop;\
+					document.documentElement.scrollTop = Shrinkage_scrollTop;\
+					commentText.style.height = '28px';\
+				}\
+				else if (type == false){\
+					autoTextarea(commentText);\
+					Shrinkage_scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					commentText.style.height = nHeight + 'px';\
+				}\
+			}\
+			\
+			var change;\
+			var autoTextarea = function(elem, extra, maxHeight) {\
+				extra = extra || 0;\
+				var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
+					isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
+					addEvent = function(type, callback) {\
+						elem.addEventListener ?\
+							elem.addEventListener(type, callback, false) :\
+							elem.attachEvent('on' + type, callback);\
+					},\
+					getStyle = elem.currentStyle ? function(name) {\
+						var val = elem.currentStyle[name];\
+						if (name === 'height' && val.search(/px/i) !== 1) {\
+							var rect = elem.getBoundingClientRect();\
+							return rect.bottom - rect.top -\
+								parseFloat(getStyle('paddingTop')) -\
+								parseFloat(getStyle('paddingBottom')) + 'px';\
+						};\
+						return val;\
+					} : function(name) {\
+						return getComputedStyle(elem, null)[name];\
+					},\
+					minHeight = parseFloat(getStyle('height'));\
+				elem.style.resize = 'none';\
+				\
+				change = function(e,id) {\
+						var scrollTop, height,\
+							padding = 0,\
+							style = elem.style;\
+						var obj = document.getElementById('strInBytes');\
+						var commentText;\
+						if(id == undefined || id == null)\
+							commentText = document.getElementById(window.event.target.id);\
+						else\
+							commentText = document.getElementById(id);\
+						var numText = wordCount(commentText.value);\
+						obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
+						if (wordCount(commentText.value) >= 1000) {\
+							document.getElementById('strInBytes_Text').style.color = '#FF0000';\
+							commentText.style.background = '#7b3863';\
+							if(g_conf[0].isCommentRunStatus == false)/*如果正在留言则不清除(没有留言则清除)*/\
+								jQuery('#log_head').html('');\
+							jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
+							g_conf[0].isWarnInfo = true;\
+						} else {\
+							document.getElementById('strInBytes_Text').style.color = '#32CD32';\
+							commentText.style.background = '#1b2838';\
+							if(g_conf[0].isCommentRunStatus == false && g_conf[0].isWarnInfo == true){ /*没有留言并且有警告信息才清除*/\
+								jQuery('#log_head').html('');\
+								g_conf[0].isWarnInfo = false;\
 							}\
-							var comment_textareaHeight = [];\
-							function inBoxShrinkage(id,type){\
-							var index = -1;\
-							var iArr;\
+						}\
+						if (elem._length === elem.value.length) return;\
+						elem._length = elem.value.length;\
+						if (!isFirefox && !isOpera) {\
+							padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
+						};\
+						scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
+						elem.style.height = minHeight + 'px';\
+						if (elem.scrollHeight >= minHeight) {\
+							if (maxHeight && elem.scrollHeight > maxHeight) {\
+								height = maxHeight - padding;\
+								style.overflowY = 'auto';\
+							} else {\
+								height = elem.scrollHeight - padding;\
+								style.overflowY = 'hidden';\
+							};\
+							style.height = height + extra + 'px';\
+							var nHeight1 = height + extra;\
+							var newStr = nHeight1.toString();\
+							/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
+							/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
+							/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
+							/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
+							var iIndex;\
 							for(let i=0;i<comment_textareaHeight.length;i++)\
 							{\
-								index = comment_textareaHeight[i].indexOf(id);\
-								if(index != -1)\
+								if(id == undefined || id == null)\
 								{\
-									iArr = i; /*记录旧节点的下标*/\
-									console.log('记录旧节点的下标','iArr',iArr);\
-									break;\
-								}\
-							}\
-							if(index == -1)\
-							{\
-								comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
-								iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
-								console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);\
-							}\
-							var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
-							if(nHeight==0)/*第一次,没有指定的样式*/\
-							{\
-								nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
-							}\
-							/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
-							var commentText = document.getElementById(id);if (type == true){commentText.removeEventListener('propertychange', change, false);\
-							commentText.removeEventListener('input', change, false);commentText.removeEventListener('focus', change, false);\
-							commentText.scrollTop = 0;document.body.scrollTop = 0;commentText.style.height = '28px';} else if (type == false){autoTextarea(commentText);\
-							commentText.style.height = nHeight + 'px';}\
-							}\
-							var change;\
-							var autoTextarea = function(elem, extra, maxHeight) {\
-								extra = extra || 0;\
-								var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,\
-									isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),\
-									addEvent = function(type, callback) {\
-										elem.addEventListener ?\
-											elem.addEventListener(type, callback, false) :\
-											elem.attachEvent('on' + type, callback);\
-									},\
-									getStyle = elem.currentStyle ? function(name) {\
-										var val = elem.currentStyle[name];\
-										if (name === 'height' && val.search(/px/i) !== 1) {\
-											var rect = elem.getBoundingClientRect();\
-											return rect.bottom - rect.top -\
-												parseFloat(getStyle('paddingTop')) -\
-												parseFloat(getStyle('paddingBottom')) + 'px';\
-										};\
-										return val;\
-									} : function(name) {\
-										return getComputedStyle(elem, null)[name];\
-									},\
-									minHeight = parseFloat(getStyle('height'));\
-								elem.style.resize = 'none';\
-								change = function(e,id) {\
-									var scrollTop, height,\
-										padding = 0,\
-										style = elem.style;\
-									var obj = document.getElementById('strInBytes');\
-									console.log(id);\
-									if(id == undefined || id == null)\
-										var commentText = document.getElementById(window.event.target.id);\
-									else\
-										var commentText = document.getElementById(id);\
-									var numText = wordCount(commentText.value);\
-									obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
-									if (wordCount(commentText.value) >= 1000) {\
-										document.getElementById('strInBytes_Text').style.color = '#FF0000';\
-										commentText.style.background = '#7b3863';\
-										jQuery('#log_head, #log_body').html('');\
-										jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
-									} else {\
-										document.getElementById('strInBytes_Text').style.color = '#32CD32';\
-										commentText.style.background = '#1b2838';\
-										jQuery('#log_head, #log_body').html('');\
+									if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
+									{\
+										iIndex = i;\
+										break;\
 									}\
-									if (elem._length === elem.value.length) return;\
-									elem._length = elem.value.length;\
-									if (!isFirefox && !isOpera) {\
-										padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
-									};\
-									scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/\
-									elem.style.height = minHeight + 'px';\
-									if (elem.scrollHeight > minHeight) {\
-										if (maxHeight && elem.scrollHeight > maxHeight) {\
-											height = maxHeight - padding;\
-											style.overflowY = 'auto';\
-										} else {\
-											height = elem.scrollHeight - padding;\
-											style.overflowY = 'hidden';\
-										};\
-										style.height = height + extra + 'px';\
-										var nHeight1 = height + extra;\
-										var newStr = nHeight1.toString();\
-										/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
-										/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
-										/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
-										/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
-										var iIndex;\
-										for(let i=0;i<comment_textareaHeight.length;i++)\
-										{\
-											if(id == undefined || id == null)\
-											{\
-												if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
-												{\
-													iIndex = i;\
-													break;\
-												}\
-											}\
-											else\
-											{\
-												if(comment_textareaHeight[i].indexOf(id)==0)\
-												{\
-													iIndex = i;\
-													break;\
-												}\
-											}\
-										}\
-										/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
-										/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-										comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
-										/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-										comment_textareaHeight[iIndex] += newStr;/*存储*/\
-										/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
-										scrollTop += parseInt(style.height) - elem.currHeight;\
-										/*document.body.scrollTop = scrollTop;*/\
-										/*document.documentElement.scrollTop = scrollTop;*/\
-										elem.currHeight = parseInt(style.height);\
-									};\
-								};\
-								addEvent('propertychange', change);\
-								addEvent('input', change);\
-								addEvent('focus', change);\
-								change();\
-								};\
-								function closeAllinBoxShrinkage(){\
-									inBoxShrinkage('comment_textarea',true);\
-									inBoxShrinkage('comment_textarea_zhc',true);\
-									inBoxShrinkage('comment_textarea_en',true);\
-									inBoxShrinkage('comment_textarea_jp',true);\
-									inBoxShrinkage('comment_textarea_zh_sg',true);\
-									inBoxShrinkage('comment_textarea_zh_hant',true);\
-									inBoxShrinkage('comment_textarea_zh_hk',true);\
-									inBoxShrinkage('comment_textarea_zh_mo',true);\
-									inBoxShrinkage('comment_textarea_zh_tw',true);\
 								}\
-								var inBoxonblurID = 0;\
-								function addEmojiEvent(emojiCode)\
+								else\
 								{\
-									switch (inBoxonblurID){\
-										case 0:\
-											let inObj = document.getElementById('comment_textarea');\
-											inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
-											break;\
-										case 1:\
-											let inObj1 = document.getElementById('comment_textarea_en');\
-											inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
-											break;\
-										case 2:\
-											let inObj2 = document.getElementById('comment_textarea_jp');\
-											inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
-											break;\
-										case 3:\
-											let inObj3 = document.getElementById('comment_textarea_zhc');\
-											inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
-											break;\
-										case 4:\
-											let inObj4 = document.getElementById('comment_textarea_zh_sg');\
-											inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
-											break;\
-										case 5:\
-											let inObj5 = document.getElementById('comment_textarea_zh_hant');\
-											inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
-											break;\
-										case 6:\
-											let inObj6 = document.getElementById('comment_textarea_zh_hk');\
-											inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
-											break;\
-										case 7:\
-											let inObj7 = document.getElementById('comment_textarea_zh_mo');\
-											inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
-											break;\
-										case 8:\
-											let inObj8 = document.getElementById('comment_textarea_zh_tw');\
-											inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
-											if(change != undefined)\
-												change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
-											break;\
-										default:\
-											break;\
-									}}\
-									"
+									if(comment_textareaHeight[i].indexOf(id)==0)\
+									{\
+										iIndex = i;\
+										break;\
+									}\
+								}\
+							}\
+							/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
+							/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+							comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
+							/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
+							comment_textareaHeight[iIndex] += newStr;/*存储*/\
+							/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
+							scrollTop += parseInt(style.height) - elem.currHeight;\
+							if(!isNaN(scrollTop)){\
+								document.body.scrollTop = scrollTop;\
+								document.documentElement.scrollTop = scrollTop;\
+							}\
+							elem.currHeight = parseInt(style.height);\
+						};\
+				};\
+				addEvent('propertychange', change);\
+				addEvent('input', change);\
+				addEvent('focus', change);\
+				change();\
+			};\
+			\
+			function closeAllinBoxShrinkage(){\
+				inBoxShrinkage('comment_textarea',true);\
+				inBoxShrinkage('comment_textarea_zhc',true);\
+				inBoxShrinkage('comment_textarea_en',true);\
+				inBoxShrinkage('comment_textarea_jp',true);\
+				inBoxShrinkage('comment_textarea_zh_sg',true);\
+				inBoxShrinkage('comment_textarea_zh_hant',true);\
+				inBoxShrinkage('comment_textarea_zh_hk',true);\
+				inBoxShrinkage('comment_textarea_zh_mo',true);\
+				inBoxShrinkage('comment_textarea_zh_tw',true);\
+			}\
+			\
+			var inBoxonblurID = 0;\
+			function addEmojiEvent(emojiCode)\
+			{\
+				switch (inBoxonblurID){\
+					case 0:\
+						let inObj = document.getElementById('comment_textarea');\
+						inObj.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea'); /*统计翻译后的文字长度*/\
+						break;\
+					case 1:\
+						let inObj1 = document.getElementById('comment_textarea_en');\
+						inObj1.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_en'); /*统计翻译后的文字长度*/\
+						break;\
+					case 2:\
+						let inObj2 = document.getElementById('comment_textarea_jp');\
+						inObj2.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_jp'); /*统计翻译后的文字长度*/\
+						break;\
+					case 3:\
+						let inObj3 = document.getElementById('comment_textarea_zhc');\
+						inObj3.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zhc'); /*统计翻译后的文字长度*/\
+						break;\
+					case 4:\
+						let inObj4 = document.getElementById('comment_textarea_zh_sg');\
+						inObj4.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_sg'); /*统计翻译后的文字长度*/\
+						break;\
+					case 5:\
+						let inObj5 = document.getElementById('comment_textarea_zh_hant');\
+						inObj5.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_hant'); /*统计翻译后的文字长度*/\
+						break;\
+					case 6:\
+						let inObj6 = document.getElementById('comment_textarea_zh_hk');\
+						inObj6.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_hk'); /*统计翻译后的文字长度*/\
+						break;\
+					case 7:\
+						let inObj7 = document.getElementById('comment_textarea_zh_mo');\
+						inObj7.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_mo'); /*统计翻译后的文字长度*/\
+						break;\
+					case 8:\
+						let inObj8 = document.getElementById('comment_textarea_zh_tw');\
+						inObj8.value += ':' + emojiCode + ':'; /*添加表情*/\
+						if(change != undefined)\
+							change(null, 'comment_textarea_zh_tw'); /*统计翻译后的文字长度*/\
+						break;\
+					default:\
+						break;\
+				}}\
+				"
 			);
 			
 			addNewScript('Utility_Script',
@@ -5029,7 +5107,7 @@ class UI {
 							<div class="layui-inline">\
 							     <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\
 							     <div class="layui-input-inline">\
-							       <select name="modules" lay-verify="required" lay-search="">\
+							       <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\
 							         <option value="">直接选择或搜索选择</option>\
 							         <option value="1">[h1] 标题文字 [/h1]</option>\
 							         <option value="2">[b] 粗体文本 [/b]</option>\
@@ -5095,16 +5173,16 @@ class UI {
 							<fieldset class="layui-elem-field layui-field-title" style="padding: 10px 0px;">\
 				  			<span style="display: block;text-align: right;">\
 								<a class="btn_grey_black btn_small_thin" href="javascript:CCommentThread.FormattingHelpPopup( \'Profile\' );">\
-									<span>格式化帮助</span>\
+									<span class="btn_grey_black btn_small_thin_text">格式化帮助</span>\
 								</a>\
 								<span class="emoticon_container">\
 									<span class="emoticon_button small" id="emoticonbtn"></span>\
 								</span>\
 								<span class="btn_green_white_innerfade btn_small" id="comment_submit">\
-									<span>发送评论给选择的好友</span>\
+									<span id="comment_submit_text">发送评论给选择的好友</span>\
 								</span>\
 								<span class="btn_green_white_innerfade btn_small" id="comment_submit_special">\
-									<span>根据国籍发送评论给选择的好友</span>\
+									<span id="comment_submit_special_text">根据国籍发送评论给选择的好友</span>\
 								</span>\
 							</span>\
 				  		</div>\
@@ -5808,22 +5886,6 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
 	});
 	
-	//尝试去屏蔽点按钮之类的导致输入框焦点丢失的问题
-	document.addEventListener("mousedown", function(e){
-		
-			if(e.target.id.indexOf("comment")!=0){
-				//debugger
-				//if(e.target.id == "LAY-component-form-getval"){
-				e.stopPropagation();
-				e.stopImmediatePropagation();
-				e.preventDefault();
-				//  document.getElementById("LAY-component-form-getval").click();
-				return false;
-				//}
-			}
-	      
-	}, false); //点击指定区域,输入框不失去焦点
-	
 	//表单取值
 	layui.$('#LAY-component-form-getval').on('click', async function(){
 		var data = form.val('example');
@@ -5857,6 +5919,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 				break;
 		}
 		console.log(data.modules);
+		_addIDtoHandleLostfocus(); //添加ID来处理丢失的焦点
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6681,7 +6744,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 				  }
 				  
 			    });
-			  	
+			  
 			  
 			  //但是，如果你的HTML是动态生成的，自动渲染就会失效
 			  //因此你需要在相应的地方，执行下述方法来进行渲染
@@ -6760,7 +6823,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	;
 	
 	setTimeout(async function() {
-		Obj.LoadEmoticons();
+		//Obj.LoadEmoticons();
 		// CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
 		// 	(async function () {
 		// 		//console.log("loadDone");
@@ -6772,6 +6835,28 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 		// 	})();
 		// });
 	}, 0);
+	
+	_addIDtoHandleLostfocus(); //添加ID来处理丢失的焦点
+	//屏蔽点下拉框、按钮之类的导致输入框焦点丢失的问题
+	document.addEventListener("mousedown", function(e){
+		
+			if(e.target.id.indexOf("steamTextStyle_1")==0 || e.target.id.indexOf("LAY-component-form-getval")==0 
+			|| e.target.id.indexOf("emoticonbtn")==0 || e.target.className.indexOf("emoticon")==0 || e.target.className.indexOf("commentthread_entry_quotebox")==0
+			|| e.target.className.indexOf("fs-label")==0  || e.target.id.indexOf("translationText")==0 || e.target.id.indexOf("select_is")==0
+			|| e.target.id.indexOf("addCustomName")==0 || e.target.className.indexOf("btn_grey_black btn_small_thin")==0 || e.target.id.indexOf("comment_submit")==0
+			){
+				//debugger
+				//if(e.target.id == "LAY-component-form-getval"){
+				e.stopPropagation();
+				e.stopImmediatePropagation();
+				e.preventDefault();
+				//  document.getElementById("LAY-component-form-getval").click();
+				return false;
+				//}
+			}
+	      
+	}, false); //点击指定区域,输入框不失去焦点
+	
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件
 	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
@@ -6785,7 +6870,7 @@ async function registeredAllEvents() //注册所有的事件
 	addFriendMultipleSelectionMode(); //添加好友多选模式
 	
 	
-	jQuery("#addCustomName").click(async function() {
+	jQuery("#addCustomName").click(async function() { //在留言框添加自定义称呼标识符
 		var inString = document.getElementById("comment_textarea");
 		var nSelectionStart = inString.selectionStart;//
 		inString.value = inString.value.substr(0,nSelectionStart) + g_conf[0].strRemarkPlaceholder + inString.value.substr(nSelectionStart);
@@ -6794,233 +6879,15 @@ async function registeredAllEvents() //注册所有的事件
 	});
 	
 	//<留言时的时间戳-目标时间戳>
-	jQuery("#setTimeInterval").click(async function() {
+	jQuery("#setTimeInterval").click(async function() { //为选择的好友设置留言时间间隔
 		
 	});
 	
-	jQuery("#unsetTimeInterval").click(async function() {
+	jQuery("#unsetTimeInterval").click(async function() { //为选择的好友取消设置留言时间间隔
 		
 	});
 	
-	jQuery("#setNoLeave").click(async function() {
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-		var mode = 0;
-		const total = jQuery("#search_results .selected").length; //选择的朋友总数
-		if (total > 0) //选择的朋友总数
-		{
-			jQuery("#log_head1, #log_body1").html("");
-			var jqobj = jQuery("#search_results .selected");
-			
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-				let profileID = cur.getAttribute("data-steamid");
-				g_conf[0].YunStatus = true; //正在运行
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-				
-				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
-				
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-			
-			
-					if (SpecialNameobj.length > 0) //安全检查
-					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
-						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
-							{
-								jQuery("#log_body1")[0].innerHTML +=
-									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置备注! ' + profileID + '  ' + SpecialName + "</a><br>";
-								continue;
-							}
-							name = SpecialName;
-							name = name + g_conf[0].strNoOperate; //组合
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							SpecialName = undefined; //就没有备注
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							name = steamName;
-							name = name + nostrNoOperate; //组合
-						}
-					}
-				}
-				
-				console.log("[Debug] name:", name);
-			
-				(function(i, profileID) {
-					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
-			
-					jQuery.post(URL, {
-						nickname: name,
-						sessionid: g_sessionID
-					}, function(response) {
-						if (response.success === false) {
-							jQuery("#log_body1")[0].innerHTML +=
-								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
-								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
-						} else {
-							jQuery("#log_body1")[0].innerHTML +=
-								'[' + (i + 1) + '/' + total + '] ' +
-								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
-								profileID + '  ' + name + "</a>" +
-								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-								profileID + "\">" + "</a><br>";
-						}
-					}).fail(function() {
-						jQuery("#log_body1")[0].innerHTML +=
-							'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
-							"无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-							profileID + "\">" +
-							profileID + '  ' + name + "</a></span><br>";
-					}).always(function() {
-						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
-					});
-			
-				})(i, profileID);
-				await sleep(100);
-				//console.log(cur)
-			}
-			g_conf[0].YunStatus = false; //没有运行
-			window.location.reload(true); //强制从服务器重新加载当前页面
-		}
-	});
-	
-	jQuery("#unsetNoLeave").click(async function() {
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-		var mode = 0;
-		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
-		if (total > 0) //选择的朋友总数
-		{
-			jQuery("#log_head1, #log_body1").html("");
-			var jqobj = jQuery("#search_results .selected.selectable");
-			
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-				let profileID = cur.getAttribute("data-steamid");
-				g_conf[0].YunStatus = true; //正在运行
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-			
-				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
-			
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-					
-					if (SpecialNameobj.length > 0) //安全检查
-					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
-						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							if (SpecialName.lastIndexOf(nostrNoOperate) != -1) //检查是否设置了国籍标识
-							{
-								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(nostrNoOperate)); //去掉国籍标识
-								name = ""; //去掉备注
-							}
-							else if (SpecialName.lastIndexOf(g_conf[0].strNoOperate) != -1) //检查是否设置了国籍标识
-							{
-								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(g_conf[0].strNoOperate)); //去掉国籍标识
-								name = SpecialName; //使用原来的备注
-							}else {
-								jQuery("#log_body1")[0].innerHTML +=
-									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置国籍不能取消! ' + profileID + '  ' + SpecialName + "</a><br>";
-								continue;
-							}
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							jQuery("#log_body1")[0].innerHTML +=
-								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
-							continue;
-						}
-					}
-				}
-				console.log("[Debug] name:", name);
-				(function(i, profileID) {
-					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
-			
-					jQuery.post(URL, {
-						nickname: name,
-						sessionid: g_sessionID
-					}, function(response) {
-						if (response.success === false) {
-							jQuery("#log_body1")[0].innerHTML +=
-								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
-								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
-						} else {
-							jQuery("#log_body1")[0].innerHTML +=
-								'[' + (i + 1) + '/' + total + '] ' +
-								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
-								profileID + '  ' + name + "</a>" +
-								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-								profileID + "\">" + "</a><br>";
-						}
-					}).fail(function() {
-						jQuery("#log_body1")[0].innerHTML +=
-							'[' + (i + 1) + '/' + total + '] ' +
-							"<span style='color:#DA2626;'>无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-							profileID + "\">" +
-							profileID + '  ' + name + "</a></span><br>";
-					}).always(function() {
-						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
-					});
-			
-				})(i, profileID);
-				await sleep(1000);
-				//console.log(cur)
-			}
-			g_conf[0].YunStatus = false; //没有运行
-			window.location.reload(true); //强制从服务器重新加载当前页面
-		}
-	});
-	
-	
-	
-	jQuery("#translationText").click(async function() {
+	jQuery("#translationText").click(async function() { //翻译
 		//获取选择的语言
 		var selectLanguage = jQuery("#selectBoxID").ySelectedTexts(",");
 		var selectLanguageArr = selectLanguage.split(',');
@@ -7214,7 +7081,231 @@ async function registeredAllEvents() //注册所有的事件
 	
 	});
 	
-	jQuery("#setNationality").click(async function() {
+	jQuery("#setNoLeave").click(async function() { //为选择的好友设置不留言
+		var SpecialName = undefined;
+		var steamName = undefined;
+		var name = undefined;
+		var mode = 0;
+		const total = jQuery("#search_results .selected").length; //选择的朋友总数
+		if (total > 0) //选择的朋友总数
+		{
+			if(g_conf[0].isNoCommentRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+			
+			var jqobj = jQuery("#search_results .selected");
+			
+			for (let i = 0; i < jqobj.length; i++) {
+				let cur = jqobj.get(i);
+				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNoCommentRunStatus = true;
+				//--------------------------------------------------------------------
+				SpecialName = undefined;
+				steamName = undefined;
+				
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
+				
+				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					//获取备注
+					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					SpecialName = undefined;
+					if (SpecialNameobj != "undefined") {
+						SpecialName = SpecialNameobj[0].innerText; //备注
+					}
+					//获取steam名称
+					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					name = steamName;
+				} else //否则如果是好友界面
+				{
+					//获取名称,然后判断是备注还是steam名称
+					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+					SpecialName = undefined;
+			
+			
+					if (SpecialNameobj.length > 0) //安全检查
+					{
+						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						{
+							console.log("获取到的是备注");
+							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+							steamName = undefined; //就没有名称
+							if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
+							{
+								jQuery("#log_body1")[0].innerHTML +=
+									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置备注! ' + profileID + '  ' + SpecialName + "</a><br>";
+								continue;
+							}
+							name = SpecialName;
+							name = name + g_conf[0].strNoOperate; //组合
+						} else if (nicknameObj.length == 0) {
+							console.log("获取到的是steam名称");
+							SpecialName = undefined; //就没有备注
+							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+							name = steamName;
+							name = name + nostrNoOperate; //组合
+						}
+					}
+				}
+				
+				console.log("[Debug] name:", name);
+			
+				(function(i, profileID) {
+					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
+			
+					jQuery.post(URL, {
+						nickname: name,
+						sessionid: g_sessionID
+					}, function(response) {
+						if (response.success === false) {
+							jQuery("#log_body1")[0].innerHTML +=
+								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
+								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+						} else {
+							jQuery("#log_body1")[0].innerHTML +=
+								'[' + (i + 1) + '/' + total + '] ' +
+								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
+								profileID + '  ' + name + "</a>" +
+								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+								profileID + "\">" + "</a><br>";
+						}
+					}).fail(function() {
+						jQuery("#log_body1")[0].innerHTML +=
+							'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
+							"无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+							profileID + "\">" +
+							profileID + '  ' + name + "</a></span><br>";
+					}).always(function() {
+						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
+					});
+			
+				})(i, profileID);
+				await sleep(100);
+				//console.log(cur)
+			}
+			g_conf[0].YunStatus = false; //没有运行
+			g_conf[0].isNoCommentRunStatus = false;
+			window.location.reload(true); //强制从服务器重新加载当前页面
+		}
+	});
+	
+	jQuery("#unsetNoLeave").click(async function() { //为选择的好友取消设置不留言
+		var SpecialName = undefined;
+		var steamName = undefined;
+		var name = undefined;
+		var mode = 0;
+		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
+		if (total > 0) //选择的朋友总数
+		{
+			if(g_conf[0].isNoCommentRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+				
+			var jqobj = jQuery("#search_results .selected.selectable");
+			
+			for (let i = 0; i < jqobj.length; i++) {
+				let cur = jqobj.get(i);
+				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNoCommentRunStatus = true;
+				//--------------------------------------------------------------------
+				SpecialName = undefined;
+				steamName = undefined;
+			
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
+			
+				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					//获取备注
+					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					SpecialName = undefined;
+					if (SpecialNameobj != "undefined") {
+						SpecialName = SpecialNameobj[0].innerText; //备注
+					}
+					//获取steam名称
+					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					name = steamName;
+				} else //否则如果是好友界面
+				{
+					//获取名称,然后判断是备注还是steam名称
+					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+					SpecialName = undefined;
+					
+					if (SpecialNameobj.length > 0) //安全检查
+					{
+						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						{
+							console.log("获取到的是备注");
+							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+							steamName = undefined; //就没有名称
+							if (SpecialName.lastIndexOf(nostrNoOperate) != -1) //检查是否设置了国籍标识
+							{
+								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(nostrNoOperate)); //去掉国籍标识
+								name = ""; //去掉备注
+							}
+							else if (SpecialName.lastIndexOf(g_conf[0].strNoOperate) != -1) //检查是否设置了国籍标识
+							{
+								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(g_conf[0].strNoOperate)); //去掉国籍标识
+								name = SpecialName; //使用原来的备注
+							}else {
+								jQuery("#log_body1")[0].innerHTML +=
+									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置国籍不能取消! ' + profileID + '  ' + SpecialName + "</a><br>";
+								continue;
+							}
+						} else if (nicknameObj.length == 0) {
+							console.log("获取到的是steam名称");
+							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+							jQuery("#log_body1")[0].innerHTML +=
+								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
+							continue;
+						}
+					}
+				}
+				console.log("[Debug] name:", name);
+				(function(i, profileID) {
+					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
+			
+					jQuery.post(URL, {
+						nickname: name,
+						sessionid: g_sessionID
+					}, function(response) {
+						if (response.success === false) {
+							jQuery("#log_body1")[0].innerHTML +=
+								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
+								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+						} else {
+							jQuery("#log_body1")[0].innerHTML +=
+								'[' + (i + 1) + '/' + total + '] ' +
+								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
+								profileID + '  ' + name + "</a>" +
+								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+								profileID + "\">" + "</a><br>";
+						}
+					}).fail(function() {
+						jQuery("#log_body1")[0].innerHTML +=
+							'[' + (i + 1) + '/' + total + '] ' +
+							"<span style='color:#DA2626;'>无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+							profileID + "\">" +
+							profileID + '  ' + name + "</a></span><br>";
+					}).always(function() {
+						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
+					});
+			
+				})(i, profileID);
+				await sleep(1000);
+				//console.log(cur)
+			}
+			g_conf[0].YunStatus = false; //没有运行
+			g_conf[0].isNoCommentRunStatus = false;
+			window.location.reload(true); //强制从服务器重新加载当前页面
+		}
+	});
+	
+	jQuery("#setNationality").click(async function() { //为选择的好友设置国籍标识
 		//获取指定的国籍标识
 		var options = document.getElementById('nationalitySelectBox'); //获取选中的项目
 		var optionsValue = options[options.selectedIndex].value;
@@ -7234,13 +7325,16 @@ async function registeredAllEvents() //注册所有的事件
 		const total = jQuery("#search_results .selected").length; //选择的朋友总数
 		if (total > 0) //选择的朋友总数
 		{
-			jQuery("#log_head1, #log_body1").html("");
+			if(g_conf[0].isNationalityRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+			
 			var jqobj = jQuery("#search_results .selected");
 	
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
 				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNationalityRunStatus = true;
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -7348,145 +7442,13 @@ async function registeredAllEvents() //注册所有的事件
 				//console.log(cur)
 			}
 			g_conf[0].YunStatus = false; //没有运行
+			g_conf[0].isNationalityRunStatus = false;
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
 	});
 	
-	jQuery("#NationalityGroup").click(async function() {
-		//1.遍历所有好友,针对不同国籍进行上色
-		//2.对好友进行排序
-	
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-		var mode = 0;
-		const total = jQuery("#search_results .selectable").length; //选择的朋友总数
-		if (total > 0) //选择的朋友总数
-		{
-			jQuery("#log_head, #log_body").html("");
-			var jqobj = jQuery("#search_results .selectable");
-	
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-				let profileID = cur.getAttribute("data-steamid");
-				g_conf[0].YunStatus = true; //正在运行
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-	
-					if (SpecialNameobj.length > 0) //安全检查
-					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
-						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							if (SpecialName.indexOf('{CN}') != -1 ||
-								SpecialName.indexOf('{EN}') != -1 ||
-								SpecialName.indexOf('{JP}') != -1 ||
-								SpecialName.indexOf('{CN-SG}') != -1 ||
-								SpecialName.indexOf('{CN-HANT}') != -1 ||
-								SpecialName.indexOf('{CN-HK}') != -1 ||
-								SpecialName.indexOf('{CN-MO}') != -1 ||
-								SpecialName.indexOf('{CN-TW}') != -1
-							) //检查是否设置了国籍标识
-							{
-								if (SpecialName.indexOf('{CN}') != -1) {
-									cur.style.background = "#66cc";
-								} else if (SpecialName.indexOf('{EN}') != -1) {
-									cur.style.background = "#0C7FB2";
-								} else if (SpecialName.indexOf('{JP}') != -1) {
-									cur.style.background = "#008080";
-								} else if (SpecialName.indexOf('{CN-SG}') != -1) {
-									cur.style.background = "#808000";
-								} else if (SpecialName.indexOf('{CN-HANT}') != -1) {
-									cur.style.background = "#ae7844";
-								} else if (SpecialName.indexOf('{CN-HK}') != -1) {
-									cur.style.background = "#649115";
-								} else if (SpecialName.indexOf('{CN-MO}') != -1) {
-									cur.style.background = "#0f965b";
-								} else if (SpecialName.indexOf('{CN-TW}') != -1) {
-									cur.style.background = "#173eac";
-								}
-							} else if (SpecialName.indexOf('{CN-N}') != -1 ||
-								SpecialName.indexOf('{EN-N}') != -1 ||
-								SpecialName.indexOf('{JP-N}') != -1 ||
-								SpecialName.indexOf('{CN-SG-N}') != -1 ||
-								SpecialName.indexOf('{CN-HANT-N}') != -1 ||
-								SpecialName.indexOf('{CN-HK-N}') != -1 ||
-								SpecialName.indexOf('{CN-MO-N}') != -1 ||
-								SpecialName.indexOf('{CN-TW-N}') != -1
-							) //检查是否设置了国籍标识
-							{
-								if (SpecialName.indexOf('{CN-N}') != -1) {
-									cur.style.background = "#66cc";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{EN-N}') != -1) {
-									cur.style.background = "#0C7FB2";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{JP-N}') != -1) {
-									cur.style.background = "#008080";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-SG-N}') != -1) {
-									cur.style.background = "#808000";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-HANT-N}') != -1) {
-									cur.style.background = "#ae7844";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-HK-N}') != -1) {
-									cur.style.background = "#649115";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-MO-N}') != -1) {
-									cur.style.background = "#0f965b";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-TW-N}') != -1) {
-									cur.style.background = "#173eac";
-									cur.style.borderColor = "#FF00FF";
-								}
-							} else {
-								//设置了备注没有设置国籍
-								cur.style.background = "#188038";
-							}
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							//jQuery("#log_body")[0].innerHTML +=
-							//	"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-							//	"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
-							//continue;
-						}
-					}
-				}
-				console.log("[Debug] name:", SpecialName);
-				//await sleep(1000);
-				//console.log(cur)
-			}
-			g_conf[0].YunStatus = false; //没有运行
-			//window.location.reload(true); //强制从服务器重新加载当前页面
-		}
-	
-	
-	});
-	
-	jQuery("#unsetNationality").click(async function() {
+	jQuery("#unsetNationality").click(async function() { //为选择的好友取消国籍标识
 		//获取指定的国籍标识
 		var options = document.getElementById('nationalitySelectBox'); //获取选中的项目
 		var optionsValue = options[options.selectedIndex].value;
@@ -7506,13 +7468,16 @@ async function registeredAllEvents() //注册所有的事件
 		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
 		if (total > 0) //选择的朋友总数
 		{
-			jQuery("#log_head1, #log_body1").html("");
+			if(g_conf[0].isNationalityRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+				
 			var jqobj = jQuery("#search_results .selected.selectable");
 	
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
 				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNationalityRunStatus = true;
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -7616,6 +7581,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].isNationalityRunStatus = false;
 			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
@@ -7623,7 +7589,7 @@ async function registeredAllEvents() //注册所有的事件
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------
-	await jQuery("#comment_submit").click(async function() {
+	await jQuery("#comment_submit").click(async function() { //发送评论给选择的好友
 		setTimeout(async ()=>{
 			date = new Date();
 			startTime = date.getTime();
@@ -7637,13 +7603,17 @@ async function registeredAllEvents() //注册所有的事件
 			var name = undefined;
 			
 			if (total > 0 && msg.length > 0) {
-				jQuery("#log_head, #log_body").html("");
+				if(g_conf[0].isCommentRunStatus == false)
+					jQuery("#log_head, #log_body").html("");
+				
+				
 				//jQuery(".selected").each(async function(i) {
 				var jqobj = jQuery("#search_results .selected.selectable");
 				
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
 					g_conf[0].YunStatus = true; //正在运行
+					g_conf[0].isCommentRunStatus = true;
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -7767,7 +7737,7 @@ async function registeredAllEvents() //注册所有的事件
 									"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
 									profileID + '  ' + name + "</a>" +
 									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-									profileID + "\">" + newMgs + "</a><br>";
+									profileID  + "#commentthread_Profile_"+ profileID +"_textarea" + "\">" + newMgs + "</a><br>";
 							}
 						}).fail(function() {
 							jQuery("#log_body")[0].innerHTML +=
@@ -7818,6 +7788,7 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_body")[0].innerHTML +=
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
+				g_conf[0].isCommentRunStatus = false;
 				
 				g_conf[0].YunStatus = false; //没有运行
 		
@@ -7828,7 +7799,7 @@ async function registeredAllEvents() //注册所有的事件
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------
-	await jQuery("#comment_submit_special").click(async function() {
+	await jQuery("#comment_submit_special").click(async function() { //根据国籍发送评论给选择的好友
 		
 		setTimeout(async()=>{
 			date = new Date();
@@ -7857,7 +7828,12 @@ async function registeredAllEvents() //注册所有的事件
 			var name = undefined;
 				
 			if (total > 0 && msg.length > 0) {
-				jQuery("#log_head, #log_body").html("");
+				
+				debugger
+				
+				if(g_conf[0].isCommentRunStatus == false)
+					jQuery("#log_head, #log_body").html("");
+				
 				//jQuery(".selected").each(async function(i) {
 				//var jqobj = jQuery(".selected");
 				//var jqobj = jQuery(".selected[data-steamid]"); //排除掉选择的其他的东西
@@ -7866,6 +7842,7 @@ async function registeredAllEvents() //注册所有的事件
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
 					g_conf[0].YunStatus = true; //正在运行
+					g_conf[0].isCommentRunStatus = true;
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -8281,7 +8258,7 @@ async function registeredAllEvents() //注册所有的事件
 									"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
 									profileID + '  ' + name + "</a>" +
 									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-									profileID + "\">" + newMgs + "</a><br>";
+									profileID + "#commentthread_Profile_"+ profileID +"_textarea" + "\">" + newMgs + "</a><br>";
 							}
 						}).fail(function() {
 							jQuery("#log_body")[0].innerHTML +=
@@ -8332,6 +8309,7 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_body")[0].innerHTML +=
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
+				g_conf[0].isCommentRunStatus = false;
 				
 				g_conf[0].YunStatus = false; //没有运行
 				
@@ -8339,12 +8317,145 @@ async function registeredAllEvents() //注册所有的事件
 				alert("请确保您输入了一条消息并选择了1个或更多好友。");
 			}
 		},0);
-		
 	});
 	
 	var GroupMode = 0; //分组标志 0没有分组 1是国籍 2是离线时间
 	
-	await jQuery("#NationalitySortGroup").click(async function() {
+	jQuery("#NationalityGroup").click(async function() { //按国籍进行高亮分组
+		//1.遍历所有好友,针对不同国籍进行上色
+		//2.对好友进行排序
+	
+		var SpecialName = undefined;
+		var steamName = undefined;
+		var name = undefined;
+		var mode = 0;
+		const total = jQuery("#search_results .selectable").length; //选择的朋友总数
+		if (total > 0) //选择的朋友总数
+		{
+			jQuery("#log_head, #log_body").html("");
+			
+			var jqobj = jQuery("#search_results .selectable");
+	
+			for (let i = 0; i < jqobj.length; i++) {
+				let cur = jqobj.get(i);
+				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
+				//--------------------------------------------------------------------
+				SpecialName = undefined;
+				steamName = undefined;
+	
+				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					//获取备注
+					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					SpecialName = undefined;
+					if (SpecialNameobj != "undefined") {
+						SpecialName = SpecialNameobj[0].innerText; //备注
+					}
+					//获取steam名称
+					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					name = steamName;
+				} else //否则如果是好友界面
+				{
+					//获取名称,然后判断是备注还是steam名称
+					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+					SpecialName = undefined;
+	
+					if (SpecialNameobj.length > 0) //安全检查
+					{
+						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						{
+							console.log("获取到的是备注");
+							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+							steamName = undefined; //就没有名称
+							if (SpecialName.indexOf('{CN}') != -1 ||
+								SpecialName.indexOf('{EN}') != -1 ||
+								SpecialName.indexOf('{JP}') != -1 ||
+								SpecialName.indexOf('{CN-SG}') != -1 ||
+								SpecialName.indexOf('{CN-HANT}') != -1 ||
+								SpecialName.indexOf('{CN-HK}') != -1 ||
+								SpecialName.indexOf('{CN-MO}') != -1 ||
+								SpecialName.indexOf('{CN-TW}') != -1
+							) //检查是否设置了国籍标识
+							{
+								if (SpecialName.indexOf('{CN}') != -1) {
+									cur.style.background = "#66cc";
+								} else if (SpecialName.indexOf('{EN}') != -1) {
+									cur.style.background = "#0C7FB2";
+								} else if (SpecialName.indexOf('{JP}') != -1) {
+									cur.style.background = "#008080";
+								} else if (SpecialName.indexOf('{CN-SG}') != -1) {
+									cur.style.background = "#808000";
+								} else if (SpecialName.indexOf('{CN-HANT}') != -1) {
+									cur.style.background = "#ae7844";
+								} else if (SpecialName.indexOf('{CN-HK}') != -1) {
+									cur.style.background = "#649115";
+								} else if (SpecialName.indexOf('{CN-MO}') != -1) {
+									cur.style.background = "#0f965b";
+								} else if (SpecialName.indexOf('{CN-TW}') != -1) {
+									cur.style.background = "#173eac";
+								}
+							} else if (SpecialName.indexOf('{CN-N}') != -1 ||
+								SpecialName.indexOf('{EN-N}') != -1 ||
+								SpecialName.indexOf('{JP-N}') != -1 ||
+								SpecialName.indexOf('{CN-SG-N}') != -1 ||
+								SpecialName.indexOf('{CN-HANT-N}') != -1 ||
+								SpecialName.indexOf('{CN-HK-N}') != -1 ||
+								SpecialName.indexOf('{CN-MO-N}') != -1 ||
+								SpecialName.indexOf('{CN-TW-N}') != -1
+							) //检查是否设置了国籍标识
+							{
+								if (SpecialName.indexOf('{CN-N}') != -1) {
+									cur.style.background = "#66cc";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{EN-N}') != -1) {
+									cur.style.background = "#0C7FB2";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{JP-N}') != -1) {
+									cur.style.background = "#008080";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-SG-N}') != -1) {
+									cur.style.background = "#808000";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-HANT-N}') != -1) {
+									cur.style.background = "#ae7844";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-HK-N}') != -1) {
+									cur.style.background = "#649115";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-MO-N}') != -1) {
+									cur.style.background = "#0f965b";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-TW-N}') != -1) {
+									cur.style.background = "#173eac";
+									cur.style.borderColor = "#FF00FF";
+								}
+							} else {
+								//设置了备注没有设置国籍
+								cur.style.background = "#188038";
+							}
+						} else if (nicknameObj.length == 0) {
+							console.log("获取到的是steam名称");
+							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+							//jQuery("#log_body")[0].innerHTML +=
+							//	"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+							//	"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
+							//continue;
+						}
+					}
+				}
+				console.log("[Debug] name:", SpecialName);
+				//await sleep(1000);
+				//console.log(cur)
+			}
+			g_conf[0].YunStatus = false; //没有运行
+			//window.location.reload(true); //强制从服务器重新加载当前页面
+		}
+	
+	
+	});
+	
+	await jQuery("#NationalitySortGroup").click(async function() { //按国籍进行排序分组
 		var SpecialName = undefined;
 		var steamName = undefined;
 		var name = undefined;
@@ -8549,7 +8660,7 @@ async function registeredAllEvents() //注册所有的事件
 	
 	});
 	
-	await jQuery("#OfflineTimeGroup").click(async function() {
+	await jQuery("#OfflineTimeGroup").click(async function() { //按在线时间进行排序分组
 		var SpecialName = undefined;
 		var steamName = undefined;
 		var name = undefined;
@@ -8796,7 +8907,8 @@ async function registeredAllEvents() //注册所有的事件
 			}
 		}
 	});
-	await jQuery("#ShowFriendData").click(async function() {
+	
+	await jQuery("#ShowFriendData").click(async function() { //显示好友详细数据(不可用)
 		traverseAllFriend(); //遍历所有好友
 	
 	});

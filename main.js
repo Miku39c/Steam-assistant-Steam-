@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.3.8
-// @date         2020.5.1
+// @version      1.2.3.3.9
+// @date         2020.5.2
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback

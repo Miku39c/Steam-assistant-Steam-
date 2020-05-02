@@ -101,22 +101,6 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	  layer.tips(this.value + ' ' + this.name + '：'+ obj.elem.checked, obj.othis);
 	});
 	
-	//尝试去屏蔽点按钮之类的导致输入框焦点丢失的问题
-	document.addEventListener("mousedown", function(e){
-		
-			if(e.target.id.indexOf("comment")!=0){
-				//debugger
-				//if(e.target.id == "LAY-component-form-getval"){
-				e.stopPropagation();
-				e.stopImmediatePropagation();
-				e.preventDefault();
-				//  document.getElementById("LAY-component-form-getval").click();
-				return false;
-				//}
-			}
-	      
-	}, false); //点击指定区域,输入框不失去焦点
-	
 	//表单取值
 	layui.$('#LAY-component-form-getval').on('click', async function(){
 		var data = form.val('example');
@@ -150,6 +134,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 				break;
 		}
 		console.log(data.modules);
+		_addIDtoHandleLostfocus(); //添加ID来处理丢失的焦点
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -974,7 +959,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 				  }
 				  
 			    });
-			  	
+			  
 			  
 			  //但是，如果你的HTML是动态生成的，自动渲染就会失效
 			  //因此你需要在相应的地方，执行下述方法来进行渲染
@@ -1053,7 +1038,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	;
 	
 	setTimeout(async function() {
-		Obj.LoadEmoticons();
+		//Obj.LoadEmoticons();
 		// CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
 		// 	(async function () {
 		// 		//console.log("loadDone");
@@ -1065,6 +1050,28 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 		// 	})();
 		// });
 	}, 0);
+	
+	_addIDtoHandleLostfocus(); //添加ID来处理丢失的焦点
+	//屏蔽点下拉框、按钮之类的导致输入框焦点丢失的问题
+	document.addEventListener("mousedown", function(e){
+		
+			if(e.target.id.indexOf("steamTextStyle_1")==0 || e.target.id.indexOf("LAY-component-form-getval")==0 
+			|| e.target.id.indexOf("emoticonbtn")==0 || e.target.className.indexOf("emoticon")==0 || e.target.className.indexOf("commentthread_entry_quotebox")==0
+			|| e.target.className.indexOf("fs-label")==0  || e.target.id.indexOf("translationText")==0 || e.target.id.indexOf("select_is")==0
+			|| e.target.id.indexOf("addCustomName")==0 || e.target.className.indexOf("btn_grey_black btn_small_thin")==0 || e.target.id.indexOf("comment_submit")==0
+			){
+				//debugger
+				//if(e.target.id == "LAY-component-form-getval"){
+				e.stopPropagation();
+				e.stopImmediatePropagation();
+				e.preventDefault();
+				//  document.getElementById("LAY-component-form-getval").click();
+				return false;
+				//}
+			}
+	      
+	}, false); //点击指定区域,输入框不失去焦点
+	
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件
 	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/

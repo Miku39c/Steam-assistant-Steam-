@@ -4,7 +4,7 @@ async function registeredAllEvents() //注册所有的事件
 	addFriendMultipleSelectionMode(); //添加好友多选模式
 	
 	
-	jQuery("#addCustomName").click(async function() {
+	jQuery("#addCustomName").click(async function() { //在留言框添加自定义称呼标识符
 		var inString = document.getElementById("comment_textarea");
 		var nSelectionStart = inString.selectionStart;//
 		inString.value = inString.value.substr(0,nSelectionStart) + g_conf[0].strRemarkPlaceholder + inString.value.substr(nSelectionStart);
@@ -13,233 +13,15 @@ async function registeredAllEvents() //注册所有的事件
 	});
 	
 	//<留言时的时间戳-目标时间戳>
-	jQuery("#setTimeInterval").click(async function() {
+	jQuery("#setTimeInterval").click(async function() { //为选择的好友设置留言时间间隔
 		
 	});
 	
-	jQuery("#unsetTimeInterval").click(async function() {
+	jQuery("#unsetTimeInterval").click(async function() { //为选择的好友取消设置留言时间间隔
 		
 	});
 	
-	jQuery("#setNoLeave").click(async function() {
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-		var mode = 0;
-		const total = jQuery("#search_results .selected").length; //选择的朋友总数
-		if (total > 0) //选择的朋友总数
-		{
-			jQuery("#log_head1, #log_body1").html("");
-			var jqobj = jQuery("#search_results .selected");
-			
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-				let profileID = cur.getAttribute("data-steamid");
-				g_conf[0].YunStatus = true; //正在运行
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-				
-				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
-				
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-			
-			
-					if (SpecialNameobj.length > 0) //安全检查
-					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
-						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
-							{
-								jQuery("#log_body1")[0].innerHTML +=
-									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置备注! ' + profileID + '  ' + SpecialName + "</a><br>";
-								continue;
-							}
-							name = SpecialName;
-							name = name + g_conf[0].strNoOperate; //组合
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							SpecialName = undefined; //就没有备注
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							name = steamName;
-							name = name + nostrNoOperate; //组合
-						}
-					}
-				}
-				
-				console.log("[Debug] name:", name);
-			
-				(function(i, profileID) {
-					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
-			
-					jQuery.post(URL, {
-						nickname: name,
-						sessionid: g_sessionID
-					}, function(response) {
-						if (response.success === false) {
-							jQuery("#log_body1")[0].innerHTML +=
-								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
-								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
-						} else {
-							jQuery("#log_body1")[0].innerHTML +=
-								'[' + (i + 1) + '/' + total + '] ' +
-								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
-								profileID + '  ' + name + "</a>" +
-								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-								profileID + "\">" + "</a><br>";
-						}
-					}).fail(function() {
-						jQuery("#log_body1")[0].innerHTML +=
-							'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
-							"无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-							profileID + "\">" +
-							profileID + '  ' + name + "</a></span><br>";
-					}).always(function() {
-						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
-					});
-			
-				})(i, profileID);
-				await sleep(100);
-				//console.log(cur)
-			}
-			g_conf[0].YunStatus = false; //没有运行
-			window.location.reload(true); //强制从服务器重新加载当前页面
-		}
-	});
-	
-	jQuery("#unsetNoLeave").click(async function() {
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-		var mode = 0;
-		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
-		if (total > 0) //选择的朋友总数
-		{
-			jQuery("#log_head1, #log_body1").html("");
-			var jqobj = jQuery("#search_results .selected.selectable");
-			
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-				let profileID = cur.getAttribute("data-steamid");
-				g_conf[0].YunStatus = true; //正在运行
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-			
-				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
-			
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-					
-					if (SpecialNameobj.length > 0) //安全检查
-					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
-						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							if (SpecialName.lastIndexOf(nostrNoOperate) != -1) //检查是否设置了国籍标识
-							{
-								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(nostrNoOperate)); //去掉国籍标识
-								name = ""; //去掉备注
-							}
-							else if (SpecialName.lastIndexOf(g_conf[0].strNoOperate) != -1) //检查是否设置了国籍标识
-							{
-								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(g_conf[0].strNoOperate)); //去掉国籍标识
-								name = SpecialName; //使用原来的备注
-							}else {
-								jQuery("#log_body1")[0].innerHTML +=
-									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置国籍不能取消! ' + profileID + '  ' + SpecialName + "</a><br>";
-								continue;
-							}
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							jQuery("#log_body1")[0].innerHTML +=
-								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
-							continue;
-						}
-					}
-				}
-				console.log("[Debug] name:", name);
-				(function(i, profileID) {
-					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
-			
-					jQuery.post(URL, {
-						nickname: name,
-						sessionid: g_sessionID
-					}, function(response) {
-						if (response.success === false) {
-							jQuery("#log_body1")[0].innerHTML +=
-								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
-								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
-						} else {
-							jQuery("#log_body1")[0].innerHTML +=
-								'[' + (i + 1) + '/' + total + '] ' +
-								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
-								profileID + '  ' + name + "</a>" +
-								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-								profileID + "\">" + "</a><br>";
-						}
-					}).fail(function() {
-						jQuery("#log_body1")[0].innerHTML +=
-							'[' + (i + 1) + '/' + total + '] ' +
-							"<span style='color:#DA2626;'>无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-							profileID + "\">" +
-							profileID + '  ' + name + "</a></span><br>";
-					}).always(function() {
-						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
-					});
-			
-				})(i, profileID);
-				await sleep(1000);
-				//console.log(cur)
-			}
-			g_conf[0].YunStatus = false; //没有运行
-			window.location.reload(true); //强制从服务器重新加载当前页面
-		}
-	});
-	
-	
-	
-	jQuery("#translationText").click(async function() {
+	jQuery("#translationText").click(async function() { //翻译
 		//获取选择的语言
 		var selectLanguage = jQuery("#selectBoxID").ySelectedTexts(",");
 		var selectLanguageArr = selectLanguage.split(',');
@@ -433,7 +215,231 @@ async function registeredAllEvents() //注册所有的事件
 	
 	});
 	
-	jQuery("#setNationality").click(async function() {
+	jQuery("#setNoLeave").click(async function() { //为选择的好友设置不留言
+		var SpecialName = undefined;
+		var steamName = undefined;
+		var name = undefined;
+		var mode = 0;
+		const total = jQuery("#search_results .selected").length; //选择的朋友总数
+		if (total > 0) //选择的朋友总数
+		{
+			if(g_conf[0].isNoCommentRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+			
+			var jqobj = jQuery("#search_results .selected");
+			
+			for (let i = 0; i < jqobj.length; i++) {
+				let cur = jqobj.get(i);
+				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNoCommentRunStatus = true;
+				//--------------------------------------------------------------------
+				SpecialName = undefined;
+				steamName = undefined;
+				
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
+				
+				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					//获取备注
+					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					SpecialName = undefined;
+					if (SpecialNameobj != "undefined") {
+						SpecialName = SpecialNameobj[0].innerText; //备注
+					}
+					//获取steam名称
+					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					name = steamName;
+				} else //否则如果是好友界面
+				{
+					//获取名称,然后判断是备注还是steam名称
+					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+					SpecialName = undefined;
+			
+			
+					if (SpecialNameobj.length > 0) //安全检查
+					{
+						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						{
+							console.log("获取到的是备注");
+							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+							steamName = undefined; //就没有名称
+							if (SpecialName.indexOf(g_conf[0].strNoOperate) != -1 || SpecialName.indexOf(nostrNoOperate) != -1) //检查是否设置了不留言标识
+							{
+								jQuery("#log_body1")[0].innerHTML +=
+									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置备注! ' + profileID + '  ' + SpecialName + "</a><br>";
+								continue;
+							}
+							name = SpecialName;
+							name = name + g_conf[0].strNoOperate; //组合
+						} else if (nicknameObj.length == 0) {
+							console.log("获取到的是steam名称");
+							SpecialName = undefined; //就没有备注
+							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+							name = steamName;
+							name = name + nostrNoOperate; //组合
+						}
+					}
+				}
+				
+				console.log("[Debug] name:", name);
+			
+				(function(i, profileID) {
+					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
+			
+					jQuery.post(URL, {
+						nickname: name,
+						sessionid: g_sessionID
+					}, function(response) {
+						if (response.success === false) {
+							jQuery("#log_body1")[0].innerHTML +=
+								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
+								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+						} else {
+							jQuery("#log_body1")[0].innerHTML +=
+								'[' + (i + 1) + '/' + total + '] ' +
+								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
+								profileID + '  ' + name + "</a>" +
+								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+								profileID + "\">" + "</a><br>";
+						}
+					}).fail(function() {
+						jQuery("#log_body1")[0].innerHTML +=
+							'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
+							"无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+							profileID + "\">" +
+							profileID + '  ' + name + "</a></span><br>";
+					}).always(function() {
+						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
+					});
+			
+				})(i, profileID);
+				await sleep(100);
+				//console.log(cur)
+			}
+			g_conf[0].YunStatus = false; //没有运行
+			g_conf[0].isNoCommentRunStatus = false;
+			window.location.reload(true); //强制从服务器重新加载当前页面
+		}
+	});
+	
+	jQuery("#unsetNoLeave").click(async function() { //为选择的好友取消设置不留言
+		var SpecialName = undefined;
+		var steamName = undefined;
+		var name = undefined;
+		var mode = 0;
+		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
+		if (total > 0) //选择的朋友总数
+		{
+			if(g_conf[0].isNoCommentRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+				
+			var jqobj = jQuery("#search_results .selected.selectable");
+			
+			for (let i = 0; i < jqobj.length; i++) {
+				let cur = jqobj.get(i);
+				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNoCommentRunStatus = true;
+				//--------------------------------------------------------------------
+				SpecialName = undefined;
+				steamName = undefined;
+			
+				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
+			
+				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					//获取备注
+					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					SpecialName = undefined;
+					if (SpecialNameobj != "undefined") {
+						SpecialName = SpecialNameobj[0].innerText; //备注
+					}
+					//获取steam名称
+					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					name = steamName;
+				} else //否则如果是好友界面
+				{
+					//获取名称,然后判断是备注还是steam名称
+					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+					SpecialName = undefined;
+					
+					if (SpecialNameobj.length > 0) //安全检查
+					{
+						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						{
+							console.log("获取到的是备注");
+							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+							steamName = undefined; //就没有名称
+							if (SpecialName.lastIndexOf(nostrNoOperate) != -1) //检查是否设置了国籍标识
+							{
+								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(nostrNoOperate)); //去掉国籍标识
+								name = ""; //去掉备注
+							}
+							else if (SpecialName.lastIndexOf(g_conf[0].strNoOperate) != -1) //检查是否设置了国籍标识
+							{
+								SpecialName = SpecialName.slice(0,SpecialName.lastIndexOf(g_conf[0].strNoOperate)); //去掉国籍标识
+								name = SpecialName; //使用原来的备注
+							}else {
+								jQuery("#log_body1")[0].innerHTML +=
+									"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+									"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有设置国籍不能取消! ' + profileID + '  ' + SpecialName + "</a><br>";
+								continue;
+							}
+						} else if (nicknameObj.length == 0) {
+							console.log("获取到的是steam名称");
+							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+							jQuery("#log_body1")[0].innerHTML +=
+								"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
+							continue;
+						}
+					}
+				}
+				console.log("[Debug] name:", name);
+				(function(i, profileID) {
+					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
+			
+					jQuery.post(URL, {
+						nickname: name,
+						sessionid: g_sessionID
+					}, function(response) {
+						if (response.success === false) {
+							jQuery("#log_body1")[0].innerHTML +=
+								"<a style='color:#ff2c85;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+								"\">" + '[' + (i + 1) + '/' + total + '] 设置备注失败了! ' + profileID + '  ' + name +
+								'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+						} else {
+							jQuery("#log_body1")[0].innerHTML +=
+								'[' + (i + 1) + '/' + total + '] ' +
+								"成功设置备注于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
+								profileID + '  ' + name + "</a>" +
+								"<a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+								profileID + "\">" + "</a><br>";
+						}
+					}).fail(function() {
+						jQuery("#log_body1")[0].innerHTML +=
+							'[' + (i + 1) + '/' + total + '] ' +
+							"<span style='color:#DA2626;'>无法设置备注于 <a style='color:#DA2626;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
+							profileID + "\">" +
+							profileID + '  ' + name + "</a></span><br>";
+					}).always(function() {
+						jQuery("#log_head1").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.<b>");
+					});
+			
+				})(i, profileID);
+				await sleep(1000);
+				//console.log(cur)
+			}
+			g_conf[0].YunStatus = false; //没有运行
+			g_conf[0].isNoCommentRunStatus = false;
+			window.location.reload(true); //强制从服务器重新加载当前页面
+		}
+	});
+	
+	jQuery("#setNationality").click(async function() { //为选择的好友设置国籍标识
 		//获取指定的国籍标识
 		var options = document.getElementById('nationalitySelectBox'); //获取选中的项目
 		var optionsValue = options[options.selectedIndex].value;
@@ -453,13 +459,16 @@ async function registeredAllEvents() //注册所有的事件
 		const total = jQuery("#search_results .selected").length; //选择的朋友总数
 		if (total > 0) //选择的朋友总数
 		{
-			jQuery("#log_head1, #log_body1").html("");
+			if(g_conf[0].isNationalityRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+			
 			var jqobj = jQuery("#search_results .selected");
 	
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
 				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNationalityRunStatus = true;
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -567,145 +576,13 @@ async function registeredAllEvents() //注册所有的事件
 				//console.log(cur)
 			}
 			g_conf[0].YunStatus = false; //没有运行
+			g_conf[0].isNationalityRunStatus = false;
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
 	
 	});
 	
-	jQuery("#NationalityGroup").click(async function() {
-		//1.遍历所有好友,针对不同国籍进行上色
-		//2.对好友进行排序
-	
-		var SpecialName = undefined;
-		var steamName = undefined;
-		var name = undefined;
-		var mode = 0;
-		const total = jQuery("#search_results .selectable").length; //选择的朋友总数
-		if (total > 0) //选择的朋友总数
-		{
-			jQuery("#log_head, #log_body").html("");
-			var jqobj = jQuery("#search_results .selectable");
-	
-			for (let i = 0; i < jqobj.length; i++) {
-				let cur = jqobj.get(i);
-				let profileID = cur.getAttribute("data-steamid");
-				g_conf[0].YunStatus = true; //正在运行
-				//--------------------------------------------------------------------
-				SpecialName = undefined;
-				steamName = undefined;
-	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
-					//获取名称,然后判断是备注还是steam名称
-					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
-					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
-					SpecialName = undefined;
-	
-					if (SpecialNameobj.length > 0) //安全检查
-					{
-						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
-						{
-							console.log("获取到的是备注");
-							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
-							steamName = undefined; //就没有名称
-							if (SpecialName.indexOf('{CN}') != -1 ||
-								SpecialName.indexOf('{EN}') != -1 ||
-								SpecialName.indexOf('{JP}') != -1 ||
-								SpecialName.indexOf('{CN-SG}') != -1 ||
-								SpecialName.indexOf('{CN-HANT}') != -1 ||
-								SpecialName.indexOf('{CN-HK}') != -1 ||
-								SpecialName.indexOf('{CN-MO}') != -1 ||
-								SpecialName.indexOf('{CN-TW}') != -1
-							) //检查是否设置了国籍标识
-							{
-								if (SpecialName.indexOf('{CN}') != -1) {
-									cur.style.background = "#66cc";
-								} else if (SpecialName.indexOf('{EN}') != -1) {
-									cur.style.background = "#0C7FB2";
-								} else if (SpecialName.indexOf('{JP}') != -1) {
-									cur.style.background = "#008080";
-								} else if (SpecialName.indexOf('{CN-SG}') != -1) {
-									cur.style.background = "#808000";
-								} else if (SpecialName.indexOf('{CN-HANT}') != -1) {
-									cur.style.background = "#ae7844";
-								} else if (SpecialName.indexOf('{CN-HK}') != -1) {
-									cur.style.background = "#649115";
-								} else if (SpecialName.indexOf('{CN-MO}') != -1) {
-									cur.style.background = "#0f965b";
-								} else if (SpecialName.indexOf('{CN-TW}') != -1) {
-									cur.style.background = "#173eac";
-								}
-							} else if (SpecialName.indexOf('{CN-N}') != -1 ||
-								SpecialName.indexOf('{EN-N}') != -1 ||
-								SpecialName.indexOf('{JP-N}') != -1 ||
-								SpecialName.indexOf('{CN-SG-N}') != -1 ||
-								SpecialName.indexOf('{CN-HANT-N}') != -1 ||
-								SpecialName.indexOf('{CN-HK-N}') != -1 ||
-								SpecialName.indexOf('{CN-MO-N}') != -1 ||
-								SpecialName.indexOf('{CN-TW-N}') != -1
-							) //检查是否设置了国籍标识
-							{
-								if (SpecialName.indexOf('{CN-N}') != -1) {
-									cur.style.background = "#66cc";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{EN-N}') != -1) {
-									cur.style.background = "#0C7FB2";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{JP-N}') != -1) {
-									cur.style.background = "#008080";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-SG-N}') != -1) {
-									cur.style.background = "#808000";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-HANT-N}') != -1) {
-									cur.style.background = "#ae7844";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-HK-N}') != -1) {
-									cur.style.background = "#649115";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-MO-N}') != -1) {
-									cur.style.background = "#0f965b";
-									cur.style.borderColor = "#FF00FF";
-								} else if (SpecialName.indexOf('{CN-TW-N}') != -1) {
-									cur.style.background = "#173eac";
-									cur.style.borderColor = "#FF00FF";
-								}
-							} else {
-								//设置了备注没有设置国籍
-								cur.style.background = "#188038";
-							}
-						} else if (nicknameObj.length == 0) {
-							console.log("获取到的是steam名称");
-							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
-							//jQuery("#log_body")[0].innerHTML +=
-							//	"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
-							//	"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
-							//continue;
-						}
-					}
-				}
-				console.log("[Debug] name:", SpecialName);
-				//await sleep(1000);
-				//console.log(cur)
-			}
-			g_conf[0].YunStatus = false; //没有运行
-			//window.location.reload(true); //强制从服务器重新加载当前页面
-		}
-	
-	
-	});
-	
-	jQuery("#unsetNationality").click(async function() {
+	jQuery("#unsetNationality").click(async function() { //为选择的好友取消国籍标识
 		//获取指定的国籍标识
 		var options = document.getElementById('nationalitySelectBox'); //获取选中的项目
 		var optionsValue = options[options.selectedIndex].value;
@@ -725,13 +602,16 @@ async function registeredAllEvents() //注册所有的事件
 		const total = jQuery("#search_results .selected.selectable").length; //选择的朋友总数
 		if (total > 0) //选择的朋友总数
 		{
-			jQuery("#log_head1, #log_body1").html("");
+			if(g_conf[0].isNationalityRunStatus == false)
+				jQuery("#log_head1, #log_body1").html("");
+				
 			var jqobj = jQuery("#search_results .selected.selectable");
 	
 			for (let i = 0; i < jqobj.length; i++) {
 				let cur = jqobj.get(i);
 				let profileID = cur.getAttribute("data-steamid");
 				g_conf[0].YunStatus = true; //正在运行
+				g_conf[0].isNationalityRunStatus = true;
 				//--------------------------------------------------------------------
 				SpecialName = undefined;
 				steamName = undefined;
@@ -835,6 +715,7 @@ async function registeredAllEvents() //注册所有的事件
 				await sleep(1000);
 				//console.log(cur)
 			}
+			g_conf[0].isNationalityRunStatus = false;
 			g_conf[0].YunStatus = false; //没有运行
 			window.location.reload(true); //强制从服务器重新加载当前页面
 		}
@@ -842,7 +723,7 @@ async function registeredAllEvents() //注册所有的事件
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------
-	await jQuery("#comment_submit").click(async function() {
+	await jQuery("#comment_submit").click(async function() { //发送评论给选择的好友
 		setTimeout(async ()=>{
 			date = new Date();
 			startTime = date.getTime();
@@ -856,13 +737,17 @@ async function registeredAllEvents() //注册所有的事件
 			var name = undefined;
 			
 			if (total > 0 && msg.length > 0) {
-				jQuery("#log_head, #log_body").html("");
+				if(g_conf[0].isCommentRunStatus == false)
+					jQuery("#log_head, #log_body").html("");
+				
+				
 				//jQuery(".selected").each(async function(i) {
 				var jqobj = jQuery("#search_results .selected.selectable");
 				
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
 					g_conf[0].YunStatus = true; //正在运行
+					g_conf[0].isCommentRunStatus = true;
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -986,7 +871,7 @@ async function registeredAllEvents() //注册所有的事件
 									"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
 									profileID + '  ' + name + "</a>" +
 									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-									profileID + "\">" + newMgs + "</a><br>";
+									profileID  + "#commentthread_Profile_"+ profileID +"_textarea" + "\">" + newMgs + "</a><br>";
 							}
 						}).fail(function() {
 							jQuery("#log_body")[0].innerHTML +=
@@ -1037,6 +922,7 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_body")[0].innerHTML +=
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
+				g_conf[0].isCommentRunStatus = false;
 				
 				g_conf[0].YunStatus = false; //没有运行
 		
@@ -1047,7 +933,7 @@ async function registeredAllEvents() //注册所有的事件
 	});
 	
 	//---------------------------------------------------------------------------------------------------------------
-	await jQuery("#comment_submit_special").click(async function() {
+	await jQuery("#comment_submit_special").click(async function() { //根据国籍发送评论给选择的好友
 		
 		setTimeout(async()=>{
 			date = new Date();
@@ -1076,7 +962,12 @@ async function registeredAllEvents() //注册所有的事件
 			var name = undefined;
 				
 			if (total > 0 && msg.length > 0) {
-				jQuery("#log_head, #log_body").html("");
+				
+				debugger
+				
+				if(g_conf[0].isCommentRunStatus == false)
+					jQuery("#log_head, #log_body").html("");
+				
 				//jQuery(".selected").each(async function(i) {
 				//var jqobj = jQuery(".selected");
 				//var jqobj = jQuery(".selected[data-steamid]"); //排除掉选择的其他的东西
@@ -1085,6 +976,7 @@ async function registeredAllEvents() //注册所有的事件
 				for (let i = 0; i < jqobj.length; i++) {
 					let cur = jqobj.get(i);
 					g_conf[0].YunStatus = true; //正在运行
+					g_conf[0].isCommentRunStatus = true;
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
@@ -1500,7 +1392,7 @@ async function registeredAllEvents() //注册所有的事件
 									"成功发表评论于 <a target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID + "\">" +
 									profileID + '  ' + name + "</a>" +
 									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"http://steamcommunity.com/profiles/" +
-									profileID + "\">" + newMgs + "</a><br>";
+									profileID + "#commentthread_Profile_"+ profileID +"_textarea" + "\">" + newMgs + "</a><br>";
 							}
 						}).fail(function() {
 							jQuery("#log_body")[0].innerHTML +=
@@ -1551,6 +1443,7 @@ async function registeredAllEvents() //注册所有的事件
 				jQuery("#log_body")[0].innerHTML +=
 					"<b>留言完毕! 用时: <span style='color:#35ff8b;'>" + str + "</span></b><br>";
 				//});
+				g_conf[0].isCommentRunStatus = false;
 				
 				g_conf[0].YunStatus = false; //没有运行
 				
@@ -1558,12 +1451,145 @@ async function registeredAllEvents() //注册所有的事件
 				alert("请确保您输入了一条消息并选择了1个或更多好友。");
 			}
 		},0);
-		
 	});
 	
 	var GroupMode = 0; //分组标志 0没有分组 1是国籍 2是离线时间
 	
-	await jQuery("#NationalitySortGroup").click(async function() {
+	jQuery("#NationalityGroup").click(async function() { //按国籍进行高亮分组
+		//1.遍历所有好友,针对不同国籍进行上色
+		//2.对好友进行排序
+	
+		var SpecialName = undefined;
+		var steamName = undefined;
+		var name = undefined;
+		var mode = 0;
+		const total = jQuery("#search_results .selectable").length; //选择的朋友总数
+		if (total > 0) //选择的朋友总数
+		{
+			jQuery("#log_head, #log_body").html("");
+			
+			var jqobj = jQuery("#search_results .selectable");
+	
+			for (let i = 0; i < jqobj.length; i++) {
+				let cur = jqobj.get(i);
+				let profileID = cur.getAttribute("data-steamid");
+				g_conf[0].YunStatus = true; //正在运行
+				//--------------------------------------------------------------------
+				SpecialName = undefined;
+				steamName = undefined;
+	
+				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					//获取备注
+					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					SpecialName = undefined;
+					if (SpecialNameobj != "undefined") {
+						SpecialName = SpecialNameobj[0].innerText; //备注
+					}
+					//获取steam名称
+					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					name = steamName;
+				} else //否则如果是好友界面
+				{
+					//获取名称,然后判断是备注还是steam名称
+					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
+					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
+					SpecialName = undefined;
+	
+					if (SpecialNameobj.length > 0) //安全检查
+					{
+						if (nicknameObj.length > 0) //节点存在则是备注,不存在则是steam名称
+						{
+							console.log("获取到的是备注");
+							SpecialName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("*")); //提取备注
+							steamName = undefined; //就没有名称
+							if (SpecialName.indexOf('{CN}') != -1 ||
+								SpecialName.indexOf('{EN}') != -1 ||
+								SpecialName.indexOf('{JP}') != -1 ||
+								SpecialName.indexOf('{CN-SG}') != -1 ||
+								SpecialName.indexOf('{CN-HANT}') != -1 ||
+								SpecialName.indexOf('{CN-HK}') != -1 ||
+								SpecialName.indexOf('{CN-MO}') != -1 ||
+								SpecialName.indexOf('{CN-TW}') != -1
+							) //检查是否设置了国籍标识
+							{
+								if (SpecialName.indexOf('{CN}') != -1) {
+									cur.style.background = "#66cc";
+								} else if (SpecialName.indexOf('{EN}') != -1) {
+									cur.style.background = "#0C7FB2";
+								} else if (SpecialName.indexOf('{JP}') != -1) {
+									cur.style.background = "#008080";
+								} else if (SpecialName.indexOf('{CN-SG}') != -1) {
+									cur.style.background = "#808000";
+								} else if (SpecialName.indexOf('{CN-HANT}') != -1) {
+									cur.style.background = "#ae7844";
+								} else if (SpecialName.indexOf('{CN-HK}') != -1) {
+									cur.style.background = "#649115";
+								} else if (SpecialName.indexOf('{CN-MO}') != -1) {
+									cur.style.background = "#0f965b";
+								} else if (SpecialName.indexOf('{CN-TW}') != -1) {
+									cur.style.background = "#173eac";
+								}
+							} else if (SpecialName.indexOf('{CN-N}') != -1 ||
+								SpecialName.indexOf('{EN-N}') != -1 ||
+								SpecialName.indexOf('{JP-N}') != -1 ||
+								SpecialName.indexOf('{CN-SG-N}') != -1 ||
+								SpecialName.indexOf('{CN-HANT-N}') != -1 ||
+								SpecialName.indexOf('{CN-HK-N}') != -1 ||
+								SpecialName.indexOf('{CN-MO-N}') != -1 ||
+								SpecialName.indexOf('{CN-TW-N}') != -1
+							) //检查是否设置了国籍标识
+							{
+								if (SpecialName.indexOf('{CN-N}') != -1) {
+									cur.style.background = "#66cc";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{EN-N}') != -1) {
+									cur.style.background = "#0C7FB2";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{JP-N}') != -1) {
+									cur.style.background = "#008080";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-SG-N}') != -1) {
+									cur.style.background = "#808000";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-HANT-N}') != -1) {
+									cur.style.background = "#ae7844";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-HK-N}') != -1) {
+									cur.style.background = "#649115";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-MO-N}') != -1) {
+									cur.style.background = "#0f965b";
+									cur.style.borderColor = "#FF00FF";
+								} else if (SpecialName.indexOf('{CN-TW-N}') != -1) {
+									cur.style.background = "#173eac";
+									cur.style.borderColor = "#FF00FF";
+								}
+							} else {
+								//设置了备注没有设置国籍
+								cur.style.background = "#188038";
+							}
+						} else if (nicknameObj.length == 0) {
+							console.log("获取到的是steam名称");
+							steamName = SpecialNameobj[0].innerText.slice(0, SpecialNameobj[0].innerText.indexOf("\n")); //提取steam名称
+							//jQuery("#log_body")[0].innerHTML +=
+							//	"<a style='color:#00ffd8;' target='_blank' href=\"http://steamcommunity.com/profiles/" + profileID +
+							//	"\">" + '[' + (i + 1) + '/' + total + '] 已跳过, 没有备注不能取消! ' + profileID + '  ' + steamName + "</a><br>";
+							//continue;
+						}
+					}
+				}
+				console.log("[Debug] name:", SpecialName);
+				//await sleep(1000);
+				//console.log(cur)
+			}
+			g_conf[0].YunStatus = false; //没有运行
+			//window.location.reload(true); //强制从服务器重新加载当前页面
+		}
+	
+	
+	});
+	
+	await jQuery("#NationalitySortGroup").click(async function() { //按国籍进行排序分组
 		var SpecialName = undefined;
 		var steamName = undefined;
 		var name = undefined;
@@ -1768,7 +1794,7 @@ async function registeredAllEvents() //注册所有的事件
 	
 	});
 	
-	await jQuery("#OfflineTimeGroup").click(async function() {
+	await jQuery("#OfflineTimeGroup").click(async function() { //按在线时间进行排序分组
 		var SpecialName = undefined;
 		var steamName = undefined;
 		var name = undefined;
@@ -2015,7 +2041,8 @@ async function registeredAllEvents() //注册所有的事件
 			}
 		}
 	});
-	await jQuery("#ShowFriendData").click(async function() {
+	
+	await jQuery("#ShowFriendData").click(async function() { //显示好友详细数据(不可用)
 		traverseAllFriend(); //遍历所有好友
 	
 	});

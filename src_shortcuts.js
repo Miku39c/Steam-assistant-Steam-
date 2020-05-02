@@ -127,7 +127,7 @@ shortcut = {
 				'f11':122,
 				'f12':123,
 			}
-	
+			
 			var modifiers = { 
 				shift: { wanted:false, pressed:false},
 				ctrl : { wanted:false, pressed:false},
