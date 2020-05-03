@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.3.9
+// @version      1.2.3.4.0
 // @date         2020.5.2
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
@@ -552,7 +552,6 @@ shortcut = {
 		else ele['on'+type] = false;
 	}
 }
-
 
 //-------------------------------------------------------------------------------------------------------------
 // 实用函数集
@@ -4748,47 +4747,56 @@ class UI {
 				}\
 				return intLength;\
 			}\
-			var comment_textareaHeight = [];\
-			var Shrinkage_scrollTop = 0; /*存储收缩状态下的进度条*/\
+			var arrComment = []; /*id文本框的id, height文本框的高度, scrollTop存储收缩状态下的进度条, visible可见性*/\
 			\
-			function inBoxShrinkage(id,type){\
-				var index = -1;\
-				var iArr;\
-				for(let i=0;i<comment_textareaHeight.length;i++)\
-				{\
-					index = comment_textareaHeight[i].indexOf(id);\
-					if(index != -1)\
-					{\
+			function inBoxShrinkage(id,type,mode = true){ /*参数: string 要伸缩的文本框id,boolean 是收缩还是伸展,boolean 需不需要重置滚动条(默认重置)*/\
+				var iArr = -1;\
+				for(let i=0;i<arrComment.length;i++){\
+					if(arrComment[i].id == id){\
 						iArr = i; /*记录旧节点的下标*/\
 						/*console.log('记录旧节点的下标','iArr',iArr);*/\
 						break;\
 					}\
 				}\
-				if(index == -1)\
-				{\
-					comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
-					iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
-					/*console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);*/\
+				if(iArr == -1){\
+					arrComment.push( {id: id, height: 0, scrollTop: 0, visible: true} ); /*没有找到则是新的节点,就添加*/\
+					iArr = arrComment.length - 1 ; /*设置新节点的下标*/\
 				}\
-				var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
-				if(nHeight==0)/*第一次,没有指定的样式*/\
-				{\
+				var nHeight = arrComment[iArr].height; /*裁切字符串获取下标*/\
+				if(nHeight==0){ /*第一次,没有指定的样式*/\
 					nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
 				}\
-				/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
 				var commentText = document.getElementById(id);\
 				if (type == true){\
 					commentText.removeEventListener('propertychange', change, false);\
 					commentText.removeEventListener('input', change, false);\
 					commentText.removeEventListener('focus', change, false);\
 					commentText.scrollTop = 0;\
-					document.body.scrollTop = Shrinkage_scrollTop;\
-					document.documentElement.scrollTop = Shrinkage_scrollTop;\
+					\
+					/*代码位于event.js translationText翻译按钮事件*/\
+					/*代码位于uiHandler.js 获取输入框和注册的scroll事件*/\
+					/*代码位于ui.js inBoxShrinkage()判断是否需要重新进行定位*/\
+					/*https://blog.csdn.net/zhengbo0/article/details/7629506*/\
+					/*https://www.jb51.net/article/104047.htm*/\
+					/*如果留言框文本过长超过页面显示范围 或者 文本框不可见时，就重新进行定位 */\
+					if((mode && arrComment[iArr].height > document.documentElement.clientHeight) || (mode && arrComment[iArr].visible == false)){\
+						document.body.scrollTop = arrComment[iArr].scrollTop;\
+						document.documentElement.scrollTop = arrComment[iArr].scrollTop;\
+						console.log('重新进行定位');\
+					}\
 					commentText.style.height = '28px';\
 				}\
 				else if (type == false){\
 					autoTextarea(commentText);\
-					Shrinkage_scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					if(mode){\
+						arrComment[iArr].scrollTop = document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					}\
+					commentText.style.height = nHeight + 'px';\
+				}\
+				else if (type == 'test'){\
+					if(mode){\
+						arrComment[iArr].scrollTop = document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					}\
 					commentText.style.height = nHeight + 'px';\
 				}\
 			}\
@@ -4832,7 +4840,7 @@ class UI {
 						obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
 						if (wordCount(commentText.value) >= 1000) {\
 							document.getElementById('strInBytes_Text').style.color = '#FF0000';\
-							commentText.style.background = '#7b3863';\
+							commentText.style.background = '#7C243E';\
 							if(g_conf[0].isCommentRunStatus == false)/*如果正在留言则不清除(没有留言则清除)*/\
 								jQuery('#log_head').html('');\
 							jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
@@ -4846,7 +4854,7 @@ class UI {
 							}\
 						}\
 						if (elem._length === elem.value.length) return;\
-						elem._length = elem.value.length;\
+							elem._length = elem.value.length;\
 						if (!isFirefox && !isOpera) {\
 							padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
 						};\
@@ -4862,37 +4870,28 @@ class UI {
 							};\
 							style.height = height + extra + 'px';\
 							var nHeight1 = height + extra;\
-							var newStr = nHeight1.toString();\
 							/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
 							/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
 							/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
 							/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
 							var iIndex;\
-							for(let i=0;i<comment_textareaHeight.length;i++)\
+							for(let i=0;i<arrComment.length;i++)\
 							{\
-								if(id == undefined || id == null)\
-								{\
-									if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
-									{\
+								if(id == undefined || id == null){\
+									if(arrComment[i].id == window.event.target.id){\
 										iIndex = i;\
 										break;\
 									}\
 								}\
-								else\
-								{\
-									if(comment_textareaHeight[i].indexOf(id)==0)\
-									{\
+								else{\
+									if(arrComment[i].id == id){\
 										iIndex = i;\
 										break;\
 									}\
 								}\
 							}\
-							/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
-							/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-							comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
-							/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-							comment_textareaHeight[iIndex] += newStr;/*存储*/\
-							/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
+							\
+							arrComment[iIndex].height = nHeight1;/*存储*/\
 							scrollTop += parseInt(style.height) - elem.currHeight;\
 							if(!isNaN(scrollTop)){\
 								document.body.scrollTop = scrollTop;\
@@ -4903,20 +4902,30 @@ class UI {
 				};\
 				addEvent('propertychange', change);\
 				addEvent('input', change);\
-				addEvent('focus', change);\
+				/*addEvent('focus', change);*/\
 				change();\
 			};\
 			\
-			function closeAllinBoxShrinkage(){\
-				inBoxShrinkage('comment_textarea',true);\
-				inBoxShrinkage('comment_textarea_zhc',true);\
-				inBoxShrinkage('comment_textarea_en',true);\
-				inBoxShrinkage('comment_textarea_jp',true);\
-				inBoxShrinkage('comment_textarea_zh_sg',true);\
-				inBoxShrinkage('comment_textarea_zh_hant',true);\
-				inBoxShrinkage('comment_textarea_zh_hk',true);\
-				inBoxShrinkage('comment_textarea_zh_mo',true);\
-				inBoxShrinkage('comment_textarea_zh_tw',true);\
+			function openThisAndCloseOtherAllinBoxShrinkage(id,type){ /*打开这个，关闭其他所有的inBoxShrinkage*/\
+				inBoxShrinkage(id,type); /*展开*/\
+				if(id != 'comment_textarea' && document.getElementById('comment_textarea') != null)\
+					inBoxShrinkage('comment_textarea',true,false);\
+				if(id != 'comment_textarea_en' && document.getElementById('comment_textarea_en') != null)\
+					inBoxShrinkage('comment_textarea_en',true,false);\
+				if(id != 'comment_textarea_jp' && document.getElementById('comment_textarea_jp') != null)\
+					inBoxShrinkage('comment_textarea_jp',true,false);\
+				if(id != 'comment_textarea_zhc' && document.getElementById('comment_textarea_zhc') != null)\
+					inBoxShrinkage('comment_textarea_zhc',true,false);\
+				if(id != 'comment_textarea_zh_sg' && document.getElementById('comment_textarea_zh_sg') != null)\
+					inBoxShrinkage('comment_textarea_zh_sg',true,false);\
+				if(id != 'comment_textarea_zh_hant' && document.getElementById('comment_textarea_zh_hant') != null)\
+					inBoxShrinkage('comment_textarea_zh_hant',true,false);\
+				if(id != 'comment_textarea_zh_hk' && document.getElementById('comment_textarea_zh_hk') != null)\
+					inBoxShrinkage('comment_textarea_zh_hk',true,false);\
+				if(id != 'comment_textarea_zh_mo' && document.getElementById('comment_textarea_zh_mo') != null)\
+					inBoxShrinkage('comment_textarea_zh_mo',true,false);\
+				if(id != 'comment_textarea_zh_tw' && document.getElementById('comment_textarea_zh_tw') != null)\
+					inBoxShrinkage('comment_textarea_zh_tw',true,false);\
 			}\
 			\
 			var inBoxonblurID = 0;\
@@ -5782,6 +5791,8 @@ class UI {
 	
 	}
 }
+
+var commentTextarea_box; /*所有输入框*/
 
 UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程序
 	//2.构建UI
@@ -6857,6 +6868,49 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	      
 	}, false); //点击指定区域,输入框不失去焦点
 	
+	
+	/*代码位于event.js translationText翻译按钮事件*/
+	/*代码位于uiHandler.js 获取输入框和注册的scroll事件*/
+	/*代码位于ui.js inBoxShrinkage()判断是否需要重新进行定位*/
+	commentTextarea_box = document.getElementsByClassName('commentthread_textarea'); /*获取所有输入框*/
+	inBoxShrinkage('comment_textarea',"init"); //解决滚动屏幕事件 Cannot set property 'visible' of undefined，传入"init"参数无实际意义，只为了创建arrComment，而不执行收缩功能，防止Cannot read property 'value' of null错误
+	var getAllOffsetTopByChildEle = (ele)=>{
+		var OffsetTopSum = 0;
+		var ParentObj;
+		var currentObj = ele;
+		//debugger
+		//while(currentObj != document){
+			//OffsetTopSum += currentObj.offsetTop;
+			//currentObj = currentObj.parentNode;
+			currentObj = currentObj.parentNode;
+			OffsetTopSum += currentObj.offsetTop;
+			currentObj = currentObj.parentNode;
+			OffsetTopSum += currentObj.offsetTop;
+			
+			//console.log("offsetTop:",currentObj.offsetTop,"scrollTop:",currentObj.scrollTop,"clientTop:",currentObj.clientTop);
+		//}
+		return OffsetTopSum;
+	};
+	
+	document.addEventListener('scroll',function(){ /*注册事件: 当滚动时，对所有输入框对象可见性进行判断*/
+		var visibleBottom = window.scrollY + document.documentElement.clientHeight; /*可见区域底部高度 = 滚动条高度 + 可视窗口高度 (显示窗口的底部坐标)*/
+		var visibleTop = window.scrollY; /*可见区域顶部高度 = 页面的滚动条滚动的距离 (显示窗口的顶部坐标)*/
+		
+		for (var i = 0; i < commentTextarea_box.length; i++) { /*遍历所有元素并进行判断 commentTextarea_box[i].offsetTop*/
+			//var centerY = getAllOffsetTopByChildEle(commentTextarea_box[i]) + (commentTextarea_box[i].offsetHeight / 2); /*dom元素的中心坐标 = dom元素到最顶端的高度 + 自身高度的一半*/
+			var centerY = getAllOffsetTopByChildEle(commentTextarea_box[i]) - 10; //top
+			var centerX = getAllOffsetTopByChildEle(commentTextarea_box[i]) + commentTextarea_box[i].offsetHeight + 20; //bottom
+			if(centerY > visibleTop& centerX < visibleBottom){ /*当dom元素的中心坐标的X及Y坐标均大于显示窗口的顶部，且小于显示窗口的底部坐标时，那么就可以判断该坐标在可见区域*/
+				arrComment[i].visible = true; /*区域可见*/
+				//console.log('第'+i+'个区域可见',centerY,visibleTop,visibleBottom);
+			}else{
+				arrComment[i].visible = false; /*区域不可见*/
+				//console.log('第'+i+'个区域不可见',centerY,visibleTop,visibleBottom);
+			}
+		}
+		//console.log('');
+	});
+	
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件
 	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
@@ -6904,7 +6958,7 @@ async function registeredAllEvents() //注册所有的事件
 		var optionsValue = options[options.selectedIndex].value;
 		console.log("optionsValue", optionsValue);
 		//遍历选择的语言并创建输入框,然后翻译后设置值
-		for (let i = 0; i < selectLanguageArr.length; i++) {
+		for (let i = selectLanguageArr.length -1; i >= 0 ; i--) { //for (let i = 0; i < selectLanguageArr.length; i++) {
 			g_conf[0].YunStatus = true; //正在运行
 			
 			var _id;
@@ -6914,7 +6968,7 @@ async function registeredAllEvents() //注册所有的事件
 					_id = "_zhc";
 					newStrText = await GoogleTranslateRequest(optionsValue, zhc, inString);
 					console.log("翻译为中文简体:", newStrText);
-	
+					
 					if (document.getElementById('comment_textarea_zhc') == null) {
 						jQuery("#translationOptions").after(
 							'\
@@ -6922,13 +6976,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为中文简体' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=3;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zhc\',false);" onClick="" onblur="inBoxonblurID=3;inBoxShrinkage(\'comment_textarea_zhc\',true);" placeholder="添加留言(中文简体)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=3;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_zhc\',false);" onClick="" onblur="inBoxonblurID=3;inBoxShrinkage(\'comment_textarea_zhc\',true);" placeholder="添加留言(中文简体)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_zhc').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_zhc'); //统计翻译后的文字长度
 					break;
 				case '英语':
 					_id = "_en";
@@ -6942,13 +6994,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为英语' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=1;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_en\',false);" onClick="" onblur="inBoxonblurID=1;inBoxShrinkage(\'comment_textarea_en\',true);" placeholder="添加留言(英语)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=1;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_en\',false);" onClick="" onblur="inBoxonblurID=1;inBoxShrinkage(\'comment_textarea_en\',true);" placeholder="添加留言(英语)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_en').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_en'); //统计翻译后的文字长度
 					break;
 				case '日语':
 					_id = "_jp";
@@ -6962,13 +7012,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为日语' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=2;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_jp\',false);" onClick="" onblur="inBoxonblurID=2;inBoxShrinkage(\'comment_textarea_jp\',true);" placeholder="添加留言(日语)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=2;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_jp\',false);" onClick="" onblur="inBoxonblurID=2;inBoxShrinkage(\'comment_textarea_jp\',true);" placeholder="添加留言(日语)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_jp').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_jp'); //统计翻译后的文字长度
 					break;
 				case "马新简体[zh-sg]":
 					_id = "_zh_sg";
@@ -6982,13 +7030,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为马新简体' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=4;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_sg\',false);" onClick="" onblur="inBoxonblurID=4;inBoxShrinkage(\'comment_textarea_zh_sg\',true);" placeholder="添加留言(马新简体)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=4;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_zh_sg\',false);" onClick="" onblur="inBoxonblurID=4;inBoxShrinkage(\'comment_textarea_zh_sg\',true);" placeholder="添加留言(马新简体)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_zh_sg').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_zh_sg'); //统计翻译后的文字长度
 					break;
 				case "繁體中文[zh-hant]":
 					_id = "_zh_hant";
@@ -7002,13 +7048,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=5;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hant\',false);" onClick="" onblur="inBoxonblurID=5;inBoxShrinkage(\'comment_textarea_zh_hant\',true);" placeholder="添加留言(繁體中文)" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=5;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_zh_hant\',false);" onClick="" onblur="inBoxonblurID=5;inBoxShrinkage(\'comment_textarea_zh_hant\',true);" placeholder="添加留言(繁體中文)" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_zh_hant').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_zh_hant'); //统计翻译后的文字长度
 					break;
 				case "繁體中文(香港)[zh-hk]":
 					_id = "_zh_hk";
@@ -7022,13 +7066,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(香港)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=6;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_hk\',false);" onClick="" onblur="inBoxonblurID=6;inBoxShrinkage(\'comment_textarea_zh_hk\',true);" placeholder="添加留言(繁體中文(香港))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=6;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_zh_hk\',false);" onClick="" onblur="inBoxonblurID=6;inBoxShrinkage(\'comment_textarea_zh_hk\',true);" placeholder="添加留言(繁體中文(香港))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_zh_hk').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_zh_hk'); //统计翻译后的文字长度
 					break;
 				case "繁體中文(澳门)[zh-mo]":
 					_id = "_zh_mo";
@@ -7042,13 +7084,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(澳门)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=7;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_mo\',false);" onClick="" onblur="inBoxonblurID=7;inBoxShrinkage(\'comment_textarea_zh_mo\',true);" placeholder="添加留言(繁體中文(澳门))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=7;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_zh_mo\',false);" onClick="" onblur="inBoxonblurID=7;inBoxShrinkage(\'comment_textarea_zh_mo\',true);" placeholder="添加留言(繁體中文(澳门))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_zh_mo').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_zh_mo'); //统计翻译后的文字长度
 					break;
 				case "繁體中文(台湾)[zh-tw]":
 					_id = "_zh_tw";
@@ -7062,13 +7102,11 @@ async function registeredAllEvents() //注册所有的事件
 									<span>' + '翻译为繁體中文(台湾)' +
 							'</span>\
 									<textarea class="commentthread_textarea" id="comment_textarea' + _id +
-							'" onfocus="inBoxonblurID=8;closeAllinBoxShrinkage();inBoxShrinkage(\'comment_textarea_zh_tw\',false);" onClick="" onblur="inBoxonblurID=8;inBoxShrinkage(\'comment_textarea_zh_tw\',true);" placeholder="添加留言(繁體中文(台湾))" style="overflow: hidden; height: 28px;"></textarea>\
+							'" onfocus="inBoxonblurID=8;openThisAndCloseOtherAllinBoxShrinkage(\'comment_textarea_zh_tw\',false);" onClick="" onblur="inBoxonblurID=8;inBoxShrinkage(\'comment_textarea_zh_tw\',true);" placeholder="添加留言(繁體中文(台湾))" style="overflow: hidden; height: 28px;"></textarea>\
 								</div>'
 						);
 					}
 					document.getElementById('comment_textarea_zh_tw').value = newStrText;
-					if (change != undefined)
-						change(null, 'comment_textarea_zh_tw'); //统计翻译后的文字长度
 					break;
 				default:
 				g_conf[0].YunStatus = false; //没有运行
@@ -7078,7 +7116,142 @@ async function registeredAllEvents() //注册所有的事件
 			g_conf[0].YunStatus = false; //没有运行
 	
 		}
-	
+		commentTextarea_box = document.getElementsByClassName('commentthread_textarea'); /*获取所有输入框*/
+		
+		var change1;
+		var autoTextarea = function(elem, extra, maxHeight) {
+			extra = extra || 0;
+			var isFirefox = !!document.getBoxObjectFor || 'mozInnerScreenX' in window,
+				isOpera = !!window.opera && !!window.opera.toString().indexOf('Opera'),
+				addEvent = function(type, callback) {
+					elem.addEventListener ?
+						elem.addEventListener(type, callback, false) :
+						elem.attachEvent('on' + type, callback);
+				},
+				getStyle = elem.currentStyle ? function(name) {
+					var val = elem.currentStyle[name];
+					if (name === 'height' && val.search(/px/i) !== 1) {
+						var rect = elem.getBoundingClientRect();
+						return rect.bottom - rect.top -
+							parseFloat(getStyle('paddingTop')) -
+							parseFloat(getStyle('paddingBottom')) + 'px';
+					};
+					return val;
+				} : function(name) {
+					return getComputedStyle(elem, null)[name];
+				},
+				minHeight = parseFloat(getStyle('height'));
+			elem.style.resize = 'none';
+		
+		change1 = function(e,id) {
+						var scrollTop, height,
+							padding = 0,
+							style = elem.style;
+						var obj = document.getElementById('strInBytes');
+						var commentText;
+						if(id == undefined || id == null)
+							commentText = document.getElementById(window.event.target.id);
+						else
+							commentText = document.getElementById(id);
+						var numText = wordCount(commentText.value);
+						obj.innerHTML =  "当前字符字节数: <span id='strInBytes_Text'>" + numText + '</span>/999';
+						if (wordCount(commentText.value) >= 1000) {
+							document.getElementById('strInBytes_Text').style.color = '#FF0000';
+							commentText.style.background = '#7b3863';
+							if(g_conf[0].isCommentRunStatus == false)/*如果正在留言则不清除(没有留言则清除)*/
+								jQuery('#log_head').html('');
+							jQuery('#log_head').html("<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. " + '当前字数:' + numText + '<b>');
+							g_conf[0].isWarnInfo = true;
+						} else {	
+							document.getElementById('strInBytes_Text').style.color = '#32CD32';
+							commentText.style.background = '#1b2838';
+							if(g_conf[0].isCommentRunStatus == false && g_conf[0].isWarnInfo == true){ /*没有留言并且有警告信息才清除*/
+								jQuery('#log_head').html('');
+								g_conf[0].isWarnInfo = false;
+							}
+						}
+						if (elem._length === elem.value.length) return;
+							elem._length = elem.value.length;
+						if (!isFirefox && !isOpera) {
+							padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));
+						};
+						scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*定位到最后*/
+						elem.style.height = minHeight + 'px';
+						if (elem.scrollHeight >= minHeight) {
+							if (maxHeight && elem.scrollHeight > maxHeight) {
+								height = maxHeight - padding;
+								style.overflowY = 'auto';
+							} else {
+								height = elem.scrollHeight - padding;
+								style.overflowY = 'hidden';
+							};
+							style.height = height + extra + 'px';
+							var nHeight1 = height + extra;
+							/*console.log('nHeight1',nHeight1,'newStr',newStr);*/
+							/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/
+							/*https://www.cnblogs.com/cblogs/p/9293522.html*/
+							/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/
+							var iIndex;
+							for(let i=0;i<arrComment.length;i++)
+							{
+								if(id == undefined || id == null){
+									if(arrComment[i].id == window.event.target.id){
+										iIndex = i;
+										break;
+									}
+								}
+								else{
+									if(arrComment[i].id == id){
+										iIndex = i;
+										break;
+									}
+								}
+							}
+							debugger;
+							arrComment[iIndex].height = nHeight1;/*存储*/
+							scrollTop += parseInt(style.height) - elem.currHeight;
+							if(!isNaN(scrollTop)){
+								document.body.scrollTop = scrollTop;
+								document.documentElement.scrollTop = scrollTop;
+							}
+							elem.currHeight = parseInt(style.height);
+						}
+				};
+		};
+			inBoxShrinkage('comment_textarea_en',"init");//解决滚动屏幕事件 Cannot set property 'visible' of undefined，传入"init"参数无实际意义，只为了创建arrComment，而不执行收缩功能，防止Cannot read property 'value' of null错误
+			inBoxShrinkage('comment_textarea_jp',"init");
+			inBoxShrinkage('comment_textarea_zhc',"init");
+			inBoxShrinkage('comment_textarea_zh_sg',"init");
+			inBoxShrinkage('comment_textarea_zh_hant',"init");
+			inBoxShrinkage('comment_textarea_zh_hk',"init");
+			inBoxShrinkage('comment_textarea_zh_mo',"init");
+			inBoxShrinkage('comment_textarea_zh_tw',"init");
+			arrComment[1].height = 0;
+			arrComment[1].scrollTop = 0;
+			
+			arrComment[2].height = 0;
+			arrComment[2].scrollTop = 0;
+			
+			arrComment[3].height = 0;
+			arrComment[3].scrollTop = 0;
+			
+			arrComment[4].height = 0;
+			arrComment[4].scrollTop = 0;
+			
+			arrComment[5].height = 0;
+			arrComment[5].scrollTop = 0;
+			
+			arrComment[6].height = 0;
+			arrComment[6].scrollTop = 0;
+			
+			arrComment[7].height = 0;
+			arrComment[7].scrollTop = 0;
+			
+			arrComment[8].height = 0;
+			arrComment[8].scrollTop = 0;
+		/*代码位于event.js translationText翻译按钮事件*/
+		/*代码位于uiHandler.js 获取输入框和注册的scroll事件*/
+		/*代码位于ui.js inBoxShrinkage()判断是否需要重新进行定位*/
 	});
 	
 	jQuery("#setNoLeave").click(async function() { //为选择的好友设置不留言

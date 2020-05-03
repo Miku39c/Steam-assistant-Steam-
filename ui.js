@@ -1505,47 +1505,56 @@ class UI {
 				}\
 				return intLength;\
 			}\
-			var comment_textareaHeight = [];\
-			var Shrinkage_scrollTop = 0; /*存储收缩状态下的进度条*/\
+			var arrComment = []; /*id文本框的id, height文本框的高度, scrollTop存储收缩状态下的进度条, visible可见性*/\
 			\
-			function inBoxShrinkage(id,type){\
-				var index = -1;\
-				var iArr;\
-				for(let i=0;i<comment_textareaHeight.length;i++)\
-				{\
-					index = comment_textareaHeight[i].indexOf(id);\
-					if(index != -1)\
-					{\
+			function inBoxShrinkage(id,type,mode = true){ /*参数: string 要伸缩的文本框id,boolean 是收缩还是伸展,boolean 需不需要重置滚动条(默认重置)*/\
+				var iArr = -1;\
+				for(let i=0;i<arrComment.length;i++){\
+					if(arrComment[i].id == id){\
 						iArr = i; /*记录旧节点的下标*/\
 						/*console.log('记录旧节点的下标','iArr',iArr);*/\
 						break;\
 					}\
 				}\
-				if(index == -1)\
-				{\
-					comment_textareaHeight.push(id + ':0'); /*没有找到则是新的节点,就添加*/\
-					iArr = comment_textareaHeight.length - 1 ; /*设置新节点的下标*/\
-					/*console.log('没有找到则是新的节点,就添加','comment_textareaHeight',comment_textareaHeight,'iArr',iArr);*/\
+				if(iArr == -1){\
+					arrComment.push( {id: id, height: 0, scrollTop: 0, visible: true} ); /*没有找到则是新的节点,就添加*/\
+					iArr = arrComment.length - 1 ; /*设置新节点的下标*/\
 				}\
-				var nHeight = parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)); /*裁切字符串获取下标*/\
-				if(nHeight==0)/*第一次,没有指定的样式*/\
-				{\
+				var nHeight = arrComment[iArr].height; /*裁切字符串获取下标*/\
+				if(nHeight==0){ /*第一次,没有指定的样式*/\
 					nHeight = document.getElementById('comment_textarea').scrollHeight + 'px'; /*对于每个节点使用当前高度*/\
 				}\
-				/*console.log(parseFloat(comment_textareaHeight[iArr].slice(comment_textareaHeight[iArr].lastIndexOf(':')+1)),'nHeight',nHeight);*/\
 				var commentText = document.getElementById(id);\
 				if (type == true){\
 					commentText.removeEventListener('propertychange', change, false);\
 					commentText.removeEventListener('input', change, false);\
 					commentText.removeEventListener('focus', change, false);\
 					commentText.scrollTop = 0;\
-					document.body.scrollTop = Shrinkage_scrollTop;\
-					document.documentElement.scrollTop = Shrinkage_scrollTop;\
+					\
+					/*代码位于event.js translationText翻译按钮事件*/\
+					/*代码位于uiHandler.js 获取输入框和注册的scroll事件*/\
+					/*代码位于ui.js inBoxShrinkage()判断是否需要重新进行定位*/\
+					/*https://blog.csdn.net/zhengbo0/article/details/7629506*/\
+					/*https://www.jb51.net/article/104047.htm*/\
+					/*如果留言框文本过长超过页面显示范围 或者 文本框不可见时，就重新进行定位 */\
+					if((mode && arrComment[iArr].height > document.documentElement.clientHeight) || (mode && arrComment[iArr].visible == false)){\
+						document.body.scrollTop = arrComment[iArr].scrollTop;\
+						document.documentElement.scrollTop = arrComment[iArr].scrollTop;\
+						console.log('重新进行定位');\
+					}\
 					commentText.style.height = '28px';\
 				}\
 				else if (type == false){\
 					autoTextarea(commentText);\
-					Shrinkage_scrollTop = document.body.scrollTop || document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					if(mode){\
+						arrComment[iArr].scrollTop = document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					}\
+					commentText.style.height = nHeight + 'px';\
+				}\
+				else if (type == 'test'){\
+					if(mode){\
+						arrComment[iArr].scrollTop = document.documentElement.scrollTop; /*设置 存储收缩状态下的进度条*/\
+					}\
 					commentText.style.height = nHeight + 'px';\
 				}\
 			}\
@@ -1589,7 +1598,7 @@ class UI {
 						obj.innerHTML =  \"当前字符字节数: <span id='strInBytes_Text'>\" + numText + '</span>/999';\
 						if (wordCount(commentText.value) >= 1000) {\
 							document.getElementById('strInBytes_Text').style.color = '#FF0000';\
-							commentText.style.background = '#7b3863';\
+							commentText.style.background = '#7C243E';\
 							if(g_conf[0].isCommentRunStatus == false)/*如果正在留言则不清除(没有留言则清除)*/\
 								jQuery('#log_head').html('');\
 							jQuery('#log_head').html(\"<br><b style='color:#2CD8D6;'>字数超标啦! 请保持在1000字符以下. \" + '当前字数:' + numText + '<b>');\
@@ -1603,7 +1612,7 @@ class UI {
 							}\
 						}\
 						if (elem._length === elem.value.length) return;\
-						elem._length = elem.value.length;\
+							elem._length = elem.value.length;\
 						if (!isFirefox && !isOpera) {\
 							padding = parseInt(getStyle('paddingTop')) + parseInt(getStyle('paddingBottom'));\
 						};\
@@ -1619,37 +1628,28 @@ class UI {
 							};\
 							style.height = height + extra + 'px';\
 							var nHeight1 = height + extra;\
-							var newStr = nHeight1.toString();\
 							/*console.log('nHeight1',nHeight1,'newStr',newStr);*/\
 							/*https://blog.csdn.net/weixin_34281477/article/details/93702604*/\
 							/*https://www.cnblogs.com/cblogs/p/9293522.html*/\
 							/*https://www.w3school.com.cn/tiy/t.asp?f=jseg_replace_1*/\
 							var iIndex;\
-							for(let i=0;i<comment_textareaHeight.length;i++)\
+							for(let i=0;i<arrComment.length;i++)\
 							{\
-								if(id == undefined || id == null)\
-								{\
-									if(comment_textareaHeight[i].indexOf(window.event.target.id)==0)\
-									{\
+								if(id == undefined || id == null){\
+									if(arrComment[i].id == window.event.target.id){\
 										iIndex = i;\
 										break;\
 									}\
 								}\
-								else\
-								{\
-									if(comment_textareaHeight[i].indexOf(id)==0)\
-									{\
+								else{\
+									if(arrComment[i].id == id){\
 										iIndex = i;\
 										break;\
 									}\
 								}\
 							}\
-							/*console.log(window.event.target.id,comment_textareaHeight,'iIndex',iIndex);*/\
-							/*console.log('2 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-							comment_textareaHeight[iIndex] = comment_textareaHeight[iIndex].replace(/:(.*)/,\"$':\");/*删除:和后面所有的字符串并添加:*/\
-							/*console.log('3 comment_textareaHeight[iIndex]',comment_textareaHeight[iIndex]);*/\
-							comment_textareaHeight[iIndex] += newStr;/*存储*/\
-							/*console.log('存储','comment_textareaHeight',comment_textareaHeight);*/\
+							\
+							arrComment[iIndex].height = nHeight1;/*存储*/\
 							scrollTop += parseInt(style.height) - elem.currHeight;\
 							if(!isNaN(scrollTop)){\
 								document.body.scrollTop = scrollTop;\
@@ -1660,20 +1660,30 @@ class UI {
 				};\
 				addEvent('propertychange', change);\
 				addEvent('input', change);\
-				addEvent('focus', change);\
+				/*addEvent('focus', change);*/\
 				change();\
 			};\
 			\
-			function closeAllinBoxShrinkage(){\
-				inBoxShrinkage('comment_textarea',true);\
-				inBoxShrinkage('comment_textarea_zhc',true);\
-				inBoxShrinkage('comment_textarea_en',true);\
-				inBoxShrinkage('comment_textarea_jp',true);\
-				inBoxShrinkage('comment_textarea_zh_sg',true);\
-				inBoxShrinkage('comment_textarea_zh_hant',true);\
-				inBoxShrinkage('comment_textarea_zh_hk',true);\
-				inBoxShrinkage('comment_textarea_zh_mo',true);\
-				inBoxShrinkage('comment_textarea_zh_tw',true);\
+			function openThisAndCloseOtherAllinBoxShrinkage(id,type){ /*打开这个，关闭其他所有的inBoxShrinkage*/\
+				inBoxShrinkage(id,type); /*展开*/\
+				if(id != 'comment_textarea' && document.getElementById('comment_textarea') != null)\
+					inBoxShrinkage('comment_textarea',true,false);\
+				if(id != 'comment_textarea_en' && document.getElementById('comment_textarea_en') != null)\
+					inBoxShrinkage('comment_textarea_en',true,false);\
+				if(id != 'comment_textarea_jp' && document.getElementById('comment_textarea_jp') != null)\
+					inBoxShrinkage('comment_textarea_jp',true,false);\
+				if(id != 'comment_textarea_zhc' && document.getElementById('comment_textarea_zhc') != null)\
+					inBoxShrinkage('comment_textarea_zhc',true,false);\
+				if(id != 'comment_textarea_zh_sg' && document.getElementById('comment_textarea_zh_sg') != null)\
+					inBoxShrinkage('comment_textarea_zh_sg',true,false);\
+				if(id != 'comment_textarea_zh_hant' && document.getElementById('comment_textarea_zh_hant') != null)\
+					inBoxShrinkage('comment_textarea_zh_hant',true,false);\
+				if(id != 'comment_textarea_zh_hk' && document.getElementById('comment_textarea_zh_hk') != null)\
+					inBoxShrinkage('comment_textarea_zh_hk',true,false);\
+				if(id != 'comment_textarea_zh_mo' && document.getElementById('comment_textarea_zh_mo') != null)\
+					inBoxShrinkage('comment_textarea_zh_mo',true,false);\
+				if(id != 'comment_textarea_zh_tw' && document.getElementById('comment_textarea_zh_tw') != null)\
+					inBoxShrinkage('comment_textarea_zh_tw',true,false);\
 			}\
 			\
 			var inBoxonblurID = 0;\

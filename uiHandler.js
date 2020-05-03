@@ -1,3 +1,5 @@
+var commentTextarea_box; /*所有输入框*/
+
 UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程序
 	//2.构建UI
 	layui.use(['laydate', 'laypage', 'layer', 'table', 'carousel', 'upload', 'element', 'slider', 'colorpicker', 'form'], function() {
@@ -1071,6 +1073,49 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 			}
 	      
 	}, false); //点击指定区域,输入框不失去焦点
+	
+	
+	/*代码位于event.js translationText翻译按钮事件*/
+	/*代码位于uiHandler.js 获取输入框和注册的scroll事件*/
+	/*代码位于ui.js inBoxShrinkage()判断是否需要重新进行定位*/
+	commentTextarea_box = document.getElementsByClassName('commentthread_textarea'); /*获取所有输入框*/
+	inBoxShrinkage('comment_textarea',"init"); //解决滚动屏幕事件 Cannot set property 'visible' of undefined，传入"init"参数无实际意义，只为了创建arrComment，而不执行收缩功能，防止Cannot read property 'value' of null错误
+	var getAllOffsetTopByChildEle = (ele)=>{
+		var OffsetTopSum = 0;
+		var ParentObj;
+		var currentObj = ele;
+		//debugger
+		//while(currentObj != document){
+			//OffsetTopSum += currentObj.offsetTop;
+			//currentObj = currentObj.parentNode;
+			currentObj = currentObj.parentNode;
+			OffsetTopSum += currentObj.offsetTop;
+			currentObj = currentObj.parentNode;
+			OffsetTopSum += currentObj.offsetTop;
+			
+			//console.log("offsetTop:",currentObj.offsetTop,"scrollTop:",currentObj.scrollTop,"clientTop:",currentObj.clientTop);
+		//}
+		return OffsetTopSum;
+	};
+	
+	document.addEventListener('scroll',function(){ /*注册事件: 当滚动时，对所有输入框对象可见性进行判断*/
+		var visibleBottom = window.scrollY + document.documentElement.clientHeight; /*可见区域底部高度 = 滚动条高度 + 可视窗口高度 (显示窗口的底部坐标)*/
+		var visibleTop = window.scrollY; /*可见区域顶部高度 = 页面的滚动条滚动的距离 (显示窗口的顶部坐标)*/
+		
+		for (var i = 0; i < commentTextarea_box.length; i++) { /*遍历所有元素并进行判断 commentTextarea_box[i].offsetTop*/
+			//var centerY = getAllOffsetTopByChildEle(commentTextarea_box[i]) + (commentTextarea_box[i].offsetHeight / 2); /*dom元素的中心坐标 = dom元素到最顶端的高度 + 自身高度的一半*/
+			var centerY = getAllOffsetTopByChildEle(commentTextarea_box[i]) - 10; //top
+			var centerX = getAllOffsetTopByChildEle(commentTextarea_box[i]) + commentTextarea_box[i].offsetHeight + 20; //bottom
+			if(centerY > visibleTop& centerX < visibleBottom){ /*当dom元素的中心坐标的X及Y坐标均大于显示窗口的顶部，且小于显示窗口的底部坐标时，那么就可以判断该坐标在可见区域*/
+				arrComment[i].visible = true; /*区域可见*/
+				//console.log('第'+i+'个区域可见',centerY,visibleTop,visibleBottom);
+			}else{
+				arrComment[i].visible = false; /*区域不可见*/
+				//console.log('第'+i+'个区域不可见',centerY,visibleTop,visibleBottom);
+			}
+		}
+		//console.log('');
+	});
 	
 	console.log("注册所有的事件...");
 	await registeredAllEvents(); //注册所有的事件
