@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.4.0
-// @date         2020.5.2
+// @version      1.2.3.4.1
+// @date         2020.5.4
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -13,14 +13,17 @@
 // @namespace    https://greasyfork.org/
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
-// @updateURL    https://greasyfork.org/zh-CN/scripts/397073
+// @updateURL    https://greasyfork.org/scripts/397073-steam-assistant-steam%E5%B0%8F%E5%8A%A9%E6%89%8B/code/Steam%20assistant(Steam%E5%B0%8F%E5%8A%A9%E6%89%8B).user.js
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
 // @grant        GM_notification
+// @note         Cdn-----------------------------------------------------------------------
 // @connect      cdnjs.cloudflare.com
 // @connect      code.highcharts.com.cn
+// @connect      www.layuicdn.com
+// @note         Translate-----------------------------------------------------------------
 // @connect      www.deepl.com
 // @connect      api.deepl.com
 // @connect      translate.google.cn
@@ -35,16 +38,19 @@
 // @connect      cn.bing.com  //https://cn.bing.com/translator/
 // @connect      hjdict.com   //http://www.hjdict.com/app/trans
 // @connect      fanyi.dict.cn
+// @note         Api-----------------------------------------------------------------------
 // @connect      brushes8.com
 // @connect      api.help.bj.cn
 // @connect      api.avatardata.cn  //https://www.avatardata.cn/Docs
 // @connect      route.showapi.com  //会员/免费 https://www.showapi.com/api/apiList
-// @connect      zhaiyan.2cys.com   //宅言API-动漫台词接口 https://www.kancloud.cn/acman/zhaiyanapi/31183
-// @connect      api.dongmanxingkong.com  //https://api.dongmanxingkong.com/
-// @connect      api.pingcc.cn            //http://api.pingcc.cn/
-// @connect      www.dmoe.cc              //http://www.dmoe.cc/
-// @connect      api.mz-moe.cn            //https://mz-moe.cn/?p=23
-// @connect      www.layuicdn.com
+// @connect      zhaiyan.2cys.com
+// @connect      api.dongmanxingkong.com
+// @connect      api.pingcc.cn
+// @connect      47.114.147.221
+// @connect      www.dmoe.cc
+// @connect      api.mz-moe.cn
+// @connect      sinaimg.cn
+// @connect      *
 // @noframes
 // @run-at       document-start
 // ==/UserScript==
@@ -1315,6 +1321,240 @@ class intelligenceAI //智能AI模块
 // 	g_ai = new intelligenceAI();
 // 	ai.getWeather('北京');
 // }
+//-------------------------------------------------------------------------------------------------------------
+class externalApis{
+	constructor(){
+		this.urls = [
+			{
+				name: "mz-moe.cn", //名称
+				describe: "https://mz-moe.cn/?p=23", //描述
+				trait: "Support files only,https,406张图片(2019.8.12)", //特征
+				request: "get", //请求方式
+				mainUrl: "https://api.mz-moe.cn/", //基础url
+				library: [
+					{
+						name: "随机动漫图片api", //https://api.dongmanxingkong.com/suijitupian.html
+						Url: "img.php", //功能url(部分)
+						Url1: "", //功能url1(部分)
+						parameter: "", //参数
+						parameter1: "" //参数1(另外一种类型)
+					},
+				]
+			},{
+				name: "樱花", //名称
+				describe: "http://www.dmoe.cc/", //描述
+				trait: "http->https,1000+(2020-03-12)", //特征
+				request: "get", //请求方式
+				mainUrl: "http://www.dmoe.cc/", //基础url
+				library: [
+					{
+						name: "随机二次元图片API", //https://api.dongmanxingkong.com/suijitupian.html
+						Url: "random.php", //功能url(部分)
+						Url1: "", //功能url1(部分)
+						parameter: "?return=json", //参数
+						parameter1: "type=json" //参数1(另外一种类型)
+					},
+				]
+			},{
+				name: "动漫星空", //名称
+				describe: "https://api.dongmanxingkong.com/", //描述
+				trait: "https,8千万+张4K精美图片,文字二维码生成", //特征
+				request: "get", //请求方式
+				mainUrl: "https://api.dongmanxingkong.com/", //基础url
+				library: [
+					{
+						name: "随机图片API", //https://api.dongmanxingkong.com/suijitupian.html
+						Url: ["suijitupian/acg/1080p/","suijitupian/acg/2k/","suijitupian/acg/4k/"], //功能url(部分)
+						Url1: "index.php", //功能url1(部分)
+						parameter: "?return=json", //参数
+						parameter1: "type=json" //参数1(另外一种类型)
+					},{
+						name: "二维码API", //https://api.dongmanxingkong.com/qr.html
+						Url: "qr/?text=", //功能url(部分)
+						Url1: "&size=150", //功能url1(部分)
+						parameter: "", //参数
+						parameter1: "" //参数1(另外一种类型)
+					}
+				]
+			},{
+				name: "LRY_API(聚合漫画、影视、小说等接口)", //名称
+				describe: "http://api.pingcc.cn/", //描述
+				trait: "warn redirection,http,综合搜索,漫画,影视,小说", //特征
+				request: "get", //请求方式
+				mainUrl: "http://api.pingcc.cn/", //基础url
+				library: [
+					{
+						name: "综合搜索", //https://api.dongmanxingkong.com/suijitupian.html
+						Url: "?name=", //功能url(部分)
+						Url1: "", //功能url1(部分)
+						parameter: "", //参数
+						parameter1: "" //参数1(另外一种类型)
+					},{
+						name: "漫画API接口", //https://api.dongmanxingkong.com/qr.html
+						Url: "?mhname=", //功能url(部分)
+						Url1: ["?mhurl1=","?mhurl2="], //功能url1(部分) //通过mhurl2获取到的是漫画图片，按顺序排列
+						parameter: "", //参数
+						parameter1: "" //参数1(另外一种类型)
+					},{
+						name: "影视API接口", //https://api.dongmanxingkong.com/qr.html
+						Url: "?ysname=", //功能url(部分)
+						Url1: "?ysurl=", //功能url1(部分)
+						parameter: "", //参数
+						parameter1: "" //参数1(另外一种类型)
+					},{
+						name: "小说API接口", //https://api.dongmanxingkong.com/qr.html
+						Url: "?xsname=", //功能url(部分)
+						Url1: ["?xsurl1=","?xsurl2="], //功能url1(部分) //通过xsurl2获取到的是小说内容
+						parameter: "", //参数
+						parameter1: "" //参数1(另外一种类型)
+					}
+				]
+			},{
+				name: "宅言API", //名称
+				describe: "https://www.kancloud.cn/acman/zhaiyanapi/31183", //描述
+				trait: "https,动漫台词,角色资料,番组信息接口", //特征
+				request: "get", //请求方式
+				mainUrl: "https://zhaiyan.2cys.com/api", //基础url
+				library: [
+					{
+						name: "获取随机库中台词", //https://www.kancloud.cn/acman/zhaiyanapi/367018
+						Url: "/taici/rands", //功能url(部分)
+						Url1: "", //功能url1(部分)
+						parameter: "?type=json", //参数
+						parameter1: "json(默认)/xml/text" //参数1(另外一种类型)
+					},{
+						name: "根据库ID获取台词", //https://www.kancloud.cn/acman/zhaiyanapi/367019
+						Url: "/taici/id", //功能url(部分)
+						Url1: "", //功能url1(部分) //通过mhurl2获取到的是漫画图片，按顺序排列
+						parameter: "?id=", //参数
+						parameter1: "?type=json" //参数1(另外一种类型)
+					},{
+						name: "根据作品名获取数据", //https://www.kancloud.cn/acman/zhaiyanapi/367152
+						Url: "/taici/names", //功能url(部分)
+						Url1: "", //功能url1(部分)
+						parameter: "?name=", //参数
+						parameter1: ["?rand=0","?type=json"] //参数1(其他参数)
+					},{
+						name: "动漫角色资料接口", //https://www.kancloud.cn/acman/zhaiyanapi/48115
+						Url: "", //功能url(部分)
+						Url1: "", //功能url1(部分) //通过xsurl2获取到的是小说内容
+						parameter: "", //参数
+						parameter1: "" //参数1(另外一种类型)
+					},{
+						name: "获取随机库中番组", //https://www.kancloud.cn/acman/zhaiyanapi/368479
+						Url: "/bangumi/rands", //功能url(部分)
+						Url1: "", //功能url1(部分) //通过xsurl2获取到的是小说内容
+						parameter: "?type=json", //参数
+						parameter1: "" //参数1(另外一种类型)
+					}
+				]
+			}
+			
+		];
+	}
+	getUrlInfo(){
+		console.log(this.urls);
+	}
+	async getDataByApiList(platformsID,apiId,type,name){ //参数: 平台id(区别不同平台提供的api),要调用的api的id(区分是要调用的是什么api),类型(调用api可能需要提供的参数),名称(调用api可能需要提供的参数)
+		switch (platformsID){
+			case 0:
+				var obj = this.urls[0]; //mz-moe.cn
+				var lib = obj.library[0]; //随机动漫图片api
+				var url = obj.mainUrl + lib.Url;
+				console.log("url",url);
+				var jsData = await getResourceByURL(url,true); //随机动漫图片api
+				console.log("数据获取成果",jsData);
+				return jsData;
+				break;
+			case 1:
+				var obj = this.urls[1]; //樱花
+				var lib = obj.library[0]; //随机二次元图片API
+				console.log("url",url);
+				
+				var url = obj.mainUrl + lib.Url;
+				if(type == "json")
+					url += lib.parameter;
+				var jsData = await getResourceByURL(url,true); //随机二次元图片API
+				console.log("数据获取成果",jsData);
+				return jsData;
+				break;
+			case 2:
+				var obj = this.urls[2]; //动漫星空
+				var lib = obj.library[0];  //随机图片API
+				var lib1 = obj.library[1]; //二维码API
+				var url = obj.mainUrl + lib.Url[0] + lib.Url1;
+				if(type == "json")
+					url += lib.parameter;
+				var url1 = obj.mainUrl + lib1.Url + name + lib1.Url1;
+				console.log("url",url,"url1",url1);
+				var jsData;
+				if(apiId == 0){
+					jsData = await getResourceByURL(url,true); //随机图片API
+				}else if(apiId == 1){
+					jsData = await getResourceByURL(url1,true); //二维码API
+				}
+				console.log("数据获取成果",jsData);
+				return jsData;
+				break;
+			case 3:
+				var obj = this.urls[3]; //LRY_API(聚合漫画、影视、小说等接口)
+				var lib = obj.library[0];  //综合搜索
+				var lib1 = obj.library[1]; //漫画API接口
+				var lib2 = obj.library[2]; //影视API接口
+				var lib3 = obj.library[3]; //小说API接口
+				var url = obj.mainUrl + lib.Url  + name;
+				var url1 = obj.mainUrl + lib1.Url + name;
+				var url2 = obj.mainUrl + lib2.Url + name;
+				var url3 = obj.mainUrl + lib3.Url + name;
+				console.log("url",url,"url1",url1,"url2",url2,"url3",url3);
+				var jsData;
+				if(apiId == 0){
+					jsData = await getResourceByURL(url,true); //综合搜索
+				}else if(apiId == 1){
+					jsData = await getResourceByURL(url1,true); //漫画API接口
+				}else if(apiId == 2){
+					jsData = await getResourceByURL(url2,true); //影视API接口
+				}else if(apiId == 3){
+					jsData = await getResourceByURL(url3,true); //小说API接口
+				}
+				console.log("数据获取成果",jsData);
+				return jsData;
+				break;
+			case 4:
+				var obj = this.urls[4]; //宅言API
+				var lib = obj.library[0];  //获取随机库中台词
+				var lib1 = obj.library[1]; //根据库ID获取台词
+				var lib2 = obj.library[2]; //根据作品名获取数据
+				var lib3 = obj.library[3]; //动漫角色资料接口
+				var lib4 = obj.library[4]; //获取随机库中番组
+				var url = obj.mainUrl + lib.Url + lib.parameter;
+				var url1 = obj.mainUrl + lib1.Url + lib1.parameter + name + lib1.parameter1;
+				var url2 = obj.mainUrl + lib2.Url + lib2.parameter + name + lib2.parameter1[0] +  + lib2.parameter1[1];
+				var url3 = obj.mainUrl + lib3.Url + lib3.parameter;
+				var url4 = obj.mainUrl + lib4.Url + lib4.parameter + lib4.parameter;
+				console.log("url",url,"url1",url1,"url2",url2,"url3",url3,"url4",url4);
+				var jsData;
+				if(apiId == 0){
+					jsData = await getResourceByURL(url,true); //获取随机库中台词
+				}else if(apiId == 1){
+					jsData = await getResourceByURL(url1,true); //根据库ID获取台词
+				}else if(apiId == 2){
+					jsData = await getResourceByURL(url2,true); //根据作品名获取数据
+				}else if(apiId == 3){
+					jsData = await getResourceByURL(url3,true); //动漫角色资料接口
+				}else if(apiId == 4){
+					jsData = await getResourceByURL(url4,true); //获取随机库中番组
+				}
+				console.log("数据获取成果",jsData);
+				return jsData;
+				break;
+			default:
+				break;
+		}//switch
+	}
+	
+}
+
 //-------------------------------------------------------------------------------------------------------------
 class SteamDB
 {
@@ -3229,6 +3469,99 @@ function countRgbColor(r, g, b) //计算RGB渐变颜色
 // }
 // var tiSysCallback_runRGB = setInterval(function(){runRGB();}, 22); //[启动定时器] 每秒回调函数 // 11 16 22 30
 //-------------------------------------------------------------------------------------------------------------
+var exApis = new externalApis();
+
+function setBackgroundImg(imgFilePath){ //设置背景图片
+	if(jQuery("#backgroundIMG")[0] == undefined)
+		jQuery("body").prepend('<div id="backgroundIMG">背景图</div>');
+	
+	var css = "background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('"+ imgFilePath +"') no-repeat fixed;background-size: cover; width: 100%;";
+	//var css = "background: rgba(0,0,0,0) url('"+ imgFilePath +"') no-repeat fixed;background-size: cover; width: 100%;";
+	var other_css = "position: absolute; z-index: -1; height:100%;";
+	var opacity_css = "opacity:1;filter: alpha(opacity=100)";
+	jQuery("#backgroundIMG")[0].style = css + other_css + opacity_css;
+	document.body.style.background = "none";
+	
+	jQuery(".friends_header_bg")[0].style.background = "none";
+	jQuery("#global_header")[0].style.background = "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))";
+	jQuery(".content")[0].style.background = "none";
+	
+	jQuery(".profile_friends.title_bar")[0].style.background = "linear-gradient(rgba(1, 94, 128, 0.6), rgba(1, 94, 128, 0.6))";
+}
+
+function setBackgroundImgCarousel(arr_img,timeInterval){ //设置背景图片轮播(图片路径,时间间隔)
+	//URL()存的图片网络地址 修改背景图  就改这个地址 必须要网络地址噢噢噢(注意这里没有[img][/img]) 壁纸 可以在这找  https://www.enterdesk.com/zhuomianbizhi/dongmankatong/dongmanrenwu/
+	
+	var x = 0;        //记录当前第几张轮播图
+	setBackgroundImg(arr_img[x++]);
+	setInterval(()=>{
+		if (x >= arr_img.length) x = 0;
+		setBackgroundImg(arr_img[x++]);
+	}, timeInterval);
+}
+
+async function getNetImgBysourceID(sourceID){
+	var data,obj,imgFilePath;
+	if(sourceID==0){
+		data = await exApis.getDataByApiList(1,0,"json");
+		obj = JSON.parse(data); //JSON处理并解析到js对象
+		if(obj.code == 200){
+			imgFilePath = obj.imgurl;
+		}
+	}
+	else if(sourceID==1){
+		data = await exApis.getDataByApiList(2,0,"json");
+		obj = JSON.parse(data); //JSON处理并解析到js对象
+		if(obj.code == 200){
+			imgFilePath = obj.imgurl;
+		}
+	}
+	return imgFilePath;
+}
+
+async function autoGetImgAndSetBackgroundImg(sourceID,mode,timeInterval,maxImgNumber){ //来源id, 模式:true轮播,false不轮播, 时间间隔(不轮播就无效), 最大图片轮播数量(不轮播就无效)
+	var arr_img = [];
+	var imgFilePath;
+	
+	if(mode == true){
+		imgFilePath = await getNetImgBysourceID(sourceID);
+		arr_img[0] = imgFilePath;
+		
+		if(maxImgNumber > 0){
+			setTimeout(async()=>{
+				for (let i = 0; i < maxImgNumbers; i++) {
+					imgFilePath = await getNetImgBysourceID(sourceID);
+					arr_img.push(imgFilePath)
+				}
+			}, 0);
+			setBackgroundImgCarousel(arr_img,timeInterval);
+		}else{
+			setBackgroundImg(imgFilePath);
+			setInterval(async()=>{
+					imgFilePath = await getNetImgBysourceID(sourceID);
+					setBackgroundImg(imgFilePath);
+			}, timeInterval);
+		}
+	}else if(mode == false){
+		imgFilePath = await getNetImgBysourceID(sourceID);
+		setBackgroundImg(imgFilePath);
+	}
+	//exApis.getDataByApiList(0);
+	//exApis.getDataByApiList(1,0,"json");
+	//exApis.getDataByApiList(1,0);
+	//exApis.getDataByApiList(2,0,"json");
+	//exApis.getDataByApiList(2,0);
+	//exApis.getDataByApiList(2,1,"二维码文本");
+	//exApis.getDataByApiList(3,0,"","Miku");
+	//exApis.getDataByApiList(3,1,"","Miku");
+	//exApis.getDataByApiList(3,2,"","Miku");
+	//exApis.getDataByApiList(3,3,"","Miku");
+	//exApis.getDataByApiList(4,0);
+	//exApis.getDataByApiList(4,1,1);
+	//exApis.getDataByApiList(4,2,"Miku");
+	//exApis.getDataByApiList(4,3);
+	//exApis.getDataByApiList(4,4);
+}
 
 //-------------------------------------------------------------------------------------------------------------
 
@@ -4511,6 +4844,9 @@ class UI {
 				.layui-checkbox-disbaled[lay-skin=primary] span{\
 					color: #999;\
 				}\
+				.layui-tab-brief>.layui-tab-title .layui-this {\
+				    color: #01e0cb;\
+				}\
 				'
 			); /* 覆盖layui的css样式 */
 			gc_ui.loadTextChange(true); //改变当前加载进度
@@ -5095,7 +5431,7 @@ class UI {
 		//正常html代码
 		jQuery("#manage_friends").after(
 			'<div class="layui-tab layui-tab-brief" lay-filter="demo">\
-			  <ul class="layui-tab-title">\
+			  <ul class="layui-tab-title" style="color: #ebebeb;">\
 			    <li class="layui-this">留言</li>\
 			    <li>留言设置</li>\
 			    <li>数据分析</li>\
@@ -6916,6 +7252,7 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
 		console.log("添加删除好友提醒失败了~!");
 	}
+	await autoGetImgAndSetBackgroundImg(0,false,5000,0);
 }
 
 async function registeredAllEvents() //注册所有的事件

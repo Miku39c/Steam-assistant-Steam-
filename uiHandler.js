@@ -1122,5 +1122,6 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
 		console.log("添加删除好友提醒失败了~!");
 	}
+	await autoGetImgAndSetBackgroundImg(0,false,5000,0);
 }
 

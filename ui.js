@@ -1269,6 +1269,9 @@ class UI {
 				.layui-checkbox-disbaled[lay-skin=primary] span{\
 					color: #999;\
 				}\
+				.layui-tab-brief>.layui-tab-title .layui-this {\
+				    color: #01e0cb;\
+				}\
 				'
 			); /* 覆盖layui的css样式 */
 			gc_ui.loadTextChange(true); //改变当前加载进度
@@ -1853,7 +1856,7 @@ class UI {
 		//正常html代码
 		jQuery("#manage_friends").after(
 			'<div class="layui-tab layui-tab-brief" lay-filter="demo">\
-			  <ul class="layui-tab-title">\
+			  <ul class="layui-tab-title" style="color: #ebebeb;">\
 			    <li class="layui-this">留言</li>\
 			    <li>留言设置</li>\
 			    <li>数据分析</li>\

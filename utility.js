@@ -720,6 +720,99 @@ function countRgbColor(r, g, b) //计算RGB渐变颜色
 // }
 // var tiSysCallback_runRGB = setInterval(function(){runRGB();}, 22); //[启动定时器] 每秒回调函数 // 11 16 22 30
 //-------------------------------------------------------------------------------------------------------------
+var exApis = new externalApis();
+
+function setBackgroundImg(imgFilePath){ //设置背景图片
+	if(jQuery("#backgroundIMG")[0] == undefined)
+		jQuery("body").prepend('<div id="backgroundIMG">背景图</div>');
+	
+	var css = "background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('"+ imgFilePath +"') no-repeat fixed;background-size: cover; width: 100%;";
+	//var css = "background: rgba(0,0,0,0) url('"+ imgFilePath +"') no-repeat fixed;background-size: cover; width: 100%;";
+	var other_css = "position: absolute; z-index: -1; height:100%;";
+	var opacity_css = "opacity:1;filter: alpha(opacity=100)";
+	jQuery("#backgroundIMG")[0].style = css + other_css + opacity_css;
+	document.body.style.background = "none";
+	
+	jQuery(".friends_header_bg")[0].style.background = "none";
+	jQuery("#global_header")[0].style.background = "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))";
+	jQuery(".content")[0].style.background = "none";
+	
+	jQuery(".profile_friends.title_bar")[0].style.background = "linear-gradient(rgba(1, 94, 128, 0.6), rgba(1, 94, 128, 0.6))";
+}
+
+function setBackgroundImgCarousel(arr_img,timeInterval){ //设置背景图片轮播(图片路径,时间间隔)
+	//URL()存的图片网络地址 修改背景图  就改这个地址 必须要网络地址噢噢噢(注意这里没有[img][/img]) 壁纸 可以在这找  https://www.enterdesk.com/zhuomianbizhi/dongmankatong/dongmanrenwu/
+	
+	var x = 0;        //记录当前第几张轮播图
+	setBackgroundImg(arr_img[x++]);
+	setInterval(()=>{
+		if (x >= arr_img.length) x = 0;
+		setBackgroundImg(arr_img[x++]);
+	}, timeInterval);
+}
+
+async function getNetImgBysourceID(sourceID){
+	var data,obj,imgFilePath;
+	if(sourceID==0){
+		data = await exApis.getDataByApiList(1,0,"json");
+		obj = JSON.parse(data); //JSON处理并解析到js对象
+		if(obj.code == 200){
+			imgFilePath = obj.imgurl;
+		}
+	}
+	else if(sourceID==1){
+		data = await exApis.getDataByApiList(2,0,"json");
+		obj = JSON.parse(data); //JSON处理并解析到js对象
+		if(obj.code == 200){
+			imgFilePath = obj.imgurl;
+		}
+	}
+	return imgFilePath;
+}
+
+async function autoGetImgAndSetBackgroundImg(sourceID,mode,timeInterval,maxImgNumber){ //来源id, 模式:true轮播,false不轮播, 时间间隔(不轮播就无效), 最大图片轮播数量(不轮播就无效)
+	var arr_img = [];
+	var imgFilePath;
+	
+	if(mode == true){
+		imgFilePath = await getNetImgBysourceID(sourceID);
+		arr_img[0] = imgFilePath;
+		
+		if(maxImgNumber > 0){
+			setTimeout(async()=>{
+				for (let i = 0; i < maxImgNumbers; i++) {
+					imgFilePath = await getNetImgBysourceID(sourceID);
+					arr_img.push(imgFilePath)
+				}
+			}, 0);
+			setBackgroundImgCarousel(arr_img,timeInterval);
+		}else{
+			setBackgroundImg(imgFilePath);
+			setInterval(async()=>{
+					imgFilePath = await getNetImgBysourceID(sourceID);
+					setBackgroundImg(imgFilePath);
+			}, timeInterval);
+		}
+	}else if(mode == false){
+		imgFilePath = await getNetImgBysourceID(sourceID);
+		setBackgroundImg(imgFilePath);
+	}
+	//exApis.getDataByApiList(0);
+	//exApis.getDataByApiList(1,0,"json");
+	//exApis.getDataByApiList(1,0);
+	//exApis.getDataByApiList(2,0,"json");
+	//exApis.getDataByApiList(2,0);
+	//exApis.getDataByApiList(2,1,"二维码文本");
+	//exApis.getDataByApiList(3,0,"","Miku");
+	//exApis.getDataByApiList(3,1,"","Miku");
+	//exApis.getDataByApiList(3,2,"","Miku");
+	//exApis.getDataByApiList(3,3,"","Miku");
+	//exApis.getDataByApiList(4,0);
+	//exApis.getDataByApiList(4,1,1);
+	//exApis.getDataByApiList(4,2,"Miku");
+	//exApis.getDataByApiList(4,3);
+	//exApis.getDataByApiList(4,4);
+}
 
 //-------------------------------------------------------------------------------------------------------------
 
