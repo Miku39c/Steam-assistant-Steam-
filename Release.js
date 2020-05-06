@@ -5787,16 +5787,18 @@ class UI {
 				if(g_otherUrlRegExp1.test(url)){
 					console.log("重新构建UI-B!");
 					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+					return;
 				}
 				if(g_otherUrlRegExp2.test(url)){
 					console.log("重新构建UI-C!");
 					window.location.reload(false); //重新加载当前页面
-					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+					//funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+					return;
 				}
-				if(g_otherUrlRegExp3.test(url)){
-					console.log("重新构建UI-D!");
-					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
-				}
+				// if(g_otherUrlRegExp3.test(url)){
+				// 	console.log("重新构建UI-D!");
+				// 	funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				// }
 			};
 			
 			//1.监听url中的hash变化  //window.location.hash='state_online'  =>  https://steamcommunity.com/id/miku-39/friends#state_online //页面不刷新,url改变,定位到指定锚点
