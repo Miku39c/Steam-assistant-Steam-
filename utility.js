@@ -1,6 +1,8 @@
 function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	let obj = document.getElementsByClassName("manage_action btnv6_lightblue_blue btn_medium");
 	for (let i = 0; i < obj.length; i++) {
+		if(obj[i].onclick == null)
+			continue;
 		let funcText = obj[i].onclick.toString();
 		if(funcText.indexOf("ExecFriendAction('remove', 'friends/all')") != -1) //是否是移除好友按钮
 		{
@@ -36,27 +38,27 @@ function _addIDtoHandleLostfocus(){ //添加ID来处理丢失的焦点
 
 var arrMenuID = [5];
 function registeMenu(){ //注册脚本快捷菜单
-	if(g_conf[0].isShow_menu_friend){
+	if(g_uiConf.isShow_menu_friend){
 		arrMenuID[0] = GM_registerMenuCommand("好友列表", function(){
 			window.open("https://steamcommunity.com/my/friends", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_activity){
+	if(g_uiConf.isShow_menu_activity){
 		arrMenuID[1] = GM_registerMenuCommand("动态列表", function(){
 			window.open("https://steamcommunity.com/my/home", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_registerKey){
+	if(g_uiConf.isShow_menu_registerKey){
 		arrMenuID[2] = GM_registerMenuCommand("激活key", function(){
 			window.open("https://store.steampowered.com/account/registerkey", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_redeemWalletCode){
+	if(g_uiConf.isShow_menu_redeemWalletCode){
 		arrMenuID[3] = GM_registerMenuCommand("充值key", function(){
 			window.open("https://store.steampowered.com/account/redeemwalletcode", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_steamdbFree){
+	if(g_uiConf.isShow_menu_steamdbFree){
 		arrMenuID[4] = GM_registerMenuCommand("SteamDB预告", function(){
 			window.open("https://steamdb.info/upcoming/free/", "_blank");
 		});
@@ -128,7 +130,8 @@ var index_arr = [2];
 index_arr[0] = undefined;
 index_arr[1] = undefined;
 function addFriendMultipleSelectionMode(){ //添加好友多选模式
-	document.getElementById("search_text_box").blur(); //搜索框取消获得的焦点
+	var obj = document.getElementById("search_text_box");
+	obj && obj.blur(); //搜索框取消获得的焦点
 	
 	jQuery("#search_results .selectable").click(function(e) {
 		var id = jQuery(this).attr("id"); //id
@@ -731,13 +734,16 @@ function setBackgroundImg(imgFilePath){ //设置背景图片
 	var other_css = "position: absolute; z-index: -1; height:100%;";
 	var opacity_css = "opacity:1;filter: alpha(opacity=100)";
 	jQuery("#backgroundIMG")[0].style = css + other_css + opacity_css;
-	document.body.style.background = "none";
 	
-	jQuery(".friends_header_bg")[0].style.background = "none";
-	jQuery("#global_header")[0].style.background = "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))";
-	jQuery(".content")[0].style.background = "none";
+	document.body.style.background = "none"; //去除原背景
 	
-	jQuery(".profile_friends.title_bar")[0].style.background = "linear-gradient(rgba(1, 94, 128, 0.6), rgba(1, 94, 128, 0.6))";
+	jQuery(".friends_header_bg")[0].style.background = "none"; //去除 上面那层蓝色背景图片
+	jQuery("#global_header")[0].style.background = "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))"; //设置 最上面设置黑色区域透明度
+	jQuery(".content")[0].style.background = "none"; //去除 最上面黑色区域
+	
+	var obj = jQuery(".profile_friends.title_bar")[0];
+	if(obj != undefined)
+		obj.style.background = "linear-gradient(rgba(1, 94, 128, 0.6), rgba(1, 94, 128, 0.6))"; //设置 管理好友列表那块的透明度
 }
 
 function setBackgroundImgCarousel(arr_img,timeInterval){ //设置背景图片轮播(图片路径,时间间隔)
@@ -755,6 +761,10 @@ async function getNetImgBysourceID(sourceID){
 	var data,obj,imgFilePath;
 	if(sourceID==0){
 		data = await exApis.getDataByApiList(1,0,"json");
+		if(data.indexOf('{')!=0){
+			console.log("服务器返回了错误的数据，尝试重新请求: "+ data);
+			return getNetImgBysourceID(sourceID);
+		}
 		obj = JSON.parse(data); //JSON处理并解析到js对象
 		if(obj.code == 200){
 			imgFilePath = obj.imgurl;
@@ -762,6 +772,10 @@ async function getNetImgBysourceID(sourceID){
 	}
 	else if(sourceID==1){
 		data = await exApis.getDataByApiList(2,0,"json");
+		if(data.indexOf('{')!=0){
+			console.log("服务器返回了错误的数据，尝试重新请求: "+ data);
+			return getNetImgBysourceID(sourceID);
+		}
 		obj = JSON.parse(data); //JSON处理并解析到js对象
 		if(obj.code == 200){
 			imgFilePath = obj.imgurl;
@@ -815,7 +829,33 @@ async function autoGetImgAndSetBackgroundImg(sourceID,mode,timeInterval,maxImgNu
 }
 
 //-------------------------------------------------------------------------------------------------------------
+//导入和导出配置文件(包括脚本配置和UI配置)，导入: 选择您的导入类型(全覆盖/仅覆盖脚本配置/仅覆盖UI配置/仅导入UI配置)
 
+function downFile(type,data,fileName) {
+	var elementA = document.createElement('a');
+	
+	if(type == "json") //json对象
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + JSON.stringify(data));
+	else if(type == "text") //文本
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + data);
+	else if(type == "bin") //二进制数据
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + data);
+	else{
+		alert("不支持的数据类型!!");
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + data);
+	}
+	//if(fileName == undefined) fileName = new Date();
+	elementA.setAttribute('download', + new Date() + ".data");
+	elementA.style.display = 'none';
+	document.body.appendChild(elementA);
+	elementA.click();
+	document.body.removeChild(elementA);
+}
+//downFile("json",g_conf,"SteamAssistant");
+
+//设置透明 https://www.52pojie.cn/thread-763424-1-1.html
+//background: rgba(229, 241, 240,0);
+//background: transparent;
 //-------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------------

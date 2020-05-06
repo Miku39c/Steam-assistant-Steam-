@@ -654,17 +654,21 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 		isCheck: false
 	});
 	
-	//单选框选中和取消选中 https://segmentfault.com/q/1010000004945347
-	jQuery('.nameAddType').on('click', function() {
-		var ischecked = jQuery(this).data('checked');
-		if (!ischecked && this.checked) {
-			jQuery(this).data('checked', true);
-		} else {
-			jQuery(this).prop('checked', false);
-			jQuery(this).data('checked', false);
-		}
-		console.log(jQuery(this).data('checked'))
-	}).data('checked', jQuery('.nameAddType').get(0).checked);
+	
+	if(jQuery('.nameAddType')[0] != undefined){
+		//单选框选中和取消选中 https://segmentfault.com/q/1010000004945347
+		jQuery('.nameAddType').on('click', function() {
+			var ischecked = jQuery(this).data('checked');
+			if (!ischecked && this.checked) {
+				jQuery(this).data('checked', true);
+			} else {
+				jQuery(this).prop('checked', false);
+				jQuery(this).data('checked', false);
+			}
+			console.log(jQuery(this).data('checked'))
+		}).data('checked', jQuery('.nameAddType').get(0).checked);
+	}
+	
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -974,15 +978,15 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	if (opinion() == 0) { //判断页面是pc端还是移动端
 		dvWidthFix();
 	}
-	ToggleManageFriends();
+	ToggleManageFriends(); //展开管理好友列表按钮
 	
 	add_commentthread_textarea_allSelect(); //添加留言框全选
 	
-	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#comment_textarea'));
+	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#comment_textarea')); //表情相关
 	//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
 	//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
 	
-	CEmoticonPopup.prototype.GetEmoticonClickClosure = function(strEmoticonName) {
+	CEmoticonPopup.prototype.GetEmoticonClickClosure = function(strEmoticonName) { //重写，以适配多留言框
 	    var _this = this;
 	    var strTextToInsert = ':' + strEmoticonName + ':';
 	    return function() {
@@ -1030,28 +1034,54 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	
 	        obj.focus(); //获取焦点，如果不在视野里，会把镜头拉过去
 	
-	        _this.DismissPopup();
+	        _this.DismissPopup(); //关闭表情输入框
 	
 	        if (window.DismissEmoticonHover)
 	            window.setTimeout(DismissEmoticonHover, 1);
-	    }
-	    ;
-	}
-	;
+	    };
+	};
+	
+	CEmoticonPopup.prototype.BuildPopup = function(){ //重写，以彻底隐藏表情选择框的同时提前加载表情
+		this.m_$Popup = $J('<div/>', {'class': 'emoticon_popup_ctn' } );
+		this.m_$Popup[0].style.display = "none"; //提前隐藏
+	
+		var $PopupInner = $J('<div/>', {'class': 'emoticon_popup' } );
+		this.m_$Popup.append( $PopupInner );
+		var $Content = $J('<div/>', {'class': 'emoticon_popup_content' } );
+		$PopupInner.append( $Content );
+	
+		for( var i = 0; i < CEmoticonPopup.sm_rgEmoticons.length; i++ )
+		{
+			var strEmoticonName = CEmoticonPopup.sm_rgEmoticons[i].replace( /:/g, '' );
+			var strEmoticonURL = 'https://steamcommunity-a.akamaihd.net/economy/emoticon/' + strEmoticonName;
+	
+			var $Emoticon = $J('<div/>', {'class': 'emoticon_option', 'data-emoticon': strEmoticonName } );
+			var $Img = $J('<img/>', {'src': strEmoticonURL, 'class': 'emoticon' } );
+			$Emoticon.append( $Img );
+	
+			$Emoticon.click( this.GetEmoticonClickClosure( strEmoticonName ) );
+	
+			$Content.append( $Emoticon );
+		}
+	
+		$J(document.body).append( this.m_$Popup );
+		PositionEmoticonHover( this.m_$Popup, this.m_$EmoticonButton );
+		Obj.DismissPopup(); //关闭表情输入框
+	};
 	
 	setTimeout(async function() {
-		//Obj.LoadEmoticons();
-		// CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
-		// 	(async function () {
-		// 		//console.log("loadDone");
-		// 		if (!Obj.m_$Popup)
-		// 			Obj.BuildPopup();
-		// 		else
-		// 			PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
-		// 		//await emojiFix();
-		// 	})();
-		// });
-	}, 0);
+		Obj.LoadEmoticons();
+		CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
+			(async function () {
+				if (!Obj.m_$Popup)
+					Obj.BuildPopup(); //重写，以彻底隐藏表情选择框的同时提前加载表情
+				else
+					PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
+				//await emojiFix();
+				console.log("emoticon loaded Done.");
+			})();
+		});
+	}, 0); //提前加载表情
 	
 	_addIDtoHandleLostfocus(); //添加ID来处理丢失的焦点
 	//屏蔽点下拉框、按钮之类的导致输入框焦点丢失的问题
@@ -1122,6 +1152,5 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
 		console.log("添加删除好友提醒失败了~!");
 	}
-	await autoGetImgAndSetBackgroundImg(0,false,5000,0);
 }
 

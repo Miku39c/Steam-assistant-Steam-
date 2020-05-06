@@ -1,3 +1,9 @@
+ var g_db,g_db1,g_db2,g_db3,g_db4;
+ const g_friendUrlRegExp = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/;
+ const g_otherUrlRegExp1 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?(add|pending|blocked|coplay|broadcast_moderator)?\/?$/; 
+ const g_otherUrlRegExp2 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/(following|groups|groups\/pending)\/?$/
+ const g_otherUrlRegExp3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/
+ 
  addNewScript('g_conf_Script',
 '\
 /*保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表*/\n\
@@ -9,7 +15,6 @@ var g_conf = [\n\
 	,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
 	\n\
 	,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
-	,isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
 	,is_Debug: true /*是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)*/\n\
 	,isTrackRunStatus: true /*是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)*/\n\
 	,isAddYunBreakWarn: true /*是否添加运行中断警告*/\n\
@@ -23,14 +28,18 @@ var g_conf = [\n\
 	,isTimeIntervalRunStatus: false /*是否正在设置留言时间间隔*/\n\
 	,isAutoCommentRunStatus: false /*是否正在设置自动留言计划*/\n\
 	,isFriendToGroupRunStatus: false /*是否正在设置好友分组*/\n\
-	\n\
+	}\n\
+];/* g_conf[0].*/\n\
+\n\
+/*ui配置相关信息*/\n\
+var g_uiConf = {\n\
+	isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
 	,isShow_menu_friend: true /*好友列表*/\n\
 	,isShow_menu_activity: true /*动态列表*/\n\
 	,isShow_menu_registerKey: true /*激活key*/\n\
 	,isShow_menu_redeemWalletCode: true /*充值key*/\n\
 	,isShow_menu_steamdbFree: true /*SteamDB预告*/\n\
-	}\n\
-];/* g_conf[0].*/\n\
+};/* g_uiConf.*/\n\
 \n\
 /*默认配置信息对象*/\n\
 const g_default_configuration = {\n\
@@ -277,5 +286,193 @@ function importConfInfo(steamID){ /*导入配置信息(选择文件并读取)*/
 	}
 	
 	/*保存配置文件*/
+}
+
+//-------------------------------------------------------------------------------------------------------------
+//数据库
+class DB{
+	constructor(){
+		this.DBstore = []; //数据库存储数组(多实例)
+		this.DBindex = 0;  //当前数据库索引
+		
+		if(arguments.length == 1){
+			this._constructor(arguments[0]);
+		}else if(arguments.length == 2){
+			this._constructor(arguments[0],arguments[1]);
+		}
+	}
+	_constructor(DBConfig,isTest = true){ //默认创建新的数据库 //数据库配置,是否启用测试
+		if(isTest == true)
+			this.Test();
+		this.initAndCreateNewDBInstance(DBConfig);
+	}
+	use(DBname){ //指定要使用的数据库
+		for (let i = 0; i < this.DBstore.length; i++) {
+			if(DBname == DBstore[i]._dbInfo.name){
+				this.DBindex = i;
+				return DBstore[i];
+			}
+		}
+		return null;
+	}
+	async initCurrentDBInstance(DBConfig){ //单数据库 //初始化当前数据库实例
+		var obj;
+		if(typeof DBConfig == "object"){
+			localforage.config(DBConfig);
+			this.DBindex = this.DBstore.push(obj) -1; //
+			obj = localforage;
+		}else{
+			console.log("参数不合法，请检查...");
+		}
+		
+		await obj.ready().then(function() {
+			// 当 localforage 将指定驱动初始化完成时，此处代码运行
+			console.log("数据库初始化成功! 当前使用的是: "+ localforage.driver());
+		}).catch(function (e) {
+			// 当没有可用的驱动时，ready()将会失败
+			console.log("数据库初始化失败(没有可用的驱动)! " + e); // No available storage method found.
+		});
+		return obj;
+	}
+	initAndCreateNewDBInstance(DBConfig){ //多数据库 //初始化并创建新的数据库实例
+		var obj;
+		if(typeof DBConfig == "object"){
+			obj = localforage.createInstance(DBConfig);
+			this.DBindex = this.DBstore.push(obj) -1; //
+		}else{
+			console.log("参数不合法，请检查...");
+		}
+		return obj;
+	}
+	async dropDBInstance(name){ //删除数据库实例
+		await localforage.dropInstance({
+		  name: name
+		}).then(function() {
+			//console.log('删除数据库成功!');
+		});
+	}
+	async Read(key){ //读取数据
+		var data;
+		await this.DBstore[this.DBindex].getItem(key).then(function(value) {
+			// 当离线仓库中的值被载入时，此处代码运行
+			//console.log("数据读取成功. "+ value);
+			data = value;
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			console.log("数据读取失败! "+ err);
+		});
+		return data;
+	}
+	async ReadAll(){ //读取所有数据(迭代)，返回包含所有数据的数组
+		var data = [];
+		await this.DBstore[this.DBindex].iterate(function(value, key, iterationNumber) {
+			// 此回调函数将对所有 key/value 键值对运行
+			//console.log([key, value]);
+			data.push([key, value]);
+		}).then(function() {
+			//console.log("读取所有数据成功."+ [key, value]);
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			console.log("读取所有数据失败!"+ err);
+		});
+		return data;
+	}
+	async Write(key,value){ //写入数据
+		var status = true;
+		// 不同于 localStorage，你可以存储非字符串类型
+		await this.DBstore[this.DBindex].setItem(key, value).then(function(value) {
+			//console.log("数据写入成功. "+ value);
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			status = false;
+			console.log("数据写入失败! "+ err);
+		});
+		return status;
+	}
+	async Remove(key){ //删除数据
+		var status = true;
+		await this.DBstore[this.DBindex].removeItem(key).then(function() {
+			// 当值被移除后，此处代码运行
+			//console.log('删除数据成功.');
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			status = false;
+			console.log('删除数据失败!'+ err);
+		});
+		return status;
+	}
+	async RemoveAll(){ //删除所有数据(重置数据库->删除后数据库是空的)
+		var status = true;
+		await this.DBstore[this.DBindex].clear().then(function() {
+			// 当数据库被全部删除后，此处代码运行
+			//console.log('删除所有数据成功!');
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			status = false;
+			console.log('删除所有数据失败!'+ err);
+		});
+		return status;
+	}
+	async getLength(){ //获取已存储的所有数据总条数(长度)
+		var length;
+		await this.DBstore[this.DBindex].length().then(function(numberOfKeys) {
+			// 输出数据库的大小
+			//console.log(numberOfKeys);
+			length = numberOfKeys;
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			console.log(err);
+		});
+		return length;
+	}
+	async getKeyNameByIndex(index){ //通过下标(index)获取对应的Key名 //此方法很怪异，于是进行重写
+		// var name;
+		// await this.DBstore[this.DBindex].key(index).then(function(keyName) {
+		// 	// key 名
+		// 	//console.log(keyName);
+		// 	name = keyName;
+		// }).catch(function(err) {
+		// 	// 当出错时，此处代码运行
+		// 	console.log("getKeyNameByIndex()失败!" + err);
+		// });
+		// return name;
+		
+		var arr_name = await this.getAllKeyName();
+		if(index < 0 || index >= arr_name.length){
+			console.log("getKeyNameByIndex()失败! 参数不正确: " +index);
+			return null;
+		}
+		return arr_name[index];
+	}
+	async getAllKeyName(){ // 返回 包含所有 key 名的数组
+		var key;
+		await this.DBstore[this.DBindex].keys().then(function(keys) {
+			// console.log(keys);
+			key = keys;
+		}).catch(function(err) {
+		    // 当出错时，此处代码运行
+		    console.log("getAllKeyName()失败!" + err);
+		});
+		return key;
+	}
+	Test(){ //测试当前浏览器的数据库支持情况
+		if(localforage.supports(localforage.INDEXEDDB) == true){
+			console.log("当前浏览器支持 IndexedDB.");
+		}else{
+			console.log("当前浏览器不支持 IndexedDB!");
+		}
+		
+		if(localforage.supports(localforage.WEBSQL) == true){
+			console.log("当前浏览器支持 WEBSQL.");
+		}else{
+			console.log("当前浏览器不支持 WEBSQL!");
+		}
+		
+		if(localforage.supports(localforage.LOCALSTORAGE) == true){
+			console.log("当前浏览器支持 LOCALSTORAGE.");
+		}else{
+			console.log("当前浏览器不支持 LOCALSTORAGE!");
+		}
+	}
 }
 

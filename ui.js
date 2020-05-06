@@ -1796,15 +1796,15 @@ class UI {
 		
 		arr.push(new Promise(async function (resolve, reject){
 			document.addEventListener("DOMContentLoaded", function(event) {
-			//console.log("DOM fully loaded and parsed");
-			if(gc_ui.loadProgress < 9) //资源是否已经加载完毕(已缓存)，如果加载完成则不需要显示加载UI
-			{
-				gc_ui.showLoadUI();
-				gc_ui.loadTextChange(true); //改变当前加载进度
-				gc_ui.isDomLoaded = true;
-			}
-			resolve('DOM fully loaded') // 数据处理完成
-			// reject('失败') // 数据处理出错
+				//console.log("DOM fully loaded and parsed");
+				if(gc_ui.loadProgress < 9) //资源是否已经加载完毕(已缓存)，如果加载完成则不需要显示加载UI
+				{
+					gc_ui.showLoadUI();
+					gc_ui.loadTextChange(true); //改变当前加载进度
+					gc_ui.isDomLoaded = true;
+				}
+				resolve('DOM fully loaded') // 数据处理完成
+				// reject('失败') // 数据处理出错
 			});
 		}));
 		
@@ -1832,9 +1832,97 @@ class UI {
 		console.log("ret:",res);
 	}
 	
-	async initUI() {
+	async initUI(type) { //type: true: 第一次加载, false: 再加载
 		//提前加载资源，等待所有资源加载完毕后直接运行，以最大程序缩减脚本初始化等待的时间
-		await this.loadBaseResources(); //加载基础资源
+		if(type) //第一次加载才需要加载基础资源
+			await this.loadBaseResources(); //加载基础资源
+		
+		await autoGetImgAndSetBackgroundImg(0,false,5000,0); //加载背景图片
+		
+		jQuery(".icon_item.icon_all_friends")[0].style.color ="#66ccff"; //您的好友
+		jQuery(".icon_item.icon_blocked_friends")[0].style.color ="#66ccff"; //已屏蔽
+		jQuery(".icon_item.icon_all_friends")[1].style.color ="#66ccff"; //直播版主
+		jQuery(".icon_item.icon_all_following")[0].style.color ="#66ccff"; //关注的玩家
+		jQuery(".icon_item.icon_all_groups")[0].style.color ="#66ccff"; //您的组
+		
+		
+		
+		// 设置数据库
+		// var db = new DB();
+		// db.Test();
+		// db.initAndCreateNewDBInstance({
+		// 	driver: [localforage.WEBSQL,
+		// 			localforage.INDEXEDDB,
+		// 			localforage.LOCALSTORAGE],
+		// 	name: 'Steam assistant-Conf',
+		// 	size: 10485760 //10mb
+		// });
+		
+		g_db = new DB({ //设置
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Conf',
+			size: 10485760 //10mb
+		},true);
+		
+		g_db1 = new DB({ //拓展功能
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Expand',
+			size: 10485760 //10mb
+		},false);
+		
+		g_db2 = new DB({ //动态助手
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Activity',
+			size: 1073741824 //1gb
+		},false);
+		
+		g_db3 = new DB({ //数据分析
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Friend',
+			size: 1073741824 //1gb
+		},false);
+		
+		g_db4 = new DB({ //留言设置
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Comment',
+			size: 104857600 //100mb
+		},false);
+		
+		await g_db.Write('g_conf',g_conf); //写入
+		await g_db.Write('g_uiConf',g_uiConf); //写入
+		//debugger
+		//var data = await g_db.getAllKeyName();
+		//console.log("data",data);
+		//var data = await g_db.getKeyNameByIndex(1);
+		//console.log("data",data);
+		//var data = await g_db.getLength();
+		//console.log("data",data);
+		
+		var data = await g_db.Read('g_conf'); //读取
+		console.log("data",data);
+		var data = await g_db.Read('g_uiConf'); //读取
+		console.log("data",data);
+		//var data = await g_db.ReadAll(); //读取所有数据
+		//console.log("data",data);
+		//await g_db.Remove('g_conf'); //删除数据
+		//var data = await g_db.ReadAll(); //读取所有数据
+		//console.log("data",data);
+		//await g_db.RemoveAll(); //删除所有数据
+		//var data = await g_db.ReadAll(); //读取所有数据
+		//console.log("data",data);
+		//if(data.length == 0){
+		//	console.log("没有数据!");
+		//}
 		
 		if(getLoginStatus() == false){ //判断是否登录，如果没有登录则不需要继续运行
 			layer.alert('请先登录Steam，才能继续使用哦~', {icon: 0},function(index){
@@ -1851,6 +1939,66 @@ class UI {
 		}
 		
 		readConfInfo(g_steamID); //读取已保存的对应配置信息
+		
+		if(type){ //第一次加载才需要监听这些事件
+			var isReCreateUi = (UrlRegExp,funcCallBack)=>{ //是否重新创建Ui(url正则表达式,回调函数)
+				var url = window.location.origin + window.location.pathname; //window.location.href //去除参数和锚点后的url
+				//https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
+				// if(UrlRegExp.test(url)){
+				// 	console.log("重新构建UI-A!");
+				// 	funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				// }
+				if(g_otherUrlRegExp1.test(url)){
+					console.log("重新构建UI-B!");
+					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				}
+				if(g_otherUrlRegExp2.test(url)){
+					console.log("重新构建UI-C!");
+					window.location.reload(false); //重新加载当前页面
+					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				}
+				if(g_otherUrlRegExp3.test(url)){
+					console.log("重新构建UI-D!");
+					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				}
+			};
+			
+			//1.监听url中的hash变化  //window.location.hash='state_online'  =>  https://steamcommunity.com/id/miku-39/friends#state_online //页面不刷新,url改变,定位到指定锚点
+			window.addEventListener('hashchange',function(event){
+				console.log("1.监听url中的hash变化" + event);
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+			//2.监听通过history来改变url的事件 //浏览器前进，后退等
+			window.addEventListener('popstate', function(event) {
+				console.log("2.监听通过history来改变url的事件" + event);
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+			//3.监听pushState和replaceState行为 //pushState可以监听到本页替换超链接
+			var _wr = function(type) {
+				var orig = history[type];
+				return function() {
+					var rv = orig.apply(this, arguments);
+					var e = new Event(type);
+					e.arguments = arguments;
+					window.dispatchEvent(e);
+					return rv;
+				};
+			};
+			history.pushState = _wr('pushState');
+			history.replaceState = _wr('replaceState');
+			
+			window.addEventListener('replaceState', function(e) {
+				console.log('监听到replaceState!');
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+			window.addEventListener('pushState', function(e) {
+				console.log('监听到pushState!');
+				var url = window.location.origin + window.location.pathname; //window.location.href //去除参数和锚点后的url 
+				//https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+		}
+		
 	}
 	async createUI() {
 		//正常html代码
@@ -2495,7 +2643,7 @@ class UI {
 		</script>'
 		);
 		
-		if(g_conf[0].isShowQuickNavigationBar){ //是否显示快速导航栏
+		if(g_uiConf.isShowQuickNavigationBar){ //是否显示快速导航栏
 			//快捷导航栏
 			jQuery(".responsive_page_template_content").after(
 				'<div style="position: fixed;top: 30%;right: 0;">\
@@ -2542,9 +2690,15 @@ class UI {
 				</div>'
 			);
 		}
-		
 		UI.prototype.uiHandler(); //UI与UI事件等相关的处理程序
 	}
+	
+	async reCreateUI(){
+		if(await gc_ui.initUI(false) != false){
+			await gc_ui.createUI();
+		}
+	}
+	
 	async private_saveUIConfFile() {
 	
 	}

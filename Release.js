@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.4.1
-// @date         2020.5.4
+// @version      1.2.3.4.2
+// @date         2020.5.6
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -15,6 +15,9 @@
 // @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
 // @updateURL    https://greasyfork.org/scripts/397073-steam-assistant-steam%E5%B0%8F%E5%8A%A9%E6%89%8B/code/Steam%20assistant(Steam%E5%B0%8F%E5%8A%A9%E6%89%8B).user.js
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?(add|pending|blocked|coplay|broadcast_moderator)?\/?$/
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/(following|groups|groups\/pending)\/?$/
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
@@ -55,6 +58,12 @@
 // @run-at       document-start
 // ==/UserScript==
 
+ var g_db,g_db1,g_db2,g_db3,g_db4;
+ const g_friendUrlRegExp = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/;
+ const g_otherUrlRegExp1 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?(add|pending|blocked|coplay|broadcast_moderator)?\/?$/; 
+ const g_otherUrlRegExp2 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/(following|groups|groups\/pending)\/?$/
+ const g_otherUrlRegExp3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/
+ 
  addNewScript('g_conf_Script',
 '\
 /*保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表*/\n\
@@ -66,7 +75,6 @@ var g_conf = [\n\
 	,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
 	\n\
 	,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
-	,isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
 	,is_Debug: true /*是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)*/\n\
 	,isTrackRunStatus: true /*是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)*/\n\
 	,isAddYunBreakWarn: true /*是否添加运行中断警告*/\n\
@@ -80,14 +88,18 @@ var g_conf = [\n\
 	,isTimeIntervalRunStatus: false /*是否正在设置留言时间间隔*/\n\
 	,isAutoCommentRunStatus: false /*是否正在设置自动留言计划*/\n\
 	,isFriendToGroupRunStatus: false /*是否正在设置好友分组*/\n\
-	\n\
+	}\n\
+];/* g_conf[0].*/\n\
+\n\
+/*ui配置相关信息*/\n\
+var g_uiConf = {\n\
+	isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
 	,isShow_menu_friend: true /*好友列表*/\n\
 	,isShow_menu_activity: true /*动态列表*/\n\
 	,isShow_menu_registerKey: true /*激活key*/\n\
 	,isShow_menu_redeemWalletCode: true /*充值key*/\n\
 	,isShow_menu_steamdbFree: true /*SteamDB预告*/\n\
-	}\n\
-];/* g_conf[0].*/\n\
+};/* g_uiConf.*/\n\
 \n\
 /*默认配置信息对象*/\n\
 const g_default_configuration = {\n\
@@ -334,6 +346,194 @@ function importConfInfo(steamID){ /*导入配置信息(选择文件并读取)*/
 	}
 	
 	/*保存配置文件*/
+}
+
+//-------------------------------------------------------------------------------------------------------------
+//数据库
+class DB{
+	constructor(){
+		this.DBstore = []; //数据库存储数组(多实例)
+		this.DBindex = 0;  //当前数据库索引
+		
+		if(arguments.length == 1){
+			this._constructor(arguments[0]);
+		}else if(arguments.length == 2){
+			this._constructor(arguments[0],arguments[1]);
+		}
+	}
+	_constructor(DBConfig,isTest = true){ //默认创建新的数据库 //数据库配置,是否启用测试
+		if(isTest == true)
+			this.Test();
+		this.initAndCreateNewDBInstance(DBConfig);
+	}
+	use(DBname){ //指定要使用的数据库
+		for (let i = 0; i < this.DBstore.length; i++) {
+			if(DBname == DBstore[i]._dbInfo.name){
+				this.DBindex = i;
+				return DBstore[i];
+			}
+		}
+		return null;
+	}
+	async initCurrentDBInstance(DBConfig){ //单数据库 //初始化当前数据库实例
+		var obj;
+		if(typeof DBConfig == "object"){
+			localforage.config(DBConfig);
+			this.DBindex = this.DBstore.push(obj) -1; //
+			obj = localforage;
+		}else{
+			console.log("参数不合法，请检查...");
+		}
+		
+		await obj.ready().then(function() {
+			// 当 localforage 将指定驱动初始化完成时，此处代码运行
+			console.log("数据库初始化成功! 当前使用的是: "+ localforage.driver());
+		}).catch(function (e) {
+			// 当没有可用的驱动时，ready()将会失败
+			console.log("数据库初始化失败(没有可用的驱动)! " + e); // No available storage method found.
+		});
+		return obj;
+	}
+	initAndCreateNewDBInstance(DBConfig){ //多数据库 //初始化并创建新的数据库实例
+		var obj;
+		if(typeof DBConfig == "object"){
+			obj = localforage.createInstance(DBConfig);
+			this.DBindex = this.DBstore.push(obj) -1; //
+		}else{
+			console.log("参数不合法，请检查...");
+		}
+		return obj;
+	}
+	async dropDBInstance(name){ //删除数据库实例
+		await localforage.dropInstance({
+		  name: name
+		}).then(function() {
+			//console.log('删除数据库成功!');
+		});
+	}
+	async Read(key){ //读取数据
+		var data;
+		await this.DBstore[this.DBindex].getItem(key).then(function(value) {
+			// 当离线仓库中的值被载入时，此处代码运行
+			//console.log("数据读取成功. "+ value);
+			data = value;
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			console.log("数据读取失败! "+ err);
+		});
+		return data;
+	}
+	async ReadAll(){ //读取所有数据(迭代)，返回包含所有数据的数组
+		var data = [];
+		await this.DBstore[this.DBindex].iterate(function(value, key, iterationNumber) {
+			// 此回调函数将对所有 key/value 键值对运行
+			//console.log([key, value]);
+			data.push([key, value]);
+		}).then(function() {
+			//console.log("读取所有数据成功."+ [key, value]);
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			console.log("读取所有数据失败!"+ err);
+		});
+		return data;
+	}
+	async Write(key,value){ //写入数据
+		var status = true;
+		// 不同于 localStorage，你可以存储非字符串类型
+		await this.DBstore[this.DBindex].setItem(key, value).then(function(value) {
+			//console.log("数据写入成功. "+ value);
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			status = false;
+			console.log("数据写入失败! "+ err);
+		});
+		return status;
+	}
+	async Remove(key){ //删除数据
+		var status = true;
+		await this.DBstore[this.DBindex].removeItem(key).then(function() {
+			// 当值被移除后，此处代码运行
+			//console.log('删除数据成功.');
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			status = false;
+			console.log('删除数据失败!'+ err);
+		});
+		return status;
+	}
+	async RemoveAll(){ //删除所有数据(重置数据库->删除后数据库是空的)
+		var status = true;
+		await this.DBstore[this.DBindex].clear().then(function() {
+			// 当数据库被全部删除后，此处代码运行
+			//console.log('删除所有数据成功!');
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			status = false;
+			console.log('删除所有数据失败!'+ err);
+		});
+		return status;
+	}
+	async getLength(){ //获取已存储的所有数据总条数(长度)
+		var length;
+		await this.DBstore[this.DBindex].length().then(function(numberOfKeys) {
+			// 输出数据库的大小
+			//console.log(numberOfKeys);
+			length = numberOfKeys;
+		}).catch(function(err) {
+			// 当出错时，此处代码运行
+			console.log(err);
+		});
+		return length;
+	}
+	async getKeyNameByIndex(index){ //通过下标(index)获取对应的Key名 //此方法很怪异，于是进行重写
+		// var name;
+		// await this.DBstore[this.DBindex].key(index).then(function(keyName) {
+		// 	// key 名
+		// 	//console.log(keyName);
+		// 	name = keyName;
+		// }).catch(function(err) {
+		// 	// 当出错时，此处代码运行
+		// 	console.log("getKeyNameByIndex()失败!" + err);
+		// });
+		// return name;
+		
+		var arr_name = await this.getAllKeyName();
+		if(index < 0 || index >= arr_name.length){
+			console.log("getKeyNameByIndex()失败! 参数不正确: " +index);
+			return null;
+		}
+		return arr_name[index];
+	}
+	async getAllKeyName(){ // 返回 包含所有 key 名的数组
+		var key;
+		await this.DBstore[this.DBindex].keys().then(function(keys) {
+			// console.log(keys);
+			key = keys;
+		}).catch(function(err) {
+		    // 当出错时，此处代码运行
+		    console.log("getAllKeyName()失败!" + err);
+		});
+		return key;
+	}
+	Test(){ //测试当前浏览器的数据库支持情况
+		if(localforage.supports(localforage.INDEXEDDB) == true){
+			console.log("当前浏览器支持 IndexedDB.");
+		}else{
+			console.log("当前浏览器不支持 IndexedDB!");
+		}
+		
+		if(localforage.supports(localforage.WEBSQL) == true){
+			console.log("当前浏览器支持 WEBSQL.");
+		}else{
+			console.log("当前浏览器不支持 WEBSQL!");
+		}
+		
+		if(localforage.supports(localforage.LOCALSTORAGE) == true){
+			console.log("当前浏览器支持 LOCALSTORAGE.");
+		}else{
+			console.log("当前浏览器不支持 LOCALSTORAGE!");
+		}
+	}
 }
 
 /**
@@ -2226,8 +2426,8 @@ class friendActivity{
 							//debugger
 							console.log("VoteUp() 点赞错误!!!",transport.responseText);
 								break;
-							default:
-							//debugger
+							default: //{"success":20} //{"success":16,"items":[2082593203],"results":{"2082593203":16}}
+							debugger
 							console.log("VoteUp() ????????????????????????????????????????????????????????????",transport.responseText);
 								break;
 						}
@@ -2432,6 +2632,17 @@ class friendActivity{
 				
 				// load more data
 				//var response = documentData.responseJSON;
+				if(documentData.responseText == undefined){ //针对请求失败的情况(自实现)
+					console.log("请求失败,错误码: 0x1 潜在的网络故障 url:"+ url);
+					debugger
+					var index = url.lastIndexOf('=');
+					nextLoadURL = url.slice(0,index); //提取最前面的链接
+					var num = parseInt(url.slice(index+1));s
+					nextLoadURL += (num+250);
+					url = nextLoadURL;
+					continue;
+				}
+				console.log("documentData.responseText",documentData.responseText);
 				var response = JSON.parse(documentData.responseText);
 				if ( response && response.success == true && response.blotter_html ){
 					// append the new day, having it fade in quickly 补充新的一天，让它迅速消失
@@ -2455,6 +2666,16 @@ class friendActivity{
 					//debugger
 					//Blotter_InfiniteScrollingCheckForMoreContent();
 					//Blotter_AddHighlightSliders();
+				}
+				else { //针对请求失败的情况(自实现)
+					console.log("请求失败,错误码: 0x2 请求错误 url:"+ url);
+					debugger
+					var index = url.lastIndexOf('=');
+					nextLoadURL = url.slice(0,index); //提取最前面的链接
+					var num = parseInt(url.slice(index+1));s
+					nextLoadURL += (num+250);
+					url = nextLoadURL;
+					continue;
 				}
 			}
 			// debugger
@@ -2750,6 +2971,8 @@ class SteamData{
 function addRemoveFriendRemind(){ /*添加删除好友提醒*/
 	let obj = document.getElementsByClassName("manage_action btnv6_lightblue_blue btn_medium");
 	for (let i = 0; i < obj.length; i++) {
+		if(obj[i].onclick == null)
+			continue;
 		let funcText = obj[i].onclick.toString();
 		if(funcText.indexOf("ExecFriendAction('remove', 'friends/all')") != -1) //是否是移除好友按钮
 		{
@@ -2785,27 +3008,27 @@ function _addIDtoHandleLostfocus(){ //添加ID来处理丢失的焦点
 
 var arrMenuID = [5];
 function registeMenu(){ //注册脚本快捷菜单
-	if(g_conf[0].isShow_menu_friend){
+	if(g_uiConf.isShow_menu_friend){
 		arrMenuID[0] = GM_registerMenuCommand("好友列表", function(){
 			window.open("https://steamcommunity.com/my/friends", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_activity){
+	if(g_uiConf.isShow_menu_activity){
 		arrMenuID[1] = GM_registerMenuCommand("动态列表", function(){
 			window.open("https://steamcommunity.com/my/home", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_registerKey){
+	if(g_uiConf.isShow_menu_registerKey){
 		arrMenuID[2] = GM_registerMenuCommand("激活key", function(){
 			window.open("https://store.steampowered.com/account/registerkey", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_redeemWalletCode){
+	if(g_uiConf.isShow_menu_redeemWalletCode){
 		arrMenuID[3] = GM_registerMenuCommand("充值key", function(){
 			window.open("https://store.steampowered.com/account/redeemwalletcode", "_blank");
 		});
 	}
-	if(g_conf[0].isShow_menu_steamdbFree){
+	if(g_uiConf.isShow_menu_steamdbFree){
 		arrMenuID[4] = GM_registerMenuCommand("SteamDB预告", function(){
 			window.open("https://steamdb.info/upcoming/free/", "_blank");
 		});
@@ -2877,7 +3100,8 @@ var index_arr = [2];
 index_arr[0] = undefined;
 index_arr[1] = undefined;
 function addFriendMultipleSelectionMode(){ //添加好友多选模式
-	document.getElementById("search_text_box").blur(); //搜索框取消获得的焦点
+	var obj = document.getElementById("search_text_box");
+	obj && obj.blur(); //搜索框取消获得的焦点
 	
 	jQuery("#search_results .selectable").click(function(e) {
 		var id = jQuery(this).attr("id"); //id
@@ -3480,13 +3704,16 @@ function setBackgroundImg(imgFilePath){ //设置背景图片
 	var other_css = "position: absolute; z-index: -1; height:100%;";
 	var opacity_css = "opacity:1;filter: alpha(opacity=100)";
 	jQuery("#backgroundIMG")[0].style = css + other_css + opacity_css;
-	document.body.style.background = "none";
 	
-	jQuery(".friends_header_bg")[0].style.background = "none";
-	jQuery("#global_header")[0].style.background = "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))";
-	jQuery(".content")[0].style.background = "none";
+	document.body.style.background = "none"; //去除原背景
 	
-	jQuery(".profile_friends.title_bar")[0].style.background = "linear-gradient(rgba(1, 94, 128, 0.6), rgba(1, 94, 128, 0.6))";
+	jQuery(".friends_header_bg")[0].style.background = "none"; //去除 上面那层蓝色背景图片
+	jQuery("#global_header")[0].style.background = "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))"; //设置 最上面设置黑色区域透明度
+	jQuery(".content")[0].style.background = "none"; //去除 最上面黑色区域
+	
+	var obj = jQuery(".profile_friends.title_bar")[0];
+	if(obj != undefined)
+		obj.style.background = "linear-gradient(rgba(1, 94, 128, 0.6), rgba(1, 94, 128, 0.6))"; //设置 管理好友列表那块的透明度
 }
 
 function setBackgroundImgCarousel(arr_img,timeInterval){ //设置背景图片轮播(图片路径,时间间隔)
@@ -3504,6 +3731,10 @@ async function getNetImgBysourceID(sourceID){
 	var data,obj,imgFilePath;
 	if(sourceID==0){
 		data = await exApis.getDataByApiList(1,0,"json");
+		if(data.indexOf('{')!=0){
+			console.log("服务器返回了错误的数据，尝试重新请求: "+ data);
+			return getNetImgBysourceID(sourceID);
+		}
 		obj = JSON.parse(data); //JSON处理并解析到js对象
 		if(obj.code == 200){
 			imgFilePath = obj.imgurl;
@@ -3511,6 +3742,10 @@ async function getNetImgBysourceID(sourceID){
 	}
 	else if(sourceID==1){
 		data = await exApis.getDataByApiList(2,0,"json");
+		if(data.indexOf('{')!=0){
+			console.log("服务器返回了错误的数据，尝试重新请求: "+ data);
+			return getNetImgBysourceID(sourceID);
+		}
 		obj = JSON.parse(data); //JSON处理并解析到js对象
 		if(obj.code == 200){
 			imgFilePath = obj.imgurl;
@@ -3564,7 +3799,33 @@ async function autoGetImgAndSetBackgroundImg(sourceID,mode,timeInterval,maxImgNu
 }
 
 //-------------------------------------------------------------------------------------------------------------
+//导入和导出配置文件(包括脚本配置和UI配置)，导入: 选择您的导入类型(全覆盖/仅覆盖脚本配置/仅覆盖UI配置/仅导入UI配置)
 
+function downFile(type,data,fileName) {
+	var elementA = document.createElement('a');
+	
+	if(type == "json") //json对象
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + JSON.stringify(data));
+	else if(type == "text") //文本
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + data);
+	else if(type == "bin") //二进制数据
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + data);
+	else{
+		alert("不支持的数据类型!!");
+		elementA.setAttribute('href', 'data:text/plain;charset=utf-8,' + data);
+	}
+	//if(fileName == undefined) fileName = new Date();
+	elementA.setAttribute('download', + new Date() + ".data");
+	elementA.style.display = 'none';
+	document.body.appendChild(elementA);
+	elementA.click();
+	document.body.removeChild(elementA);
+}
+//downFile("json",g_conf,"SteamAssistant");
+
+//设置透明 https://www.52pojie.cn/thread-763424-1-1.html
+//background: rgba(229, 241, 240,0);
+//background: transparent;
 //-------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------------------
@@ -5371,15 +5632,15 @@ class UI {
 		
 		arr.push(new Promise(async function (resolve, reject){
 			document.addEventListener("DOMContentLoaded", function(event) {
-			//console.log("DOM fully loaded and parsed");
-			if(gc_ui.loadProgress < 9) //资源是否已经加载完毕(已缓存)，如果加载完成则不需要显示加载UI
-			{
-				gc_ui.showLoadUI();
-				gc_ui.loadTextChange(true); //改变当前加载进度
-				gc_ui.isDomLoaded = true;
-			}
-			resolve('DOM fully loaded') // 数据处理完成
-			// reject('失败') // 数据处理出错
+				//console.log("DOM fully loaded and parsed");
+				if(gc_ui.loadProgress < 9) //资源是否已经加载完毕(已缓存)，如果加载完成则不需要显示加载UI
+				{
+					gc_ui.showLoadUI();
+					gc_ui.loadTextChange(true); //改变当前加载进度
+					gc_ui.isDomLoaded = true;
+				}
+				resolve('DOM fully loaded') // 数据处理完成
+				// reject('失败') // 数据处理出错
 			});
 		}));
 		
@@ -5407,9 +5668,97 @@ class UI {
 		console.log("ret:",res);
 	}
 	
-	async initUI() {
+	async initUI(type) { //type: true: 第一次加载, false: 再加载
 		//提前加载资源，等待所有资源加载完毕后直接运行，以最大程序缩减脚本初始化等待的时间
-		await this.loadBaseResources(); //加载基础资源
+		if(type) //第一次加载才需要加载基础资源
+			await this.loadBaseResources(); //加载基础资源
+		
+		await autoGetImgAndSetBackgroundImg(0,false,5000,0); //加载背景图片
+		
+		jQuery(".icon_item.icon_all_friends")[0].style.color ="#66ccff"; //您的好友
+		jQuery(".icon_item.icon_blocked_friends")[0].style.color ="#66ccff"; //已屏蔽
+		jQuery(".icon_item.icon_all_friends")[1].style.color ="#66ccff"; //直播版主
+		jQuery(".icon_item.icon_all_following")[0].style.color ="#66ccff"; //关注的玩家
+		jQuery(".icon_item.icon_all_groups")[0].style.color ="#66ccff"; //您的组
+		
+		
+		
+		// 设置数据库
+		// var db = new DB();
+		// db.Test();
+		// db.initAndCreateNewDBInstance({
+		// 	driver: [localforage.WEBSQL,
+		// 			localforage.INDEXEDDB,
+		// 			localforage.LOCALSTORAGE],
+		// 	name: 'Steam assistant-Conf',
+		// 	size: 10485760 //10mb
+		// });
+		
+		g_db = new DB({ //设置
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Conf',
+			size: 10485760 //10mb
+		},true);
+		
+		g_db1 = new DB({ //拓展功能
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Expand',
+			size: 10485760 //10mb
+		},false);
+		
+		g_db2 = new DB({ //动态助手
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Activity',
+			size: 1073741824 //1gb
+		},false);
+		
+		g_db3 = new DB({ //数据分析
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Friend',
+			size: 1073741824 //1gb
+		},false);
+		
+		g_db4 = new DB({ //留言设置
+			driver: [localforage.WEBSQL,
+					localforage.INDEXEDDB,
+					localforage.LOCALSTORAGE],
+			name: 'Steam assistant-Comment',
+			size: 104857600 //100mb
+		},false);
+		
+		await g_db.Write('g_conf',g_conf); //写入
+		await g_db.Write('g_uiConf',g_uiConf); //写入
+		//debugger
+		//var data = await g_db.getAllKeyName();
+		//console.log("data",data);
+		//var data = await g_db.getKeyNameByIndex(1);
+		//console.log("data",data);
+		//var data = await g_db.getLength();
+		//console.log("data",data);
+		
+		var data = await g_db.Read('g_conf'); //读取
+		console.log("data",data);
+		var data = await g_db.Read('g_uiConf'); //读取
+		console.log("data",data);
+		//var data = await g_db.ReadAll(); //读取所有数据
+		//console.log("data",data);
+		//await g_db.Remove('g_conf'); //删除数据
+		//var data = await g_db.ReadAll(); //读取所有数据
+		//console.log("data",data);
+		//await g_db.RemoveAll(); //删除所有数据
+		//var data = await g_db.ReadAll(); //读取所有数据
+		//console.log("data",data);
+		//if(data.length == 0){
+		//	console.log("没有数据!");
+		//}
 		
 		if(getLoginStatus() == false){ //判断是否登录，如果没有登录则不需要继续运行
 			layer.alert('请先登录Steam，才能继续使用哦~', {icon: 0},function(index){
@@ -5426,6 +5775,66 @@ class UI {
 		}
 		
 		readConfInfo(g_steamID); //读取已保存的对应配置信息
+		
+		if(type){ //第一次加载才需要监听这些事件
+			var isReCreateUi = (UrlRegExp,funcCallBack)=>{ //是否重新创建Ui(url正则表达式,回调函数)
+				var url = window.location.origin + window.location.pathname; //window.location.href //去除参数和锚点后的url
+				//https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
+				// if(UrlRegExp.test(url)){
+				// 	console.log("重新构建UI-A!");
+				// 	funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				// }
+				if(g_otherUrlRegExp1.test(url)){
+					console.log("重新构建UI-B!");
+					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				}
+				if(g_otherUrlRegExp2.test(url)){
+					console.log("重新构建UI-C!");
+					window.location.reload(false); //重新加载当前页面
+					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				}
+				if(g_otherUrlRegExp3.test(url)){
+					console.log("重新构建UI-D!");
+					funcCallBack && typeof funcCallBack === 'function' && funcCallBack(); //调用回调
+				}
+			};
+			
+			//1.监听url中的hash变化  //window.location.hash='state_online'  =>  https://steamcommunity.com/id/miku-39/friends#state_online //页面不刷新,url改变,定位到指定锚点
+			window.addEventListener('hashchange',function(event){
+				console.log("1.监听url中的hash变化" + event);
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+			//2.监听通过history来改变url的事件 //浏览器前进，后退等
+			window.addEventListener('popstate', function(event) {
+				console.log("2.监听通过history来改变url的事件" + event);
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+			//3.监听pushState和replaceState行为 //pushState可以监听到本页替换超链接
+			var _wr = function(type) {
+				var orig = history[type];
+				return function() {
+					var rv = orig.apply(this, arguments);
+					var e = new Event(type);
+					e.arguments = arguments;
+					window.dispatchEvent(e);
+					return rv;
+				};
+			};
+			history.pushState = _wr('pushState');
+			history.replaceState = _wr('replaceState');
+			
+			window.addEventListener('replaceState', function(e) {
+				console.log('监听到replaceState!');
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+			window.addEventListener('pushState', function(e) {
+				console.log('监听到pushState!');
+				var url = window.location.origin + window.location.pathname; //window.location.href //去除参数和锚点后的url 
+				//https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
+				isReCreateUi(g_friendUrlRegExp,gc_ui.reCreateUI); //是否重新创建Ui
+			});
+		}
+		
 	}
 	async createUI() {
 		//正常html代码
@@ -6070,7 +6479,7 @@ class UI {
 		</script>'
 		);
 		
-		if(g_conf[0].isShowQuickNavigationBar){ //是否显示快速导航栏
+		if(g_uiConf.isShowQuickNavigationBar){ //是否显示快速导航栏
 			//快捷导航栏
 			jQuery(".responsive_page_template_content").after(
 				'<div style="position: fixed;top: 30%;right: 0;">\
@@ -6117,9 +6526,15 @@ class UI {
 				</div>'
 			);
 		}
-		
 		UI.prototype.uiHandler(); //UI与UI事件等相关的处理程序
 	}
+	
+	async reCreateUI(){
+		if(await gc_ui.initUI(false) != false){
+			await gc_ui.createUI();
+		}
+	}
+	
 	async private_saveUIConfFile() {
 	
 	}
@@ -6784,17 +7199,21 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 		isCheck: false
 	});
 	
-	//单选框选中和取消选中 https://segmentfault.com/q/1010000004945347
-	jQuery('.nameAddType').on('click', function() {
-		var ischecked = jQuery(this).data('checked');
-		if (!ischecked && this.checked) {
-			jQuery(this).data('checked', true);
-		} else {
-			jQuery(this).prop('checked', false);
-			jQuery(this).data('checked', false);
-		}
-		console.log(jQuery(this).data('checked'))
-	}).data('checked', jQuery('.nameAddType').get(0).checked);
+	
+	if(jQuery('.nameAddType')[0] != undefined){
+		//单选框选中和取消选中 https://segmentfault.com/q/1010000004945347
+		jQuery('.nameAddType').on('click', function() {
+			var ischecked = jQuery(this).data('checked');
+			if (!ischecked && this.checked) {
+				jQuery(this).data('checked', true);
+			} else {
+				jQuery(this).prop('checked', false);
+				jQuery(this).data('checked', false);
+			}
+			console.log(jQuery(this).data('checked'))
+		}).data('checked', jQuery('.nameAddType').get(0).checked);
+	}
+	
 	
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -7104,15 +7523,15 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	if (opinion() == 0) { //判断页面是pc端还是移动端
 		dvWidthFix();
 	}
-	ToggleManageFriends();
+	ToggleManageFriends(); //展开管理好友列表按钮
 	
 	add_commentthread_textarea_allSelect(); //添加留言框全选
 	
-	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#comment_textarea'));
+	var Obj = new CEmoticonPopup($J('#emoticonbtn'), $J('#comment_textarea')); //表情相关
 	//ShowAlertDialog( 'Community Ban & Delete Comments', 'You do not have permissions to view this or you are not logged in.' );
 	//ShowConfirmDialog('您点击了移除好友按钮', '是否要移除选择的好友?','移除好友');
 	
-	CEmoticonPopup.prototype.GetEmoticonClickClosure = function(strEmoticonName) {
+	CEmoticonPopup.prototype.GetEmoticonClickClosure = function(strEmoticonName) { //重写，以适配多留言框
 	    var _this = this;
 	    var strTextToInsert = ':' + strEmoticonName + ':';
 	    return function() {
@@ -7160,28 +7579,54 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	
 	        obj.focus(); //获取焦点，如果不在视野里，会把镜头拉过去
 	
-	        _this.DismissPopup();
+	        _this.DismissPopup(); //关闭表情输入框
 	
 	        if (window.DismissEmoticonHover)
 	            window.setTimeout(DismissEmoticonHover, 1);
-	    }
-	    ;
-	}
-	;
+	    };
+	};
+	
+	CEmoticonPopup.prototype.BuildPopup = function(){ //重写，以彻底隐藏表情选择框的同时提前加载表情
+		this.m_$Popup = $J('<div/>', {'class': 'emoticon_popup_ctn' } );
+		this.m_$Popup[0].style.display = "none"; //提前隐藏
+	
+		var $PopupInner = $J('<div/>', {'class': 'emoticon_popup' } );
+		this.m_$Popup.append( $PopupInner );
+		var $Content = $J('<div/>', {'class': 'emoticon_popup_content' } );
+		$PopupInner.append( $Content );
+	
+		for( var i = 0; i < CEmoticonPopup.sm_rgEmoticons.length; i++ )
+		{
+			var strEmoticonName = CEmoticonPopup.sm_rgEmoticons[i].replace( /:/g, '' );
+			var strEmoticonURL = 'https://steamcommunity-a.akamaihd.net/economy/emoticon/' + strEmoticonName;
+	
+			var $Emoticon = $J('<div/>', {'class': 'emoticon_option', 'data-emoticon': strEmoticonName } );
+			var $Img = $J('<img/>', {'src': strEmoticonURL, 'class': 'emoticon' } );
+			$Emoticon.append( $Img );
+	
+			$Emoticon.click( this.GetEmoticonClickClosure( strEmoticonName ) );
+	
+			$Content.append( $Emoticon );
+		}
+	
+		$J(document.body).append( this.m_$Popup );
+		PositionEmoticonHover( this.m_$Popup, this.m_$EmoticonButton );
+		Obj.DismissPopup(); //关闭表情输入框
+	};
 	
 	setTimeout(async function() {
-		//Obj.LoadEmoticons();
-		// CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
-		// 	(async function () {
-		// 		//console.log("loadDone");
-		// 		if (!Obj.m_$Popup)
-		// 			Obj.BuildPopup();
-		// 		else
-		// 			PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
-		// 		//await emojiFix();
-		// 	})();
-		// });
-	}, 0);
+		Obj.LoadEmoticons();
+		CEmoticonPopup.sm_deferEmoticonsLoaded.done(function() {
+			(async function () {
+				if (!Obj.m_$Popup)
+					Obj.BuildPopup(); //重写，以彻底隐藏表情选择框的同时提前加载表情
+				else
+					PositionEmoticonHover(Obj.m_$Popup, Obj.m_$EmoticonButton);
+				//await emojiFix();
+				console.log("emoticon loaded Done.");
+			})();
+		});
+	}, 0); //提前加载表情
 	
 	_addIDtoHandleLostfocus(); //添加ID来处理丢失的焦点
 	//屏蔽点下拉框、按钮之类的导致输入框焦点丢失的问题
@@ -7252,7 +7697,6 @@ UI.prototype.uiHandler = async function(){ //UI与UI事件等相关的处理程�
 	if(!addRemoveFriendRemind()){/*添加删除好友提醒*/
 		console.log("添加删除好友提醒失败了~!");
 	}
-	await autoGetImgAndSetBackgroundImg(0,false,5000,0);
 }
 
 async function registeredAllEvents() //注册所有的事件
@@ -7615,18 +8059,18 @@ async function registeredAllEvents() //注册所有的事件
 				
 				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 				
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -7657,7 +8101,7 @@ async function registeredAllEvents() //注册所有的事件
 							name = name + nostrNoOperate; //组合
 						}
 					}
-				}
+				//}
 				
 				console.log("[Debug] name:", name);
 			
@@ -7725,18 +8169,18 @@ async function registeredAllEvents() //注册所有的事件
 			
 				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 			
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -7773,7 +8217,7 @@ async function registeredAllEvents() //注册所有的事件
 							continue;
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", name);
 				(function(i, profileID) {
 					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
@@ -7849,18 +8293,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -7914,7 +8358,7 @@ async function registeredAllEvents() //注册所有的事件
 							name = strSpecialNationality + steamName; //组合成为新的名称  格外国籍标识
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", name);
 	
 				(function(i, profileID) {
@@ -7992,18 +8436,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -8055,7 +8499,7 @@ async function registeredAllEvents() //注册所有的事件
 							continue;
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", name);
 				(function(i, profileID) {
 					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
@@ -8127,19 +8571,19 @@ async function registeredAllEvents() //注册所有的事件
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
-		
-					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-						//获取备注
-						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-						SpecialName = undefined;
-						if (SpecialNameobj != "undefined") {
-							SpecialName = SpecialNameobj[0].innerText; //备注
-						}
-						//获取steam名称
-						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-						name = steamName;
-					} else //否则如果是好友界面
-					{
+					
+					// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					// 	//获取备注
+					// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					// 	SpecialName = undefined;
+					// 	if (SpecialNameobj != "undefined") {
+					// 		SpecialName = SpecialNameobj[0].innerText; //备注
+					// 	}
+					// 	//获取steam名称
+					// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					// 	name = steamName;
+					// } else //否则如果是好友界面
+					//{
 						//获取名称,然后判断是备注还是steam名称
 						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -8159,7 +8603,7 @@ async function registeredAllEvents() //注册所有的事件
 								name = steamName;
 							}
 						}
-					}
+					//}
 					//--------------------------------------------------------------------
 					//判断选择的模式
 					if ($("select_islName_checkbox").checked == true) {
@@ -8357,18 +8801,18 @@ async function registeredAllEvents() //注册所有的事件
 					SpecialName = undefined;
 					steamName = undefined;
 				
-					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-						//获取备注
-						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-						SpecialName = undefined;
-						if (SpecialNameobj != "undefined") {
-							SpecialName = SpecialNameobj[0].innerText; //备注
-						}
-						//获取steam名称
-						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-						name = steamName;
-					} else //否则如果是好友界面
-					{
+					// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					// 	//获取备注
+					// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					// 	SpecialName = undefined;
+					// 	if (SpecialNameobj != "undefined") {
+					// 		SpecialName = SpecialNameobj[0].innerText; //备注
+					// 	}
+					// 	//获取steam名称
+					// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					// 	name = steamName;
+					// } else //否则如果是好友界面
+					//{
 						//获取名称,然后判断是备注还是steam名称
 						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -8388,7 +8832,7 @@ async function registeredAllEvents() //注册所有的事件
 								name = steamName;
 							}
 						}
-					}
+					//}
 					//--------------------------------------------------------------------
 					//判断选择的模式
 					if ($("select_islName_checkbox").checked == true) {
@@ -8854,18 +9298,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -8953,7 +9397,7 @@ async function registeredAllEvents() //注册所有的事件
 							//continue;
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", SpecialName);
 				//await sleep(1000);
 				//console.log(cur)
@@ -9107,18 +9551,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -9162,7 +9606,7 @@ async function registeredAllEvents() //注册所有的事件
 							// continue;
 						}
 					}
-				}
+				//}
 				//console.log("[Debug] name:", name);
 			}
 			GroupMode = 1;
@@ -9265,18 +9709,18 @@ async function registeredAllEvents() //注册所有的事件
 					SpecialName = undefined;
 					steamName = undefined;
 	
-					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-						//获取备注
-						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-						SpecialName = undefined;
-						if (SpecialNameobj != "undefined") {
-							SpecialName = SpecialNameobj[0].innerText; //备注
-						}
-						//获取steam名称
-						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-						name = steamName;
-					} else //否则如果是好友界面
-					{
+					// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					// 	//获取备注
+					// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					// 	SpecialName = undefined;
+					// 	if (SpecialNameobj != "undefined") {
+					// 		SpecialName = SpecialNameobj[0].innerText; //备注
+					// 	}
+					// 	//获取steam名称
+					// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					// 	name = steamName;
+					// } else //否则如果是好友界面
+					//{
 						//获取名称,然后判断是备注还是steam名称
 						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -9373,7 +9817,7 @@ async function registeredAllEvents() //注册所有的事件
 	
 						//存储在二维数组里，一个是毫秒数，一个是数组下标
 						//对秒数进行升序排序，然后取下标，对指定好友依次添加
-					}
+					//}
 					//console.log("[Debug] name:", name);
 				} //for
 				
@@ -9422,12 +9866,96 @@ async function registeredAllEvents() //注册所有的事件
 		traverseAllFriend(); //遍历所有好友
 	
 	});
+	
+	if((window.location.origin + window.location.pathname).indexOf('/groups') != -1){ //去除参数和锚点后的url
+		jQuery("#comment_submit_special").unbind("click"); //取消绑定点击事件
+		jQuery("#comment_submit_special").click(async function() {
+			layer.alert("目前还没有完善，请使用旁边第一个按钮!)",{icon: 0});
+			return;
+		});
+		
+		//document.getElementById('group_tab_content_overview').style.display = "block"; //显示
+		
+		//InitGroupPage
+		
+		// if ( window.location.hash ) //锚点被提取
+		// 	{
+		// 		initial_group_url = window.location.hash.substr( 1 );
+		// 	}
+		// 	history.replaceState //锚点被清除
+		
+		//$('group_tab_content_overview').hide(); //UI被隐藏
+		
+		jQuery("#comment_submit").unbind("click"); //取消绑定点击事件
+		jQuery("#comment_submit").click(async function() { //组留言
+			var postUrl = "https://steamcommunity.com/comment/Clan/post/";  //发布
+			var delUrl = "https://steamcommunity.com/comment/Clan/delete/"; //删除
+			var endUrl = "/-1/";                                            //结尾
+			
+			const newMgs= jQuery("#comment_textarea").val(); //获取评论内容
+			
+			var jqObj = jQuery('.group_block.selected');
+			var total = jqObj.length;
+			
+			if (total > 0) //选择的朋友总数
+			{
+				jQuery("#log_head, #log_body").html("");
+				var jqobj = jQuery("#search_results .selectable.offline"); //选择离线的好友
+				
+				//遍历所有节点,向盒子里添加节点
+				for (let i = 0; i < total; i++) {
+					var idStr = jqObj[i].getElementsByClassName('groupMemberStat linkStandard steamLink')[0].href;
+					var id = idStr.slice(idStr.indexOf('\'')+1,idStr.lastIndexOf('\'')); //id
+					var link = jqObj[i].getElementsByClassName('linkTitle')[0].href; //组链接
+					var anchorName = "/#commentthread_Clan_" + id + "_area"; //锚点名称
+					var name = jqObj[i].getElementsByClassName('linkTitle')[0].innerText; //名称
+					
+					
+					(function(i, id) {
+						//setTimeout(function() {
+						
+						jQuery.post(postUrl + id + endUrl, {
+							comment: newMgs,
+							count: 6,
+							sessionid: g_sessionID,
+							feature2: -1
+						}, function(response) {
+							if (response.success === false) {
+								jQuery("#log_body")[0].innerHTML +=
+									"<a style='color:#ff2c85;' target='_blank' href=\"" + link + "\">" + '[' + (i + 1) + '/' + total + '] 留言失败了! ' + name +
+									'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+							} else {
+								jQuery("#log_body")[0].innerHTML +=
+									'[' + (i + 1) + '/' + total + '] ' +
+									"成功发表评论于 <a target='_blank' href=\"" + link + "\">" + name + "</a>" +
+									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"" + (link + anchorName) + "\">" + newMgs + "</a><br>";
+							}
+						}).fail(function() {
+							jQuery("#log_body")[0].innerHTML +=
+								'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
+								"无法发表评论于 <a style='color:#DA2626;' target='_blank' href=\"" + link + "\">" + name + "</a></span><br>";
+						}).always(function() {
+							jQuery("#log_head").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个组.<b>");
+						});
+						
+						//}, i * 6000);
+						
+					})(i, id);
+					await sleep(3000);
+				}
+			}
+			
+		});
+	}
+	
 }
+
+
 
 (async()=>{
 	var ui = new UI();
 	gc_ui = ui;
-	if(await ui.initUI() != false){
+	if(await ui.initUI(true) != false){
 		await ui.createUI();
 	}
 })();

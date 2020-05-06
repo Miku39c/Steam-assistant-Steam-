@@ -597,8 +597,8 @@ class friendActivity{
 							//debugger
 							console.log("VoteUp() 点赞错误!!!",transport.responseText);
 								break;
-							default:
-							//debugger
+							default: //{"success":20} //{"success":16,"items":[2082593203],"results":{"2082593203":16}}
+							debugger
 							console.log("VoteUp() ????????????????????????????????????????????????????????????",transport.responseText);
 								break;
 						}
@@ -803,6 +803,17 @@ class friendActivity{
 				
 				// load more data
 				//var response = documentData.responseJSON;
+				if(documentData.responseText == undefined){ //针对请求失败的情况(自实现)
+					console.log("请求失败,错误码: 0x1 潜在的网络故障 url:"+ url);
+					debugger
+					var index = url.lastIndexOf('=');
+					nextLoadURL = url.slice(0,index); //提取最前面的链接
+					var num = parseInt(url.slice(index+1));s
+					nextLoadURL += (num+250);
+					url = nextLoadURL;
+					continue;
+				}
+				console.log("documentData.responseText",documentData.responseText);
 				var response = JSON.parse(documentData.responseText);
 				if ( response && response.success == true && response.blotter_html ){
 					// append the new day, having it fade in quickly 补充新的一天，让它迅速消失
@@ -826,6 +837,16 @@ class friendActivity{
 					//debugger
 					//Blotter_InfiniteScrollingCheckForMoreContent();
 					//Blotter_AddHighlightSliders();
+				}
+				else { //针对请求失败的情况(自实现)
+					console.log("请求失败,错误码: 0x2 请求错误 url:"+ url);
+					debugger
+					var index = url.lastIndexOf('=');
+					nextLoadURL = url.slice(0,index); //提取最前面的链接
+					var num = parseInt(url.slice(index+1));s
+					nextLoadURL += (num+250);
+					url = nextLoadURL;
+					continue;
 				}
 			}
 			// debugger

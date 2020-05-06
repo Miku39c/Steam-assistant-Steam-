@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.4.1
-// @date         2020.5.4
+// @version      1.2.3.4.2
+// @date         2020.5.6
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -27,6 +27,9 @@
 // @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
 // @updateURL    https://greasyfork.org/scripts/397073-steam-assistant-steam%E5%B0%8F%E5%8A%A9%E6%89%8B/code/Steam%20assistant(Steam%E5%B0%8F%E5%8A%A9%E6%89%8B).user.js
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?(add|pending|blocked|coplay|broadcast_moderator)?\/?$/
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/(following|groups|groups\/pending)\/?$/
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
@@ -72,7 +75,7 @@
 (async()=>{
 	var ui = new UI();
 	gc_ui = ui;
-	if(await ui.initUI() != false){
+	if(await ui.initUI(true) != false){
 		await ui.createUI();
 	}
 })();

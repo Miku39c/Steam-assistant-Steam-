@@ -358,18 +358,18 @@ async function registeredAllEvents() //注册所有的事件
 				
 				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 				
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -400,7 +400,7 @@ async function registeredAllEvents() //注册所有的事件
 							name = name + nostrNoOperate; //组合
 						}
 					}
-				}
+				//}
 				
 				console.log("[Debug] name:", name);
 			
@@ -468,18 +468,18 @@ async function registeredAllEvents() //注册所有的事件
 			
 				var nostrNoOperate = g_conf[0].strNoOperate + "-N";
 			
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -516,7 +516,7 @@ async function registeredAllEvents() //注册所有的事件
 							continue;
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", name);
 				(function(i, profileID) {
 					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
@@ -592,18 +592,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -657,7 +657,7 @@ async function registeredAllEvents() //注册所有的事件
 							name = strSpecialNationality + steamName; //组合成为新的名称  格外国籍标识
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", name);
 	
 				(function(i, profileID) {
@@ -735,18 +735,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -798,7 +798,7 @@ async function registeredAllEvents() //注册所有的事件
 							continue;
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", name);
 				(function(i, profileID) {
 					var URL = "https://steamcommunity.com/profiles/" + profileID + "/ajaxsetnickname/";
@@ -870,19 +870,19 @@ async function registeredAllEvents() //注册所有的事件
 					//--------------------------------------------------------------------
 					SpecialName = undefined;
 					steamName = undefined;
-		
-					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-						//获取备注
-						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-						SpecialName = undefined;
-						if (SpecialNameobj != "undefined") {
-							SpecialName = SpecialNameobj[0].innerText; //备注
-						}
-						//获取steam名称
-						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-						name = steamName;
-					} else //否则如果是好友界面
-					{
+					
+					// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					// 	//获取备注
+					// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					// 	SpecialName = undefined;
+					// 	if (SpecialNameobj != "undefined") {
+					// 		SpecialName = SpecialNameobj[0].innerText; //备注
+					// 	}
+					// 	//获取steam名称
+					// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					// 	name = steamName;
+					// } else //否则如果是好友界面
+					//{
 						//获取名称,然后判断是备注还是steam名称
 						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -902,7 +902,7 @@ async function registeredAllEvents() //注册所有的事件
 								name = steamName;
 							}
 						}
-					}
+					//}
 					//--------------------------------------------------------------------
 					//判断选择的模式
 					if ($("select_islName_checkbox").checked == true) {
@@ -1100,18 +1100,18 @@ async function registeredAllEvents() //注册所有的事件
 					SpecialName = undefined;
 					steamName = undefined;
 				
-					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-						//获取备注
-						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-						SpecialName = undefined;
-						if (SpecialNameobj != "undefined") {
-							SpecialName = SpecialNameobj[0].innerText; //备注
-						}
-						//获取steam名称
-						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-						name = steamName;
-					} else //否则如果是好友界面
-					{
+					// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					// 	//获取备注
+					// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					// 	SpecialName = undefined;
+					// 	if (SpecialNameobj != "undefined") {
+					// 		SpecialName = SpecialNameobj[0].innerText; //备注
+					// 	}
+					// 	//获取steam名称
+					// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					// 	name = steamName;
+					// } else //否则如果是好友界面
+					//{
 						//获取名称,然后判断是备注还是steam名称
 						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -1131,7 +1131,7 @@ async function registeredAllEvents() //注册所有的事件
 								name = steamName;
 							}
 						}
-					}
+					//}
 					//--------------------------------------------------------------------
 					//判断选择的模式
 					if ($("select_islName_checkbox").checked == true) {
@@ -1597,18 +1597,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -1696,7 +1696,7 @@ async function registeredAllEvents() //注册所有的事件
 							//continue;
 						}
 					}
-				}
+				//}
 				console.log("[Debug] name:", SpecialName);
 				//await sleep(1000);
 				//console.log(cur)
@@ -1850,18 +1850,18 @@ async function registeredAllEvents() //注册所有的事件
 				SpecialName = undefined;
 				steamName = undefined;
 	
-				if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-					//获取备注
-					var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-					SpecialName = undefined;
-					if (SpecialNameobj != "undefined") {
-						SpecialName = SpecialNameobj[0].innerText; //备注
-					}
-					//获取steam名称
-					steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-					name = steamName;
-				} else //否则如果是好友界面
-				{
+				// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+				// 	//获取备注
+				// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+				// 	SpecialName = undefined;
+				// 	if (SpecialNameobj != "undefined") {
+				// 		SpecialName = SpecialNameobj[0].innerText; //备注
+				// 	}
+				// 	//获取steam名称
+				// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+				// 	name = steamName;
+				// } else //否则如果是好友界面
+				//{
 					//获取名称,然后判断是备注还是steam名称
 					var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 					var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -1905,7 +1905,7 @@ async function registeredAllEvents() //注册所有的事件
 							// continue;
 						}
 					}
-				}
+				//}
 				//console.log("[Debug] name:", name);
 			}
 			GroupMode = 1;
@@ -2008,18 +2008,18 @@ async function registeredAllEvents() //注册所有的事件
 					SpecialName = undefined;
 					steamName = undefined;
 	
-					if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
-						//获取备注
-						var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
-						SpecialName = undefined;
-						if (SpecialNameobj != "undefined") {
-							SpecialName = SpecialNameobj[0].innerText; //备注
-						}
-						//获取steam名称
-						steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
-						name = steamName;
-					} else //否则如果是好友界面
-					{
+					// if (document.URL.indexOf("/friends") == -1) { //如果是在个人资料页面
+					// 	//获取备注
+					// 	var SpecialNameobj = document.getElementsByClassName("nickname"); //nickname
+					// 	SpecialName = undefined;
+					// 	if (SpecialNameobj != "undefined") {
+					// 		SpecialName = SpecialNameobj[0].innerText; //备注
+					// 	}
+					// 	//获取steam名称
+					// 	steamName = document.getElementsByClassName("actual_persona_name")[0].innerText; //steam名称
+					// 	name = steamName;
+					// } else //否则如果是好友界面
+					//{
 						//获取名称,然后判断是备注还是steam名称
 						var SpecialNameobj = cur.getElementsByClassName("friend_block_content");
 						var nicknameObj = cur.getElementsByClassName("player_nickname_hint");
@@ -2116,7 +2116,7 @@ async function registeredAllEvents() //注册所有的事件
 	
 						//存储在二维数组里，一个是毫秒数，一个是数组下标
 						//对秒数进行升序排序，然后取下标，对指定好友依次添加
-					}
+					//}
 					//console.log("[Debug] name:", name);
 				} //for
 				
@@ -2165,4 +2165,87 @@ async function registeredAllEvents() //注册所有的事件
 		traverseAllFriend(); //遍历所有好友
 	
 	});
+	
+	if((window.location.origin + window.location.pathname).indexOf('/groups') != -1){ //去除参数和锚点后的url
+		jQuery("#comment_submit_special").unbind("click"); //取消绑定点击事件
+		jQuery("#comment_submit_special").click(async function() {
+			layer.alert("目前还没有完善，请使用旁边第一个按钮!)",{icon: 0});
+			return;
+		});
+		
+		//document.getElementById('group_tab_content_overview').style.display = "block"; //显示
+		
+		//InitGroupPage
+		
+		// if ( window.location.hash ) //锚点被提取
+		// 	{
+		// 		initial_group_url = window.location.hash.substr( 1 );
+		// 	}
+		// 	history.replaceState //锚点被清除
+		
+		//$('group_tab_content_overview').hide(); //UI被隐藏
+		
+		jQuery("#comment_submit").unbind("click"); //取消绑定点击事件
+		jQuery("#comment_submit").click(async function() { //组留言
+			var postUrl = "https://steamcommunity.com/comment/Clan/post/";  //发布
+			var delUrl = "https://steamcommunity.com/comment/Clan/delete/"; //删除
+			var endUrl = "/-1/";                                            //结尾
+			
+			const newMgs= jQuery("#comment_textarea").val(); //获取评论内容
+			
+			var jqObj = jQuery('.group_block.selected');
+			var total = jqObj.length;
+			
+			if (total > 0) //选择的朋友总数
+			{
+				jQuery("#log_head, #log_body").html("");
+				var jqobj = jQuery("#search_results .selectable.offline"); //选择离线的好友
+				
+				//遍历所有节点,向盒子里添加节点
+				for (let i = 0; i < total; i++) {
+					var idStr = jqObj[i].getElementsByClassName('groupMemberStat linkStandard steamLink')[0].href;
+					var id = idStr.slice(idStr.indexOf('\'')+1,idStr.lastIndexOf('\'')); //id
+					var link = jqObj[i].getElementsByClassName('linkTitle')[0].href; //组链接
+					var anchorName = "/#commentthread_Clan_" + id + "_area"; //锚点名称
+					var name = jqObj[i].getElementsByClassName('linkTitle')[0].innerText; //名称
+					
+					
+					(function(i, id) {
+						//setTimeout(function() {
+						
+						jQuery.post(postUrl + id + endUrl, {
+							comment: newMgs,
+							count: 6,
+							sessionid: g_sessionID,
+							feature2: -1
+						}, function(response) {
+							if (response.success === false) {
+								jQuery("#log_body")[0].innerHTML +=
+									"<a style='color:#ff2c85;' target='_blank' href=\"" + link + "\">" + '[' + (i + 1) + '/' + total + '] 留言失败了! ' + name +
+									'&nbsp;&nbsp;&nbsp;&nbsp;' + response.error + "</a><br>";
+							} else {
+								jQuery("#log_body")[0].innerHTML +=
+									'[' + (i + 1) + '/' + total + '] ' +
+									"成功发表评论于 <a target='_blank' href=\"" + link + "\">" + name + "</a>" +
+									"<span> → </span><a style='color:#FB7299;' target='_blank' href=\"" + (link + anchorName) + "\">" + newMgs + "</a><br>";
+							}
+						}).fail(function() {
+							jQuery("#log_body")[0].innerHTML +=
+								'<span style="color:#DA2626;">[' + (i + 1) + '/' + total + '] ' +
+								"无法发表评论于 <a style='color:#DA2626;' target='_blank' href=\"" + link + "\">" + name + "</a></span><br>";
+						}).always(function() {
+							jQuery("#log_head").html("<br><b>当前处理了 " + (i + 1) + "个, 总计 " + total + " 个组.<b>");
+						});
+						
+						//}, i * 6000);
+						
+					})(i, id);
+					await sleep(3000);
+				}
+			}
+			
+		});
+	}
+	
 }
+
