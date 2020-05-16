@@ -1,3 +1,4 @@
+del temp.txt
 findstr /n  "(async()=>{" ..\main.js >> temp.txt
 for /f "delims=^: tokens=1,*" %i in (temp.txt) do (set i=%i)
 set /a start = i-1

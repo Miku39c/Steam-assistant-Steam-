@@ -11,6 +11,7 @@ REM »»ÐÐ
 chcp 65001
 echo.>> Release.js
 chcp 65001
+more ..\databaseConf.js >> Release.js
 more ..\resource.js >> Release.js
 chcp 65001
 more ..\res\injectCSS.js >> Release.js

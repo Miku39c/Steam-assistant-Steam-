@@ -1,3 +1,5 @@
+del temp.txt
+del temp1.txt
 REM 提取最后面的内容
 REM 查找并获取行数的字符串，然后存储到文件里
 findstr /n  "(async()=>{" ..\main.js >> temp.txt
