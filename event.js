@@ -1,3 +1,8 @@
+/**
+ * event.js
+ * @file 存储程序所有的事件处理逻辑代码 {这些方法的事件处理程序是关于具体功能实现的}
+ */
+ 
 async function registeredAllEvents() //注册所有的事件
 {
 	autoSetPageRefreshAndCloseWarn(true); //自动判断状态并设置页面刷新和关闭警告
@@ -1081,8 +1086,6 @@ async function registeredAllEvents() //注册所有的事件
 			var name = undefined;
 				
 			if (total > 0 && msg.length > 0) {
-				
-				debugger
 				
 				if(g_conf[0].isCommentRunStatus == false)
 					jQuery("#log_head, #log_body").html("");

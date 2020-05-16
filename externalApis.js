@@ -1,5 +1,7 @@
-var g_ai = null;
-var g_steamdb = null;
+/**
+ * externalApis.js
+ * @file 一些类的集合，通常是通过网络请求完成一些功能 [依赖网络和Api的可用性]
+ */
 
 class intelligenceAI //智能AI模块
 {
@@ -33,11 +35,6 @@ class intelligenceAI //智能AI模块
 	}
 }
 
-// if(!g_ai)
-// {
-// 	g_ai = new intelligenceAI();
-// 	ai.getWeather('北京');
-// }
 //-------------------------------------------------------------------------------------------------------------
 class externalApis{
 	constructor(){
@@ -313,11 +310,7 @@ class SteamDB
 		const url_steam = "https://store.steampowered.com/search/?filter=topsellers&specials=1";
 	}
 }
-// if(!g_steamdb)
-// {
-// 	g_steamdb = new SteamDB();
-// 	g_steamdb.getFreeGameInfo();
-// }
+
 //-------------------------------------------------------------------------------------------------------------
 // 模块 Steam游戏搜索集合 与 Steam游戏页面/捆绑包页面
 
