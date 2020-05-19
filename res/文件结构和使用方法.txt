@@ -1,0 +1,6 @@
+和config一致，对文件进行了拆分，css.bat处理所有.css文件的合并任务，html.bat处理所有.html文件的合并任务，
+js.bat处理所有.js文件和手动注入代码的合并任务
+但是一般情况下，只需要运行Generate merge JS code.bat这个即可，内部会调用css.bat和html.bat和js.bat
+
+当没有修改内容时，只改动了其他文件的代码，然后需要生成Release版本时，
+由Release目录的Generate the release versions.bat自动生成并添加到Release.js里(不需要手动运行)

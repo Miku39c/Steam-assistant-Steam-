@@ -1,0 +1,7 @@
+为了更方便，已经将数据结构提取到g_xxx.js这种单独的文件中，
+要使用时，运行Generate merge JS code.bat这个批处理文件，
+输入英文状态下的字符串标识符'或者"，就会自动生成confMerge_handle.js这个文件，
+这个脚本只有在本地测试时如果修改了数据结构才需要运行一次，重新生成新的数据结构合并文件，
+
+当没有修改数据结构，只改动了其他文件的代码，然后需要生成Release版本时，
+由Release目录的Generate the release versions.bat自动生成并添加到Release.js里(不需要手动运行)

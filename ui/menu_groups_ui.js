@@ -827,85 +827,85 @@ class menu_groups_ui extends UI {
 	async createUI() {
 		super.createUI();
 		//修改html代码并注册事件，使点击后和刷新后的ui都保持一致
-		jQuery(".profile_groups.title_bar").remove(); //删除
+		//jQuery(".profile_groups.title_bar").remove(); //删除
 		
-		jQuery("#groups_list").prepend('\
-		<div class="profile_groups title_bar">\
-			<span class="profile_groups title">您的组</span>\
-			<div class="es-sortbox es-sortbox--groups" style="flex-grow: 2; margin-right: 20px; margin-top: 0px; text-align: right;">\
-				<div class="es-sortbox__label">排序依据：</div>\
-					<div class="es-sortbox__container">\
-						<input value="default" name="groups" type="hidden" id="sort_by_groups">\
-						<a id="sort_by_groups_trigger" class="trigger">默认</a>\
-						<div class="es-dropdown">\
-							<ul class="es-dropdown__list dropdownhidden" id="sort_by_groups_droplist">\
-								<li><a id="sort_by_groups_default" tabindex="99999" class="highlighted_selection">默认</a></li>\
-								<li><a id="sort_by_groups_members" tabindex="99999" class="inactive_selection">成员</a></li>\
-								<li><a id="sort_by_groups_names" tabindex="99999" class="inactive_selection">名称</a></li>\
-							</ul>\
-						</div>\
-					</div>\
-					<span class="es-sortbox__reverse">↓</span>\
-				</div>\
-			<button class="profile_friends manage_link btnv6_blue_hoverfade btn_medium btn_uppercase" id="manage_friends_control">\
-				<span>管理组</span>\
-		    </button>\
-			</div>\
-			\
-			<div class="manage_friends_panel" id="manage_friends">\
-				<div class="row">请在下方选择您要操作的组。\
-					<span class="row">\
-						<span class="dimmed">选择：</span>\
-							<span id="es_select_all" class="selection_type">全部</span>\
-							<span id="es_select_none" class="selection_type">无</span>\
-							<span id="es_select_inverse" class="selection_type">逆序</span>\
-						</span>\
-				</div>\
-				<div class="row">\
-					<span id="es_leave_groups" class="manage_action anage_action btnv6_lightblue_blue btn_medium btn_uppercase">\
-						<span>离开组</span>\
-					</span>\
-					<span class="selected_msg error hidden" id="selected_msg_err"></span>\
-					<span class="selected_msg hidden" id="selected_msg">已选择 <span id="selected_count"></span> 个。</span>\
-				</div>\
-				<div class="row"></div>\
-			</div>\
-			\
-			<div class="searchBarContainer">\
-				<input name="search_text_box" id="search_text_box" class="groups_search_text_box" value="" onkeyup="ShowMatching( \'search_results\', \'group_block\', \'data-search\', $J(\'#search_text_box\').val(), UpdateGroupList );" autocomplete="off" autofocus="" placeholder="通过名称搜索组">\
-			</div>\
-		</div>\
-		');
+		// jQuery("#groups_list").prepend('\
+		// <div class="profile_groups title_bar">\
+		// 	<span class="profile_groups title">您的组</span>\
+		// 	<div class="es-sortbox es-sortbox--groups" style="flex-grow: 2; margin-right: 20px; margin-top: 0px; text-align: right;">\
+		// 		<div class="es-sortbox__label">排序依据：</div>\
+		// 			<div class="es-sortbox__container">\
+		// 				<input value="default" name="groups" type="hidden" id="sort_by_groups">\
+		// 				<a id="sort_by_groups_trigger" class="trigger">默认</a>\
+		// 				<div class="es-dropdown">\
+		// 					<ul class="es-dropdown__list dropdownhidden" id="sort_by_groups_droplist">\
+		// 						<li><a id="sort_by_groups_default" tabindex="99999" class="highlighted_selection">默认</a></li>\
+		// 						<li><a id="sort_by_groups_members" tabindex="99999" class="inactive_selection">成员</a></li>\
+		// 						<li><a id="sort_by_groups_names" tabindex="99999" class="inactive_selection">名称</a></li>\
+		// 					</ul>\
+		// 				</div>\
+		// 			</div>\
+		// 			<span class="es-sortbox__reverse">↓</span>\
+		// 		</div>\
+		// 	<button class="profile_friends manage_link btnv6_blue_hoverfade btn_medium btn_uppercase" id="manage_friends_control">\
+		// 		<span>管理组1</span>\
+		//     </button>\
+		// 	</div>\
+		// 	\
+		// 	<div class="manage_friends_panel" id="manage_friends">\
+		// 		<div class="row">请在下方选择您要操作的组。\
+		// 			<span class="row">\
+		// 				<span class="dimmed">选择：</span>\
+		// 					<span id="es_select_all" class="selection_type">全部</span>\
+		// 					<span id="es_select_none" class="selection_type">无</span>\
+		// 					<span id="es_select_inverse" class="selection_type">逆序</span>\
+		// 				</span>\
+		// 		</div>\
+		// 		<div class="row">\
+		// 			<span id="es_leave_groups" class="manage_action anage_action btnv6_lightblue_blue btn_medium btn_uppercase">\
+		// 				<span>离开组</span>\
+		// 			</span>\
+		// 			<span class="selected_msg error hidden" id="selected_msg_err"></span>\
+		// 			<span class="selected_msg hidden" id="selected_msg">已选择 <span id="selected_count"></span> 个。</span>\
+		// 		</div>\
+		// 		<div class="row"></div>\
+		// 	</div>\
+		// 	\
+		// 	<div class="searchBarContainer">\
+		// 		<input name="search_text_box" id="search_text_box" class="groups_search_text_box" value="" onkeyup="ShowMatching( \'search_results\', \'group_block\', \'data-search\', $J(\'#search_text_box\').val(), UpdateGroupList );" autocomplete="off" autofocus="" placeholder="通过名称搜索组1">\
+		// 	</div>\
+		// </div>\
+		// ');
 		
 		//正常html代码
 		jQuery("#manage_friends").after(groupUI_html);
 		
-		document.querySelector("#manage_friends_control").addEventListener("click", () => {
-			ToggleManageFriends();
-			var obj = jQuery(".group_block.invite_row");
+		// document.querySelector("#manage_friends_control").addEventListener("click", () => {
+		// 	ToggleManageFriends();
+		// 	var obj = jQuery(".group_block.invite_row");
 			
-			if(obj.hasClass("manage")){
-				obj.removeClass("selectable");
-				obj.removeClass("manage");
-			}
-			else{
-				obj.addClass("selectable");
-				obj.addClass("manage");
-			}
+		// 	if(obj.hasClass("manage")){
+		// 		obj.removeClass("selectable");
+		// 		obj.removeClass("manage");
+		// 	}
+		// 	else{
+		// 		obj.addClass("selectable");
+		// 		obj.addClass("manage");
+		// 	}
 				
-		});
+		// });
 		
-		document.querySelector("#es_select_all").addEventListener("click", () => {
-			SelectAll();
-		});
+		// document.querySelector("#es_select_all").addEventListener("click", () => {
+		// 	SelectAll();
+		// });
 		
-		document.querySelector("#es_select_none").addEventListener("click", () => {
-			SelectNone();
-		});
+		// document.querySelector("#es_select_none").addEventListener("click", () => {
+		// 	SelectNone();
+		// });
 		
-		document.querySelector("#es_select_inverse").addEventListener("click", () => {
-			SelectInverse();
-		});
+		// document.querySelector("#es_select_inverse").addEventListener("click", () => {
+		// 	SelectInverse();
+		// });
 		
 		
 		

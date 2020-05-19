@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.4.3
-// @date         2020.5.17
+// @version      1.2.3.4.4
+// @date         2020.5.19
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -36,10 +36,19 @@
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
 // @updateURL    https://greasyfork.org/scripts/397073-steam-assistant-steam%E5%B0%8F%E5%8A%A9%E6%89%8B/code/Steam%20assistant(Steam%E5%B0%8F%E5%8A%A9%E6%89%8B).user.js
+// @note         社区
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?(add|pending|blocked|coplay|broadcast_moderator)?\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/(following|groups|groups\/pending)\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/
+// @note         创意工坊-我的
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
+// @note         创意工坊-我的收藏
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
+// @note         创意工坊-我的订阅
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
+// @note         创意工坊-运行过的
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getResourceText
 // @grant        GM_getResourceURL
@@ -141,194 +150,8 @@
  //模块: utility.js -> registeMenu() 和 unRegisteMenu()使用
  /* 全局对象 */
  var g_arrMenuID = [5];
- 
- addNewScript('g_conf_Script',
-'\
-var g_conf = [\n\
-        {steamID: ""\n\
-        ,language: "automatic" /*语言: 自动检测*/\n\
-        ,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
-        ,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
-        ,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
-        \n\
-        ,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
-        ,is_Debug: true /*是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)*/\n\
-        ,isTrackRunStatus: true /*是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)*/\n\
-        ,isAddYunBreakWarn: true /*是否添加运行中断警告*/\n\
-        \n\
-        ,YunStatus: false /*当前运行状态(比如正在留言中之类的就是正在运行)*/\n\
-        ,isTranslationText: false /*是否进行了翻译*/\n\
-        \n\
-        ,isWarnInfo: false /*是否出现警告信息(如果没有则不需要清空)*/\n\
-        ,isCommentRunStatus: false /*是否正在留言*/\n\
-        ,isNationalityRunStatus: false /*是否正在设置国籍*/\n\
-        ,isNoCommentRunStatus: false /*是否正在设置不留言*/\n\
-        ,isTimeIntervalRunStatus: false /*是否正在设置留言时间间隔*/\n\
-        ,isAutoCommentRunStatus: false /*是否正在设置自动留言计划*/\n\
-        ,isFriendToGroupRunStatus: false /*是否正在设置好友分组*/\n\
-        }\n\
-];/* g_conf[0].*/\n\
-\n\
-/*ui配置相关信息*/\n\
-var g_uiConf = {\n\
-        isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
-        ,isShow_menu_friend: true /*好友列表*/\n\
-        ,isShow_menu_activity: true /*动态列表*/\n\
-        ,isShow_menu_registerKey: true /*激活key*/\n\
-        ,isShow_menu_redeemWalletCode: true /*充值key*/\n\
-        ,isShow_menu_steamdbFree: true /*SteamDB预告*/\n\
-};/* g_uiConf.*/\n\
-\n\
-const g_default_configuration = {\n\
-        steamID: ""\n\
-        ,language: "automatic" /*语言: 自动检测*/\n\
-        ,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
-        ,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
-        ,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
-        ,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
-        ,isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
-};\n\
-\n\
-const g_debug_info = [\n\
-        {\n\
-                language: "简体中文"\n\
-        },\n\
-        {\n\
-                language: "English"\n\
-        }\n\
-];\n\
-\n\
-/*多语言支持-UI*/\n\
-const g_languageList = [\n\
-        {language: "简体中文"\n\
-        ,mainName: "Steam小助手"\n\
-        ,Tabs1: "留言"\n\
-        ,commentThread_textarea_Placeholder: "添加留言"\n\
-        ,strInBytes: "当前字符字节数: "\n\
-        ,translationModule: "翻译模块(需要提前设置国籍):"\n\
-        /* ,: "当前语言"\n\
-         ,: "自动检测"\n\
-         ,: "中文简体"\n\
-         ,: "英语"\n\
-         ,: "日语"\n\
-         ,: "目标语言:"\n\
-         ,: "请先选择要翻译为的语言"\n\
-         ,: "英语"\n\
-         ,: "日语"\n\
-         ,: "中文简体"\n\
-         ,: "马新简体[zh-sg]"\n\
-         ,: "繁體中文[zh-hant]"\n\
-         ,: "繁體中文(香港)[zh-hk]"\n\
-         ,: "繁體中文(澳门)[zh-mo]"\n\
-         ,: "繁體中文(台湾)[zh-tw]"\n\
-         ,: "翻译"\n\
-         ,: "添加称呼模块(需要提前设置备注):"\n\
-         ,: "自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)"\n\
-         ,: "在留言框添加自定义称呼标识符"\n\
-         ,: "是否为好友添加称呼 (如果好友没有备注则使用steam名称)"\n\
-         ,: "格式化帮助"\n\
-         ,: "发送评论给选择的好友"\n\
-         ,: "根据国籍发送评论给选择的好友"\n\
-        \n\
-        ,Tabs2: "留言设置"\n\
-         ,: "设置国籍:"\n\
-         ,: "请选择要设置的国籍:"\n\
-         ,: "简体中文"\n\
-         ,: "英语"\n\
-         ,: "日语"\n\
-         ,: "马新简体(马来西亚,新加坡)[zh-sg]"\n\
-         ,: "繁體中文[zh-hant]"\n\
-         ,: "繁體中文(香港)[zh-hk]"\n\
-         ,: "繁體中文(澳门)[zh-mo]"\n\
-         ,: "繁體中文(台湾)[zh-tw]"\n\
-         ,: "为选择的好友设置国籍标识"\n\
-         ,: "为选择的好友取消国籍标识"\n\
-         ,: "设置不留言:"\n\
-         ,: "为选择的好友设置不留言"\n\
-         ,: "为选择的好友取消设置不留言"\n\
-         ,: "设置留言时间间隔:"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        ,Tabs3: "数据分析"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        \n\
-        ,Tabs4: "动态助手"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        \n\
-        ,Tabs5: "拓展功能(测试)"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        \n\
-        ,Tabs6: "设置",\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""*/\n\
-        \n\
-        },\n\
-        {language: "English"\n\
-        ,mainName: "Steam assistant"\n\
-        }\n\
-];\n\
-'
-);
+
+
 
 function fixConfInfo(i,steamID){ /*修复配置信息*/
         var isFix = false;
@@ -1246,6 +1069,197 @@ class DB{
 
 // Localization.init();
 
+addNewScript('g_conf_Script', '\
+\n\
+var g_conf = [\n\
+        {steamID: ""\n\
+        ,language: "automatic" /*语言: 自动检测*/\n\
+        ,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
+        ,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
+        ,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
+        \n\
+        ,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
+        ,is_Debug: true /*是否是调试模式(总开关，是否显示调试输出，显示当前运行状态)*/\n\
+        ,isTrackRunStatus: true /*是否跟踪运行状态(更详细的调试输出，可控型只显示错误警告 到 变量级)*/\n\
+        ,isAddYunBreakWarn: true /*是否添加运行中断警告*/\n\
+        \n\
+        ,YunStatus: false /*当前运行状态(比如正在留言中之类的就是正在运行)*/\n\
+        ,isTranslationText: false /*是否进行了翻译*/\n\
+        \n\
+        ,isWarnInfo: false /*是否出现警告信息(如果没有则不需要清空)*/\n\
+        ,isCommentRunStatus: false /*是否正在留言*/\n\
+        ,isNationalityRunStatus: false /*是否正在设置国籍*/\n\
+        ,isNoCommentRunStatus: false /*是否正在设置不留言*/\n\
+        ,isTimeIntervalRunStatus: false /*是否正在设置留言时间间隔*/\n\
+        ,isAutoCommentRunStatus: false /*是否正在设置自动留言计划*/\n\
+        ,isFriendToGroupRunStatus: false /*是否正在设置好友分组*/\n\
+        }\n\
+];/* g_conf[0].*/\n\
+\n\
+\n\
+const g_default_configuration = {\n\
+        steamID: ""\n\
+        ,language: "automatic" /*语言: 自动检测*/\n\
+        ,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
+        ,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
+        ,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
+        ,autoLogin: 1 /*没有登录时是否自动跳转到登录页面 (点击确定跳转，点击关闭不跳转)*/\n\
+        ,isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
+};\n\
+\n\
+\n\
+const g_debug_info = [\n\
+        {\n\
+                language: "简体中文"\n\
+        },\n\
+        {\n\
+                language: "English"\n\
+        }\n\
+];\n\
+\n\
+/*多语言支持-UI*/\n\
+\n\
+const g_languageList = [\n\
+        {language: "简体中文"\n\
+        ,mainName: "Steam小助手"\n\
+        ,Tabs1: "留言"\n\
+        ,commentThread_textarea_Placeholder: "添加留言"\n\
+        ,strInBytes: "当前字符字节数: "\n\
+        ,translationModule: "翻译模块(需要提前设置国籍):"\n\
+        /* ,: "当前语言"\n\
+         ,: "自动检测"\n\
+         ,: "中文简体"\n\
+         ,: "英语"\n\
+         ,: "日语"\n\
+         ,: "目标语言:"\n\
+         ,: "请先选择要翻译为的语言"\n\
+         ,: "英语"\n\
+         ,: "日语"\n\
+         ,: "中文简体"\n\
+         ,: "马新简体[zh-sg]"\n\
+         ,: "繁體中文[zh-hant]"\n\
+         ,: "繁體中文(香港)[zh-hk]"\n\
+         ,: "繁體中文(澳门)[zh-mo]"\n\
+         ,: "繁體中文(台湾)[zh-tw]"\n\
+         ,: "翻译"\n\
+         ,: "添加称呼模块(需要提前设置备注):"\n\
+         ,: "自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)"\n\
+         ,: "在留言框添加自定义称呼标识符"\n\
+         ,: "是否为好友添加称呼 (如果好友没有备注则使用steam名称)"\n\
+         ,: "格式化帮助"\n\
+         ,: "发送评论给选择的好友"\n\
+         ,: "根据国籍发送评论给选择的好友"\n\
+        \n\
+        ,Tabs2: "留言设置"\n\
+         ,: "设置国籍:"\n\
+         ,: "请选择要设置的国籍:"\n\
+         ,: "简体中文"\n\
+         ,: "英语"\n\
+         ,: "日语"\n\
+         ,: "马新简体(马来西亚,新加坡)[zh-sg]"\n\
+         ,: "繁體中文[zh-hant]"\n\
+         ,: "繁體中文(香港)[zh-hk]"\n\
+         ,: "繁體中文(澳门)[zh-mo]"\n\
+         ,: "繁體中文(台湾)[zh-tw]"\n\
+         ,: "为选择的好友设置国籍标识"\n\
+         ,: "为选择的好友取消国籍标识"\n\
+         ,: "设置不留言:"\n\
+         ,: "为选择的好友设置不留言"\n\
+         ,: "为选择的好友取消设置不留言"\n\
+         ,: "设置留言时间间隔:"\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+        ,Tabs3: "数据分析"\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+        \n\
+        ,Tabs4: "动态助手"\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+        \n\
+        ,Tabs5: "拓展功能(测试)"\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+        \n\
+        ,Tabs6: "设置",\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""\n\
+         ,: ""*/\n\
+        \n\
+        },\n\
+        {language: "English"\n\
+        ,mainName: "Steam assistant"\n\
+        }\n\
+];\n\
+\n\
+/*ui配置相关信息*/\n\
+\n\
+var g_uiConf = {\n\
+        isShowQuickNavigationBar: false /*是否显示快速导航栏*/\n\
+        ,isShow_menu_friend: true /*好友列表*/\n\
+        ,isShow_menu_activity: true /*动态列表*/\n\
+        ,isShow_menu_registerKey: true /*激活key*/\n\
+        ,isShow_menu_redeemWalletCode: true /*充值key*/\n\
+        ,isShow_menu_steamdbFree: true /*SteamDB预告*/\n\
+};/* g_uiConf.*/\n\
+\n\
+');
 /**
  * resource.js
  */
@@ -1521,23 +1535,7 @@ class resource {
                         ); /* 选择的文本 */
                         addNewStyle('styles1_js',fs_css); /* 选择的文本 */
                         
-                        var funcCode = "";
-                        funcCode += wordCount.toString() + "\n\n";
-                        funcCode += "var arrComment = []; /*id文本框的id, height文本框的高度, scrollTop存储收缩状态下的进度条, visible可见性*/" + "\n";
-                        funcCode += inBoxShrinkage.toString() + "\n\n";
-                        funcCode += "var change;" + "\n";
-                        funcCode += autoTextarea.toString() + "\n\n";
-                        funcCode += openThisAndCloseOtherAllinBoxShrinkage.toString() + "\n\n";
-                        funcCode += "var inBoxonblurID = 0;" + "\n";
-                        funcCode += addEmojiEvent.toString() + "\n\n";
-                        addNewScript('styles_Script',funcCode);
-                        
-                        var funcCode = "";
-                        funcCode += emojiFix.toString() + "\n\n";
-                        funcCode += dvWidthFix.toString() + "\n\n";
-                        funcCode += deleteSelectText.toString() + "\n\n";
-                        funcCode += _ySelects.toString() + "\n\n";
-                        addNewScript('Utility_Script',funcCode);
+                        injectJS();
                         
                         //gc_menu_friends_ui.loadTextChange(true); //改变当前加载进度
                         resolve('css js') // 数据处理完成
@@ -1609,2695 +1607,2712 @@ class resource {
         }
 }
 
-/**
- * injectCSS.js
- */
-
-var loadUI_css = "\
-        position: absolute; \
-        left: 0; right: 0; top: 0; \
-        z-index: 10; \
-        background: url(https://steamcommunity-a.akamaihd.net/public/images/friends/colored_body_top2.png?v=2) center top no-repeat #1b2838; \
-        ";
-
-var load_cssCode = '\
-        @charset "utf-8";\
-        @import url("https://fonts.googleapis.com/css?family=Fredoka+One|Open+Sans:300");\
-        *,\
-        *::before,\
-        *::after {\
-                box-sizing: border-box;\
-        }\
-        \
-        body {\
-                font-family: "Fredoka One", cursive;\
-                font-size: 16px;\
-                margin: 0px;\
-        }\
-        \
-        #loadingUI {\
-                display: -webkit-box;\
-                display: -ms-flexbox;\
-                display: flex;\
-                -webkit-box-pack: center;\
-                -ms-flex-pack: center;\
-                justify-content: center;\
-                -webkit-box-align: center;\
-                -ms-flex-align: center;\
-                align-items: center;\
-                min-height: 100vh;\
-                /* background: rgba(249, 249, 249, 0.9); */\
-                overflow: hidden;\
-        }\
-        \
-        .text-wrapper {\
-                padding: 0 1rem;\
-                max-width: 50rem;\
-                width: 100%;\
-                text-align: center;\
-        }\
-        \
-        .text {\
-                font-size: 8em;\
-                text-transform: uppercase;\
-                letter-spacing: -14px;\
-        }\
-        \
-        .text .letter {\
-                position: relative;\
-                display: inline-block;\
-                -webkit-transition: all .4s;\
-                transition: all .4s;\
-        }\
-        \
-        .text .letter .character {\
-                opacity: 0.65;\
-                -webkit-transition: color .4s;\
-                transition: color .4s;\
-                cursor: pointer;\
-        }\
-        \
-        .text .letter span {\
-                position: absolute;\
-                bottom: .8rem;\
-                left: .4rem;\
-                display: block;\
-                width: 100%;\
-                height: 15px;\
-        }\
-        \
-        .text .letter span::before {\
-                content: \'\';\
-                position: absolute;\
-                top: 50%;\
-                left: 50%;\
-                width: 0;\
-                height: 0;\
-                -webkit-transform: translate(-50%, -50%);\
-                transform: translate(-50%, -50%);\
-                border-radius: 50%;\
-                background: rgba(0, 0, 0, 0.25);\
-        }\
-        \
-        .text .letter:hover .character {\
-                color: #fff !important;\
-        }\
-        \
-        .text.part1 .letter:nth-child(1).poofed {\
-                -webkit-transform-origin: 50% 50%;\
-                transform-origin: 50% 50%;\
-                -webkit-animation: poofing1 1.4s ease-i\n-out infinite alternate;\
-                animation: poofing1 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes poofing1 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes poofing1 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part1 .letter:nth-child(1) .character {\
-                color: #f44336;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 0.33333s;\
-                animation-delay: 0.33333s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(1) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 0.33333s;\
-                animation-delay: 0.33333s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(2).poofed {\
-                -webkit-transform-origin: 50% 50%;\
-                transform-origin: 50% 50%;\
-                -webkit-animation: poofing2 1.4s ease-in-out infinite alternate;\
-                animation: poofing2 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes poofing2 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes poofing2 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part1 .letter:nth-child(2) .character {\
-                color: #9C27B0;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 0.66667s;\
-                animation-delay: 0.66667s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(2) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 0.66667s;\
-                animation-delay: 0.66667s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(3).poofed {\
-                -webkit-transform-origin: 50% 50%;\
-                transform-origin: 50% 50%;\
-                -webkit-animation: poofing3 1.4s ease-in-out infinite alternate;\
-                animation: poofing3 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes poofing3 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes poofing3 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part1 .letter:nth-child(3) .character {\
-                color: #f99b0c;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 1s;\
-                animation-delay: 1s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(3) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 1s;\
-                animation-delay: 1s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(4).poofed {\
-                -webkit-transform-origin: 50% 50%;\
-                transform-origin: 50% 50%;\
-                -webkit-animation: poofing4 1.4s ease-in-out infinite alternate;\
-                animation: poofing4 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes poofing4 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes poofing4 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part1 .letter:nth-child(4) .character {\
-                color: #cee007;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 1.33333s;\
-                animation-delay: 1.33333s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(4) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 1.33333s;\
-                animation-delay: 1.33333s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(5).poofed {\
-                -webkit-transform-origin: 50% 50%;\
-                transform-origin: 50% 50%;\
-                -webkit-animation: poofing5 1.4s ease-in-out infinite alternate;\
-                animation: poofing5 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes poofing5 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes poofing5 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part1 .letter:nth-child(5) .character {\
-                color: #00c6b2;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 1.66667s\
-                animation-delay: 1.66667s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(5) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 1.66667s;\
-                animation-delay: 1.66667s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(6).poofed {\
-                -webkit-transform-origin: 50% 50%;\
-                transform-origin: 50% 50%;\
-                -webkit-animation: poofing6 1.4s ease-in-out infinite alternate;\
-                animation: poofing6 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes poofing6 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes poofing6 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part1 .letter:nth-child(6) .character {\
-                color: #f44336;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 2s;\
-                animation-delay: 2s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(6) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 2s;\
-                animation-delay: 2s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(7).poofed {\
-                -webkit-transform-origin: 50% 50%;\
-                transform-origin: 50% 50%;\
-                -webkit-animation: poofing7 1.4s ease-in-out infinite alternate;\
-                animation: poofing7 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes poofing7 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes poofing7 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part1 .letter:nth-child(7) .character {\
-                color: #4CAF50;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 2s;\
-                animation-delay: 2.5s;\
-        }\
-        \
-        .text.part1 .letter:nth-child(7) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 2s;\
-                animation-delay: 3s;\
-        }\
-        \
-        .text.part2 span:nth-child(1).poofed {\
-                -webkit-animation: sec_poofing1 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing1 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing1 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing1 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(1) .character {\
-                color: #ff5a5f;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 2.33333s;\
-                animation-delay: 2.33333s;\
-        }\
-        \
-        .text.part2 span:nth-child(1) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 2.33333s;\
-                animation-delay: 2.33333s;\
-        }\
-        \
-        .text.part2 span:nth-child(2).poofed {\
-                -webkit-animation: sec_poofing2 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing2 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing2 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing2 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(2) .character {\
-                color: #f99b0c;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 2.66667s;\
-                animation-delay: 2.66667s;\
-        }\
-        \
-        .text.part2 span:nth-child(2) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 2.66667s;\
-                animation-delay: 2.66667s;\
-        }\
-        \
-        .text.part2 span:nth-child(3).poofed {\
-                -webkit-animation: sec_poofing3 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing3 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing3 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing3 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(3) .character {\
-                color: #cee007;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 3s;\
-                animation-delay: 3s;\
-        }\
-        \
-        .text.part2 span:nth-child(3) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 3s;\
-                animation-delay: 3s;\
-        }\
-        \
-        .text.part2 span:nth-child(4).poofed {\
-                -webkit-animation: sec_poofing4 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing4 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing4 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing4 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(4) .character {\
-                color: #00c6b2;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 3.33333s;\
-                animation-delay: 3.33333s;\
-        }\
-        \
-        .text.part2 span:nth-child(4) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 3.33333s;\
-                animation-delay: 3.33333s;\
-        }\
-        \
-        .text.part2 span:nth-child(5).poofed {\
-                -webkit-animation: sec_poofing5 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing5 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing5 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing5 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(5) .character {\
-                color: #4e2a84;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 3.66667s;\
-                animation-delay: 3.66667s;\
-        }\
-        \
-        .text.part2 span:nth-child(5) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 3.66667s;\
-                animation-delay: 3.66667s;\
-        }\
-        \
-        .text.part2 span:nth-child(6).poofed {\
-                -webkit-animation: sec_poofing6 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing6 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing6 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing6 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(6) .character {\
-                color: #9C27B0;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 4s;\
-                animation-delay: 4s;\
-        }\
-        \
-        .text.part2 span:nth-child(6) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 4s;\
-                animation-delay: 4s;\
-        }\
-        \
-        .text.part2 span:nth-child(7).poofed {\
-                -webkit-animation: sec_poofing7 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing7 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing7 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing7 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(7) .character {\
-                color: #f99b0c;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 4.33333s;\
-                animation-delay: 4.33333s;\
-        }\
-        \
-        .text.part2 span:nth-child(7) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 4.33333s;\
-                animation-delay: 4.33333s;\
-        }\
-        \
-        .text.part2 span:nth-child(8).poofed {\
-                -webkit-animation: sec_poofing8 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing8 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing8 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing8 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(8) .character {\
-                color: #cee007;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 4.66667s;\
-                animation-delay: 4.66667s;\
-        }\
-        \
-        .text.part2 span:nth-child(8) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 4.66667s;\
-                animation-delay: 4.66667s;\
-        }\
-        \
-        .text.part2 span:nth-child(9).poofed {\
-                -webkit-animation: sec_poofing9 1.4s ease-in-out infinite alternate;\
-                animation: sec_poofing9 1.4s ease-in-out infinite alternate;\
-        }\
-        \
-        @-webkit-keyframes sec_poofing9 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        @keyframes sec_poofing9 {\
-                0% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\
-                }\
-                50% {\
-                        -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                56% {\
-                        -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\
-                        transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                        transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\
-                }\
-        }\
-        \
-        .text.part2 span:nth-child(9) .character {\
-                color: #00c6b2;\
-                -webkit-animation: wave 1.2s linear infinite;\
-                animation: wave 1.2s linear infinite;\
-                -webkit-animation-delay: 5s;\
-                animation-delay: 5s;\
-        }\
-        \
-        .text.part2 span:nth-child(9) span::before {\
-                -webkit-animation: shadow 1.2s linear infinite;\
-                animation: shadow 1.2s linear infinite;\
-                -webkit-animation-delay: 5s;\
-                animation-delay: 5s;\
-        }\
-        \
-        @-webkit-keyframes wave {\
-                0% {\
-                        -webkit-transform: translateY(0);\
-                        transform: translateY(0);\
-                }\
-                50% {\
-                        -webkit-transform: translateY(-10px);\
-                        transform: translateY(-10px);\
-                }\
-                100% {\
-                        -webkit-transform: translateY(0);\
-                        transform: translateY(0);\
-                }\
-        }\
-        \
-        @keyframes wave {\
-                0% {\
-                        -webkit-transform: translateY(0);\
-                        transform: translateY(0);\
-                }\
-                50% {\
-                        -webkit-transform: translateY(-10px);\
-                        transform: translateY(-10px);\
-                }\
-                100% {\
-                        -webkit-transform: translateY(0);\
-                        transform: translateY(0);\
-                }\
-        }\
-        \
-        @-webkit-keyframes shadow {\
-                0% {\
-                        width: 0;\
-                        height: 0;\
-                }\
-                50% {\
-                        width: 100%;\
-                        height: 100%;\
-                }\
-                100% {\
-                        width: 0;\
-                        height: 0;\
-                }\
-        }\
-        \
-        @keyframes shadow {\
-                0% {\
-                        width: 0;\
-                        height: 0;\
-                }\
-                50% {\
-                        width: 100%;\
-                        height: 100%;\
-                }\
-                100% {\
-                        width: 0;\
-                        height: 0;\
-                }\
-        }\
-        \
-        .how-to {\
-                margin: 2rem 0 2rem 1rem;\
-                font-family: "Opens Sans", sans-serif;\
-                font-weight: 300;\
-                font-size: .85em;\
-                letter-spacing: 4px;\
-                /*color: rgba(0, 0, 0, 0.8);*/\
-                color: rgba(255, 255, 255, 0.8);\
-        }\
-        \
-        @-webkit-keyframes rotate {\
-                0% {\
-                        -webkit-transform: rotateZ(0) scale(0.7);\
-                        transform: rotateZ(0) scale(0.7);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(360deg) scale(0.7);\
-                        transform: rotateZ(360deg) scale(0.7);\
-                }\
-        }\
-        \
-        @keyframes rotate {\
-                0% {\
-                        -webkit-transform: rotateZ(0) scale(0.7);\
-                        transform: rotateZ(0) scale(0.7);\
-                }\
-                100% {\
-                        -webkit-transform: rotateZ(360deg) scale(0.7);\
-                        transform: rotateZ(360deg) scale(0.7);\
-                }\
-        }\
-        \
-        @media only screen and (max-width: 767px) {\
-                .text {\
-                        font-size: 6em;\
-                }\
-                .text .letter span {\
-                        bottom: .5rem;\
-                }\
-        }\
-        \
-        @media only screen and (max-width: 480px) {\
-                .text {\
-                        font-size: 4em;\
-                }\
-                .text .letter span {\
-                        bottom: 0;\
-                }\
-        }\
-        ';
-//-------------------------------------------------------------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------------------------------------------------------------
 var fs_css = '\
-        .fs-wrap {\
-                position: relative;\
-                display: inline-block;\
-                vertical-align: bottom;\
-                width: 200px;\
-                margin: 3px;\
-                font-size: 12px;\
-                line-height: 1\
-        }\
-        .fs-label-wrap {\
-                position: relative;\
-                border: 1px solid #34DEFF;\
-                cursor: default;\
-                color: #66ccff;\
-                border-radius: 4px;\
-                box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075)\
-        }\
-        .fs-label-wrap,\
-        .fs-dropdown {\
-                -webkit-user-select: none;\
-                -moz-user-select: none;\
-                -ms-user-select: none;\
-                user-select: none\
-        }\
-        .fs-label-wrap .fs-label {\
-                padding: 4px 22px 4px 8px;\
-                text-overflow: ellipsis;\
-                white-space: nowrap;\
-                overflow: hidden;\
-                cursor: pointer\
-        }\
-        .fs-arrow {\
-                width: 0;\
-                height: 0;\
-                border-left: 4px solid transparent;\
-                border-right: 4px solid transparent;\
-                border-top: 6px solid #fff;\
-                position: absolute;\
-                top: 0;\
-                right: 4px;\
-                bottom: 0;\
-                margin: auto;\
-                cursor: pointer\
-        }\
-        .fs-dropdown {\
-                position: absolute;\
-                background-color: #3E9AC6;\
-                border: 1px solid #000;\
-                width: 100%;\
-                z-index: 1000;\
-                border-radius: 4px\
-        }\
-        .fs-dropdown .fs-options {\
-                max-height: 200px;\
-                overflow: auto\
-        }\
-        \
-        .fs-search input {\
-                width: 90%;\
-                padding: 2px 4px;\
-                border: 0\
-                outline: 0;\
-        }\
-        .fs-selectAll {\
-                float: right;\
-                cursor: pointer;\
-                margin-top: 4px;\
-                height: auto\
-        }\
-        .fs-selectAll.selected {\
-                float: right;\
-                cursor: pointer;\
-                margin-top: 4px;\
-                height: auto;\
-                color: green\
-        }\
-        .fs-selectAll:hover {\
-                background-color: #35d5ff\
-        }\
-        .fs-option,\
-        .fs-search,\
-        .fs-optgroup-label {\
-                padding: 6px 8px;\
-                border-bottom: 1px solid #eee;\
-                cursor: default\
-        }\
-        .fs-option {cursor: pointer}\
-        .fs-option.hl {\
-                background-color: #f5f5f5\
-        }\
-        .fs-wrap.multiple .fs-option {\
-                position: relative;\
-                padding-left: 30px\
-        }\
-        .fs-wrap.multiple .fs-checkbox {\
-                position: absolute;\
-                display: block;\
-                width: 30px;\
-                top: 0;\
-                left: 0;\
-                bottom: 0\
-        }\
-        .fs-wrap.multiple .fs-option .fs-checkbox i {\
-                position: absolute;\
-                margin: auto;\
-                left: 0;\
-                right: 0;\
-                top: 0;\
-                bottom: 0;\
-                width: 14px;\
-                height: 14px;\
-                border: 1px solid #aeaeae;\
-                border-radius: 4px;\
-                background-color: #fff\
-        }\
-        .fs-wrap.multiple .fs-option.selected .fs-checkbox i {\
-                background-color: #11a911;\
-                border-color: transparent;\
-                background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABMSURBVAiZfc0xDkAAFIPhd2Kr1WRjcAExuIgzGUTIZ/AkImjSofnbNBAfHvzAHjOKNzhiQ42IDFXCDivaaxAJd0xYshT3QqBxqnxeHvhunpu23xnmAAAAAElFTkSuQmCC);\
-                background-repeat: no-repeat;\
-                background-position: center\
-        }\
-        .fs-wrap .fs-option:hover {\
-                background: #48E3FF;\
-                border-radius: 4px;\
-                margin-left: 2px;\
-                margin-right: 2px\
-        }\
-        .fs-optgroup-label {font-weight: 700}\
-        .hidden {display: none}\
-        .fs-options::-webkit-scrollbar {width: 6px}\
-        .fs-options::-webkit-scrollbar-track {\
-                -webkit-border-radius: 2em;\
-                -moz-border-radius: 2em;\
-                border-radius: 2em;\
-                -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
-                background: rgba(0, 0, 0, .1)}\
-        .fs-options::-webkit-scrollbar-thumb {\
-                -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\
-                background: rgba(0, 0, 0, .2);\
-                -webkit-border-radius: 2em;\
-                -moz-border-radius: 2em;\
-                border-radius: 2em\}\
-        ';
-        
-        
-var loadUI_Html = '\
-<div class="text-wrapper">\
-        <div class="text part1">\
-                <div>\
-                        <span class="letter">\
-                                <div class="character">L</div> <span></span>\
-                        </span>\
-                        \
-                        <span class="letter">\
-                                <div class="character">o</div> <span></span>\
-                        </span>\
-                        \
-                        <span class="letter">\
-                                <div class="character">a</div> <span></span>\
-                        </span>\
-                        \
-                        <span class="letter">\
-                                <div class="character">d</div> <span></span>\
-                        </span>\
-                        \
-                        <span class="letter">\
-                                <div class="character">i</div> <span></span>\
-                        </span>\
-                        \
-                        <span class="letter">\
-                                <div class="character">n</div> <span></span>\
-                        </span>\
-                        \
-                        <span class="letter">\
-                                <div class="character">g</div> <span></span>\
-                        </span>\
-                </div>\
-        </div>\
-        <div class="how-to"><span>正在加载资源中，已完成0/10，请您耐心等待...</span></div>\
-</div>\
+.fs-wrap {\n\
+        position: relative;\n\
+        display: inline-block;\n\
+        vertical-align: bottom;\n\
+        width: 200px;\n\
+        margin: 3px;\n\
+        font-size: 12px;\n\
+        line-height: 1\n\
+}\n\
+\n\
+.fs-label-wrap {\n\
+        position: relative;\n\
+        border: 1px solid #34DEFF;\n\
+        cursor: default;\n\
+        color: #66ccff;\n\
+        border-radius: 4px;\n\
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075)\n\
+}\n\
+\n\
+.fs-label-wrap,\n\
+.fs-dropdown {\n\
+        -webkit-user-select: none;\n\
+        -moz-user-select: none;\n\
+        -ms-user-select: none;\n\
+        user-select: none\n\
+}\n\
+\n\
+.fs-label-wrap .fs-label {\n\
+        padding: 4px 22px 4px 8px;\n\
+        text-overflow: ellipsis;\n\
+        white-space: nowrap;\n\
+        overflow: hidden;\n\
+        cursor: pointer\n\
+}\n\
+\n\
+.fs-arrow {\n\
+        width: 0;\n\
+        height: 0;\n\
+        border-left: 4px solid transparent;\n\
+        border-right: 4px solid transparent;\n\
+        border-top: 6px solid #fff;\n\
+        position: absolute;\n\
+        top: 0;\n\
+        right: 4px;\n\
+        bottom: 0;\n\
+        margin: auto;\n\
+        cursor: pointer\n\
+}\n\
+\n\
+.fs-dropdown {\n\
+        position: absolute;\n\
+        background-color: #3E9AC6;\n\
+        border: 1px solid #000;\n\
+        width: 100%;\n\
+        z-index: 1000;\n\
+        border-radius: 4px\n\
+}\n\
+\n\
+.fs-dropdown .fs-options {\n\
+        max-height: 200px;\n\
+        overflow: auto\n\
+}\n\
+\n\
+.fs-search input {\n\
+        width: 90%;\n\
+        padding: 2px 4px;\n\
+        border: 0\n\
+        outline: 0;\n\
+}\n\
+\n\
+.fs-selectAll {\n\
+        float: right;\n\
+        cursor: pointer;\n\
+        margin-top: 4px;\n\
+        height: auto\n\
+}\n\
+\n\
+.fs-selectAll.selected {\n\
+        float: right;\n\
+        cursor: pointer;\n\
+        margin-top: 4px;\n\
+        height: auto;\n\
+        color: green\n\
+}\n\
+\n\
+.fs-selectAll:hover {\n\
+        background-color: #35d5ff\n\
+}\n\
+\n\
+.fs-option,\n\
+.fs-search,\n\
+.fs-optgroup-label {\n\
+        padding: 6px 8px;\n\
+        border-bottom: 1px solid #eee;\n\
+        cursor: default\n\
+}\n\
+\n\
+.fs-option {cursor: pointer}\n\
+.fs-option.hl {\n\
+        background-color: #f5f5f5\n\
+}\n\
+\n\
+.fs-wrap.multiple .fs-option {\n\
+        position: relative;\n\
+        padding-left: 30px\n\
+}\n\
+\n\
+.fs-wrap.multiple .fs-checkbox {\n\
+        position: absolute;\n\
+        display: block;\n\
+        width: 30px;\n\
+        top: 0;\n\
+        left: 0;\n\
+        bottom: 0\n\
+}\n\
+\n\
+.fs-wrap.multiple .fs-option .fs-checkbox i {\n\
+        position: absolute;\n\
+        margin: auto;\n\
+        left: 0;\n\
+        right: 0;\n\
+        top: 0;\n\
+        bottom: 0;\n\
+        width: 14px;\n\
+        height: 14px;\n\
+        border: 1px solid #aeaeae;\n\
+        border-radius: 4px;\n\
+        background-color: #fff\n\
+}\n\
+\n\
+.fs-wrap.multiple .fs-option.selected .fs-checkbox i {\n\
+        background-color: #11a911;\n\
+        border-color: transparent;\n\
+        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABMSURBVAiZfc0xDkAAFIPhd2Kr1WRjcAExuIgzGUTIZ/AkImjSofnbNBAfHvzAHjOKNzhiQ42IDFXCDivaaxAJd0xYshT3QqBxqnxeHvhunpu23xnmAAAAAElFTkSuQmCC);\n\
+        background-repeat: no-repeat;\n\
+        background-position: center\n\
+}\n\
+\n\
+.fs-wrap .fs-option:hover {\n\
+        background: #48E3FF;\n\
+        border-radius: 4px;\n\
+        margin-left: 2px;\n\
+        margin-right: 2px\n\
+}\n\
+\n\
+.fs-optgroup-label {font-weight: 700}\n\
+\n\
+.hidden {display: none}\n\
+\n\
+.fs-options::-webkit-scrollbar {width: 6px}\n\
+\n\
+.fs-options::-webkit-scrollbar-track {\n\
+        -webkit-border-radius: 2em;\n\
+        -moz-border-radius: 2em;\n\
+        border-radius: 2em;\n\
+        -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\n\
+        background: rgba(0, 0, 0, .1)\n\
+}\n\
+\n\
+.fs-options::-webkit-scrollbar-thumb {\n\
+        -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, .2);\n\
+        background: rgba(0, 0, 0, .2);\n\
+        -webkit-border-radius: 2em;\n\
+        -moz-border-radius: 2em;\n\
+        border-radius: 2em\n\
+}\n\
 ';
 
-var mainUI_template = '\
-<script type="text/html" id="switchTpl">\
-        <!-- 这里的 checked 的状态只是演示 -->\
-        <input type="checkbox" name="front" value="{{d.id}}" lay-skin="switch" lay-text="是|否" lay-filter="frontDemo" {{ d.id == 10003 ? \'checked\' : \'\' }}>\
-</script>\
-\
-<script type="text/html" id="checkboxTpl">\
-        <!-- 这里的 checked 的状态只是演示 -->\
-        <input type="checkbox" name="lock" value="{{d.id}}" title="锁定" lay-filter="lockDemo" {{ d.id == 10006 ? \'checked\' : \'\' }}>\
-</script>\
+var loadUI_css = '\
+position: absolute;\n\
+left: 0; right: 0; top: 0;\n\
+z-index: 10;\n\
+background: url(https://steamcommunity-a.akamaihd.net/public/images/friends/colored_body_top2.png?v=2) center top no-repeat #1b2838;\n\
+';
+
+var load_cssCode = '\
+@charset "utf-8";\n\
+@import url("https://fonts.googleapis.com/css?family=Fredoka+One|Open+Sans:300");\n\
+*,\n\
+*::before,\n\
+*::after {\n\
+        box-sizing: border-box;\n\
+}\n\
+\n\
+body {\n\
+        font-family: "Fredoka One", cursive;\n\
+        font-size: 16px;\n\
+        margin: 0px;\n\
+}\n\
+\n\
+#loadingUI {\n\
+        display: -webkit-box;\n\
+        display: -ms-flexbox;\n\
+        display: flex;\n\
+        -webkit-box-pack: center;\n\
+        -ms-flex-pack: center;\n\
+        justify-content: center;\n\
+        -webkit-box-align: center;\n\
+        -ms-flex-align: center;\n\
+        align-items: center;\n\
+        min-height: 100vh;\n\
+        /* background: rgba(249, 249, 249, 0.9); */\n\
+        overflow: hidden;\n\
+}\n\
+\n\
+.text-wrapper {\n\
+        padding: 0 1rem;\n\
+        max-width: 50rem;\n\
+        width: 100%;\n\
+        text-align: center;\n\
+}\n\
+\n\
+.text {\n\
+        font-size: 8em;\n\
+        text-transform: uppercase;\n\
+        letter-spacing: -14px;\n\
+}\n\
+\n\
+.text .letter {\n\
+        position: relative;\n\
+        display: inline-block;\n\
+        -webkit-transition: all .4s;\n\
+        transition: all .4s;\n\
+}\n\
+\n\
+.text .letter .character {\n\
+        opacity: 0.65;\n\
+        -webkit-transition: color .4s;\n\
+        transition: color .4s;\n\
+        cursor: pointer;\n\
+}\n\
+\n\
+.text .letter span {\n\
+        position: absolute;\n\
+        bottom: .8rem;\n\
+        left: .4rem;\n\
+        display: block;\n\
+        width: 100%;\n\
+        height: 15px;\n\
+}\n\
+\n\
+.text .letter span::before {\n\
+        content: "";\n\
+        position: absolute;\n\
+        top: 50%;\n\
+        left: 50%;\n\
+        width: 0;\n\
+        height: 0;\n\
+        -webkit-transform: translate(-50%, -50%);\n\
+        transform: translate(-50%, -50%);\n\
+        border-radius: 50%;\n\
+        background: rgba(0, 0, 0, 0.25);\n\
+}\n\
+\n\
+.text .letter:hover .character {\n\
+        color: #fff !important;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(1).poofed {\n\
+        -webkit-transform-origin: 50% 50%;\n\
+        transform-origin: 50% 50%;\n\
+        -webkit-animation: poofing1 1.4s ease-i\n-out infinite alternate;\n\
+        animation: poofing1 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes poofing1 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes poofing1 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(459deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(459deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(1) .character {\n\
+        color: #f44336;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 0.33333s;\n\
+        animation-delay: 0.33333s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(1) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 0.33333s;\n\
+        animation-delay: 0.33333s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(2).poofed {\n\
+        -webkit-transform-origin: 50% 50%;\n\
+        transform-origin: 50% 50%;\n\
+        -webkit-animation: poofing2 1.4s ease-in-out infinite alternate;\n\
+        animation: poofing2 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes poofing2 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes poofing2 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(540deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(540deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(2) .character {\n\
+        color: #9C27B0;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 0.66667s;\n\
+        animation-delay: 0.66667s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(2) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 0.66667s;\n\
+        animation-delay: 0.66667s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(3).poofed {\n\
+        -webkit-transform-origin: 50% 50%;\n\
+        transform-origin: 50% 50%;\n\
+        -webkit-animation: poofing3 1.4s ease-in-out infinite alternate;\n\
+        animation: poofing3 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes poofing3 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes poofing3 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(264deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(264deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(3) .character {\n\
+        color: #f99b0c;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 1s;\n\
+        animation-delay: 1s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(3) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 1s;\n\
+        animation-delay: 1s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(4).poofed {\n\
+        -webkit-transform-origin: 50% 50%;\n\
+        transform-origin: 50% 50%;\n\
+        -webkit-animation: poofing4 1.4s ease-in-out infinite alternate;\n\
+        animation: poofing4 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes poofing4 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes poofing4 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(42deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(42deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(4) .character {\n\
+        color: #cee007;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 1.33333s;\n\
+        animation-delay: 1.33333s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(4) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 1.33333s;\n\
+        animation-delay: 1.33333s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(5).poofed {\n\
+        -webkit-transform-origin: 50% 50%;\n\
+        transform-origin: 50% 50%;\n\
+        -webkit-animation: poofing5 1.4s ease-in-out infinite alternate;\n\
+        animation: poofing5 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes poofing5 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes poofing5 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(384deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(384deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(5) .character {\n\
+        color: #00c6b2;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 1.66667s\n\
+        animation-delay: 1.66667s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(5) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 1.66667s;\n\
+        animation-delay: 1.66667s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(6).poofed {\n\
+        -webkit-transform-origin: 50% 50%;\n\
+        transform-origin: 50% 50%;\n\
+        -webkit-animation: poofing6 1.4s ease-in-out infinite alternate;\n\
+        animation: poofing6 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes poofing6 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes poofing6 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(6) .character {\n\
+        color: #f44336;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2s;\n\
+        animation-delay: 2s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(6) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2s;\n\
+        animation-delay: 2s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(7).poofed {\n\
+        -webkit-transform-origin: 50% 50%;\n\
+        transform-origin: 50% 50%;\n\
+        -webkit-animation: poofing7 1.4s ease-in-out infinite alternate;\n\
+        animation: poofing7 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes poofing7 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes poofing7 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(156deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(7) .character {\n\
+        color: #4CAF50;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2s;\n\
+        animation-delay: 2.5s;\n\
+}\n\
+\n\
+.text.part1 .letter:nth-child(7) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2s;\n\
+        animation-delay: 3s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(1).poofed {\n\
+        -webkit-animation: sec_poofing1 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing1 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing1 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing1 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(268deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(268deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(1) .character {\n\
+        color: #ff5a5f;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2.33333s;\n\
+        animation-delay: 2.33333s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(1) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2.33333s;\n\
+        animation-delay: 2.33333s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(2).poofed {\n\
+        -webkit-animation: sec_poofing2 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing2 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing2 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing2 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(135deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(135deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(2) .character {\n\
+        color: #f99b0c;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2.66667s;\n\
+        animation-delay: 2.66667s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(2) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 2.66667s;\n\
+        animation-delay: 2.66667s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(3).poofed {\n\
+        -webkit-animation: sec_poofing3 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing3 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing3 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing3 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(442deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(442deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(3) .character {\n\
+        color: #cee007;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 3s;\n\
+        animation-delay: 3s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(3) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 3s;\n\
+        animation-delay: 3s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(4).poofed {\n\
+        -webkit-animation: sec_poofing4 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing4 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing4 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing4 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(525deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(525deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(4) .character {\n\
+        color: #00c6b2;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 3.33333s;\n\
+        animation-delay: 3.33333s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(4) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 3.33333s;\n\
+        animation-delay: 3.33333s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(5).poofed {\n\
+        -webkit-animation: sec_poofing5 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing5 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing5 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing5 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(419deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(419deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(5) .character {\n\
+        color: #4e2a84;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 3.66667s;\n\
+        animation-delay: 3.66667s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(5) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 3.66667s;\n\
+        animation-delay: 3.66667s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(6).poofed {\n\
+        -webkit-animation: sec_poofing6 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing6 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing6 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing6 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(246deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(246deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(6) .character {\n\
+        color: #9C27B0;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 4s;\n\
+        animation-delay: 4s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(6) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 4s;\n\
+        animation-delay: 4s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(7).poofed {\n\
+        -webkit-animation: sec_poofing7 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing7 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing7 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing7 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(206deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(206deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(7) .character {\n\
+        color: #f99b0c;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 4.33333s;\n\
+        animation-delay: 4.33333s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(7) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 4.33333s;\n\
+        animation-delay: 4.33333s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(8).poofed {\n\
+        -webkit-animation: sec_poofing8 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing8 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing8 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing8 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(60deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(60deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(8) .character {\n\
+        color: #cee007;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 4.66667s;\n\
+        animation-delay: 4.66667s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(8) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 4.66667s;\n\
+        animation-delay: 4.66667s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(9).poofed {\n\
+        -webkit-animation: sec_poofing9 1.4s ease-in-out infinite alternate;\n\
+        animation: sec_poofing9 1.4s ease-in-out infinite alternate;\n\
+}\n\
+\n\
+@-webkit-keyframes sec_poofing9 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+@keyframes sec_poofing9 {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(0) translateY(0px) scale(1);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(0deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        56% {\n\
+                -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\n\
+                transform: rotateZ(496deg) rotateY(360deg) translateY(0px) scale(1);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+                transform: rotateZ(496deg) rotateY(360deg) translateY(-700px) scale(0.01);\n\
+        }\n\
+}\n\
+\n\
+.text.part2 span:nth-child(9) .character {\n\
+        color: #00c6b2;\n\
+        -webkit-animation: wave 1.2s linear infinite;\n\
+        animation: wave 1.2s linear infinite;\n\
+        -webkit-animation-delay: 5s;\n\
+        animation-delay: 5s;\n\
+}\n\
+\n\
+.text.part2 span:nth-child(9) span::before {\n\
+        -webkit-animation: shadow 1.2s linear infinite;\n\
+        animation: shadow 1.2s linear infinite;\n\
+        -webkit-animation-delay: 5s;\n\
+        animation-delay: 5s;\n\
+}\n\
+\n\
+@-webkit-keyframes wave {\n\
+        0% {\n\
+                -webkit-transform: translateY(0);\n\
+                transform: translateY(0);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: translateY(-10px);\n\
+                transform: translateY(-10px);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: translateY(0);\n\
+                transform: translateY(0);\n\
+        }\n\
+}\n\
+\n\
+@keyframes wave {\n\
+        0% {\n\
+                -webkit-transform: translateY(0);\n\
+                transform: translateY(0);\n\
+        }\n\
+        50% {\n\
+                -webkit-transform: translateY(-10px);\n\
+                transform: translateY(-10px);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: translateY(0);\n\
+                transform: translateY(0);\n\
+        }\n\
+}\n\
+\n\
+@-webkit-keyframes shadow {\n\
+        0% {\n\
+                width: 0;\n\
+                height: 0;\n\
+        }\n\
+        50% {\n\
+                width: 100%;\n\
+                height: 100%;\n\
+        }\n\
+        100% {\n\
+                width: 0;\n\
+                height: 0;\n\
+        }\n\
+}\n\
+\n\
+@keyframes shadow {\n\
+        0% {\n\
+                width: 0;\n\
+                height: 0;\n\
+        }\n\
+        50% {\n\
+                width: 100%;\n\
+                height: 100%;\n\
+        }\n\
+        100% {\n\
+                width: 0;\n\
+                height: 0;\n\
+        }\n\
+}\n\
+\n\
+.how-to {\n\
+        margin: 2rem 0 2rem 1rem;\n\
+        font-family: "Opens Sans", sans-serif;\n\
+        font-weight: 300;\n\
+        font-size: .85em;\n\
+        letter-spacing: 4px;\n\
+        /*color: rgba(0, 0, 0, 0.8);*/\n\
+        color: rgba(255, 255, 255, 0.8);\n\
+}\n\
+\n\
+@-webkit-keyframes rotate {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0) scale(0.7);\n\
+                transform: rotateZ(0) scale(0.7);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(360deg) scale(0.7);\n\
+                transform: rotateZ(360deg) scale(0.7);\n\
+        }\n\
+}\n\
+\n\
+@keyframes rotate {\n\
+        0% {\n\
+                -webkit-transform: rotateZ(0) scale(0.7);\n\
+                transform: rotateZ(0) scale(0.7);\n\
+        }\n\
+        100% {\n\
+                -webkit-transform: rotateZ(360deg) scale(0.7);\n\
+                transform: rotateZ(360deg) scale(0.7);\n\
+        }\n\
+}\n\
+\n\
+@media only screen and (max-width: 767px) {\n\
+        .text {\n\
+                font-size: 6em;\n\
+        }\n\
+        .text .letter span {\n\
+                bottom: .5rem;\n\
+        }\n\
+}\n\
+\n\
+@media only screen and (max-width: 480px) {\n\
+        .text {\n\
+                font-size: 4em;\n\
+        }\n\
+        .text .letter span {\n\
+                bottom: 0;\n\
+        }\n\
+}\n\
+';
+
+var ExpandUI_QuickNavigationBar_html = '\
+/*拓展UI-快捷导航栏的html代码*/\n\
+<div style="position: fixed;top: 30%;right: 0;">\n\
+        <div class="layui-input-block" style="margin-left:0; text-align: center;min-height:0;padding: 2px 0px;background: #282B33;">快捷导航栏</div>\n\
+        \n\
+        <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="demo" style="margin-right: 10px;">\n\
+                <li class="layui-nav-item layui-nav-itemed">\n\
+                        <a href="javascript:;">好友分组</a>\n\
+                        <dl class="layui-nav-child">\n\
+                                <dd><a href="javascript:;">选项一</a></dd>\n\
+                                <dd><a href="javascript:;">选项二</a></dd>\n\
+                                <dd><a href="javascript:;">选项三</a></dd>\n\
+                                <dd><a href="">跳转项</a></dd>\n\
+                        </dl>\n\
+                </li>\n\
+                \n\
+                <li class="layui-nav-item">\n\
+                        <a href="javascript:;">功能模块</a>\n\
+                        <dl class="layui-nav-child">\n\
+                                <dd><a href="javascript:;">选项一</a></dd>\n\
+                                <dd><a href="javascript:;">选项二</a></dd>\n\
+                                <dd><a href="javascript:;">选项三</a></dd>\n\
+                                <dd><a href="">跳转项</a></dd>\n\
+                        </dl>\n\
+                </li>\n\
+                \n\
+                <li class="layui-nav-item">\n\
+                        <a href="javascript:;">其他</a>\n\
+                        <dl class="layui-nav-child">\n\
+                                <dd><a href="javascript:;">返回顶部</a></dd>\n\
+                                <dd><a href="javascript:;">返回底部</a></dd>\n\
+                                <dd><a href="javascript:;">选项三</a></dd>\n\
+                                <dd><a href="">跳转项</a></dd>\n\
+                        </dl>\n\
+                </li>\n\
+                \n\
+                <li class="layui-nav-item">\n\
+                        <a href="javascript:;">解决方案</a>\n\
+                        <dl class="layui-nav-child">\n\
+                                <dd><a href="">移动模块</a></dd>\n\
+                                <dd><a href="">后台模版</a></dd>\n\
+                                <dd><a href="">电商平台</a></dd>\n\
+                        </dl>\n\
+                </li>\n\
+                \n\
+                <li class="layui-nav-item"><a href="">云市场</a></li>\n\
+                <li class="layui-nav-item"><a href="">社区</a></li>\n\
+        </ul>\n\
+</div>\n\
+';
+
+var groupUI_html = '\
+<div class="layui-tab layui-tab-brief" lay-filter="demo">\n\
+        <ul class="layui-tab-title" style="color: #ebebeb;">\n\
+                <li class="layui-this">组留言</li>\n\
+                <li>留言设置</li>\n\
+                <li>数据分析</li>\n\
+                <li>动态助手</li>\n\
+                <li>拓展功能(测试)</li>\n\
+                <li>设置</li>\n\
+        </ul>\n\
+        <div class="layui-tab-content">\n\
+        <div class="layui-tab-item layui-show" style="color: #ebebeb;">\n\
+        <!----------------------------------------------------------------------------------------------------------------->\n\
+          <div class="commentthread_entry">\n\
+                        <div class="commentthread_entry_quotebox">\n\
+                                <!--<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>-->\n\
+                                <textarea class="commentthread_textarea" id="comment_textarea" onfocus="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\n\
+                        </div>\n\
+                        \n\
+                        <form class="layui-form" action="" lay-filter="example">\n\
+                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\n\
+                                <div class="layui-inline">\n\
+                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\n\
+                                        <div class="layui-input-inline">\n\
+                                                <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\n\
+                                                        <option value="">直接选择或搜索选择</option>\n\
+                                                        <option value="1">[h1] 标题文字 [/h1]</option>\n\
+                                                        <option value="2">[b] 粗体文本 [/b]</option>\n\
+                                                        <option value="3">[u] 下划线文本 [/u]</option>\n\
+                                                        <option value="4">[i] 斜体文本 [/i]</option>\n\
+                                                        <option value="5">[strike] 删除文本 [/strike]</option>\n\
+                                                        <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\n\
+                                                        <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\n\
+                                                        <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\n\
+                                                </select>\n\
+                                        </div>\n\
+                                        <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\n\
+                                </div>\n\
+                        </form>\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>翻译模块(需要提前设置国籍):</legend>\n\
+                        </fieldset>\n\
+                        <div id="translationOptions" style="color:#fff;">\n\
+                                <span>当前语言: \n\
+                                        <select id="origLanguageSelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\n\
+                                                <option name="auto" value="auto" style="color:#fff;background-color: #3E9AC6;">自动检测</option>\n\
+                                                <option name="zhc" value="zh-CN" style="color:#fff;background-color: #3E9AC6;">中文简体</option>\n\
+                                                <option name="en" value="en" style="color:#fff;background-color: #3E9AC6;">英语</option>\n\
+                                                <option name="jp" value="ja" style="color:#fff;background-color: #3E9AC6;">日语</option>\n\
+                                        </select>\n\
+                                </span>\n\
+                                \n\
+                                <span style="margin-left: 5px;">目标语言: \n\
+                                        <select id="selectBoxID" class="selectBox" multiple="multiple">\n\
+                                                <option value="en">英语</option>\n\
+                                                <option value="ja">日语</option>\n\
+                                                <option value="zh-CN">中文简体</option>\n\
+                                                <option value="zh-sg">马新简体[zh-sg]</option>\n\
+                                                <option value="zh-hant">繁體中文[zh-hant]</option>\n\
+                                                <option value="zh-hk">繁體中文(香港)[zh-hk]</option>\n\
+                                                <option value="zh-mo">繁體中文(澳门)[zh-mo]</option>\n\
+                                                <option value="zh-tw">繁體中文(台湾)[zh-tw]</option>\n\
+                                        </select>\n\
+                                </span>\n\
+                                \n\
+                                <span style="margin-left: 5px;vertical-align: middle;">\n\
+                                        <button id="translationText">翻译</button>\n\
+                                </span>\n\
+                        </div>\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>添加称呼模块(需要提前设置备注):</legend>\n\
+                        </fieldset>\n\
+                        <div class="commentthread_entry_submitlink" style="">\n\
+                                <span class="isCustom" style="display: block;text-align: left;">\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式 (默认为{name}, 可以自行修改, 称呼为组名称<待完善>)</span>\n\
+                                        <input class="nameAddType" id="select_isCustom_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
+                                        <span style="margin-left: 5px;vertical-align: middle;">\n\
+                                                <button id="addCustomName">在留言框添加自定义称呼标识符</button>\n\
+                                        </span>\n\
+                                </span>\n\
+                                \n\
+                                <span class="isName" style="display: block;text-align: left;">\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为留言添加称呼 (称呼为组名称<待完善>)</span>\n\
+                                        <input class="nameAddType" id="select_islName_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
+                                </span>\n\
+                                \n\
+                                <span class="isSpecialName" style="display: block;text-align: left;">\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为留言添加称呼 (称呼为组名称<待完善>)</span>\n\
+                                        <input class="nameAddType" id="select_isSpecialName_checkbox" name="nameAddType"  type="radio" style="vertical-align: middle;margin:2px;">\n\
+                                </span>\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title" style="padding: 10px 0px;">\n\
+                                <span style="display: block;text-align: right;">\n\
+                                        <a class="btn_grey_black btn_small_thin" href="javascript:CCommentThread.FormattingHelpPopup( \'Profile\' );">\n\
+                                                <span class="btn_grey_black btn_small_thin_text">格式化帮助</span>\n\
+                                        </a>\n\
+                                        \n\
+                                        <span class="emoticon_container">\n\
+                                                <span class="emoticon_button small" id="emoticonbtn"></span>\n\
+                                        </span>\n\
+                                        \n\
+                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit">\n\
+                                                <span id="comment_submit_text">发送评论给选择的组</span>\n\
+                                        </span>\n\
+                                        \n\
+                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit_special">\n\
+                                                <span id="comment_submit_special_text">根据国籍发送评论给选择的组</span>\n\
+                                        </span>\n\
+                                </span>\n\
+                        </div>\n\
+                </div>\n\
+                <div id="log">\n\
+                        <span id="log_head"></span>\n\
+                        <span id="log_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\n\
+                </div>\n\
+                <!----------------------------------------------------------------------------------------------------------------->\n\
+          \n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+                <div style="text-align: left;margin: 5px 0px;">\n\
+                        <span style="margin-left: 5px;vertical-align: middle;">\n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>设置国籍:</legend>\n\
+                                </fieldset>\n\
+                                <div style="color: #67c1f5;">请选择要设置的国籍:</div>\n\
+                                <select id="nationalitySelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\n\
+                                        <option name="CN" value="CN" style="color:#fff;background-color: #3E9AC6;">简体中文</option>\n\
+                                        <option name="EN" value="EN" style="color:#fff;background-color: #3E9AC6;">英语</option>\n\
+                                        <option name="JP" value="JP" style="color:#fff;background-color: #3E9AC6;">日语</option>\n\
+                                        <option name="CN-SG" value="CN-SG" style="color:#fff;background-color: #3E9AC6;">马新简体(马来西亚,新加坡)[zh-sg]</option>\n\
+                                        <option name="CN-HANT" value="CN-HANT" style="color:#fff;background-color: #3E9AC6;">繁體中文[zh-hant]</option>\n\
+                                        <option name="CN-HK" value="CN-HK" style="color:#fff;background-color: #3E9AC6;">繁體中文(香港)[zh-hk]</option>\n\
+                                        <option name="CN-MO" value="CN-MO" style="color:#fff;background-color: #3E9AC6;">繁體中文(澳门)[zh-mo]</option>\n\
+                                        <option name="CN-TW" value="CN-TW" style="color:#fff;background-color: #3E9AC6;">繁體中文(台湾)[zh-tw]</option>\n\
+                                </select>\n\
+                                <button id="setNationality">为选择的组设置国籍标识</button>\n\
+                        </span>\n\
+                        <span style="margin-left: 5px;vertical-align: top;">\n\
+                                <button id="unsetNationality">为选择的组取消国籍标识</button>\n\
+                        </span>\n\
+                        <br />\n\
+                         <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>设置不留言:</legend>\n\
+                         </fieldset>\n\
+                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
+                                <span>\n\
+                                        <button id="setNoLeave">为选择的组设置不留言</button>\n\
+                                </span>\n\
+                                <span>\n\
+                                        <button id="unsetNoLeave">为选择的组取消设置不留言</button>\n\
+                                </span>\n\
+                        </div>\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>设置留言时间间隔:</legend>\n\
+                        </fieldset>\n\
+                        <div id="">只选择日期则过n天后再留言，只选择时间则过x时后再留言(严格模式)，日期和时间都选择了则过n天x时后再留言(严格模式)</div>\n\
+                        <div id="">这里其实是一个时间差，比如指定的组3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\n\
+                        <div class="layui-form">\n\
+                          <div class="layui-form-item">\n\
+                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\n\
+                                  <label class="layui-form-label">请选择留言</label> <!--这个是被点击对象，隐藏、不占空间、触发事件-->\n\
+                                  <div class="layui-input-inline">\n\
+                                        <input type="text" class="layui-input" id="test-limit2" readonly="" placeholder="yyyy-MM-dd">\n\
+                                  </div>\n\
+                                </div>\n\
+                                <div class="layui-inline" style="position: relative;z-index: -1;">\n\
+                                  <label class="layui-form-label">留言日期差</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\n\
+                                  <div class="layui-input-inline">\n\
+                                        <input type="text" class="layui-input" id="test-limit1" readonly="" placeholder="yyyy-MM-dd">\n\
+                                  </div>\n\
+                                </div>\n\
+                                \n\
+                          </div>\n\
+                        </div>\n\
+                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
+                                <span>\n\
+                                        <button id="setTimeInterval">为选择的组设置留言时间间隔</button>\n\
+                                </span>\n\
+                                <span>\n\
+                                        <button id="unsetTimeInterval">为选择的组取消设置留言时间间隔</button>\n\
+                                </span>\n\
+                        </div>\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置自动留言计划:</legend>\n\
+                        </fieldset>\n\
+                        <div class="layui-form">\n\
+                          <div class="layui-form-item">\n\
+                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\n\
+                                        <label class="layui-form-label">请选择时间</label>  <!--这个是被点击对象，隐藏、不占空间、触发事件-->\n\
+                                        <div class="layui-input-inline">\n\
+                                                <input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\n\
+                                        </div>\n\
+                                </div>\n\
+                                <div class="layui-inline" style="position: relative;z-index: -1;">\n\
+                                        <label class="layui-form-label">请选择时间</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\n\
+                                        <div class="layui-input-inline">\n\
+                                                <input type="text" class="layui-input" id="test15" placeholder="H时m分s秒">\n\
+                                        </div>\n\
+                                </div>\n\
+                          </div>\n\
+                        </div>\n\
+                        \n\
+                        <table class="layui-hide" id="test" lay-filter="test"></table> <!-- 数据表格 -->\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>设置组分组:</legend>\n\
+                        </fieldset>\n\
+                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
+                        \n\
+                        <form class="layui-form" action="">\n\
+                          <div class="layui-form-item">\n\
+                                <div class="layui-inline">\n\
+                                  <label class="layui-form-label">分组列表</label>\n\
+                                  <div class="layui-input-inline">\n\
+                                        <select name="modules" lay-verify="required" lay-search="">\n\
+                                          <option value="">直接选择或搜索选择</option>\n\
+                                          <option value="1">分组名称</option>\n\
+                                          <option value="2">分组名称</option>\n\
+                                          <option value="3">分组名称</option>\n\
+                                          <option value="4">分组名称</option>\n\
+                                          <option value="5">分组名称</option>\n\
+                                          <option value="6">分组名称</option>\n\
+                                          <option value="7">分组名称</option>\n\
+                                          <option value="8">分组名称</option>\n\
+                                          <option value="9">分组名称</option>\n\
+                                        </select>\n\
+                                  </div>\n\
+                                  <button type="button" class="layui-btn" id="editFriendGroup">编辑列表</button>\n\
+                                </div>\n\
+                          </div>\n\
+                        </form>\n\
+                        \n\
+                                <span>\n\
+                                        <button id="addFriendToGroup">为选择的组添加分组</button>\n\
+                                </span>\n\
+                                <span>\n\
+                                        <button id="unaddFriendToGroup">为选择的组取消添加分组</button>\n\
+                                </span>\n\
+                                \n\
+                                <div class="layui-collapse" lay-filter="test">\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户<br>用户\n\
+                                          </p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户\n\
+                                          <br><br>\n\
+                                          用户</p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户</p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                </div>\n\
+                                \n\
+                        </div>\n\
+                </div>\n\
+          <div id="laydateDemo"></div>\n\
+          <div id="log1">\n\
+                <span id="log_head1"></span>\n\
+                <span id="log_body1" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\n\
+          </div>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+          \n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="NationalityGroup">按国籍进行高亮分组</button>\n\
+          </span>\n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="NationalitySortGroup">按国籍进行排序分组(慢)</button>\n\
+          </span>\n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="OfflineTimeGroup">按在线时间进行排序分组</button>\n\
+          </span>\n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="ShowFriendData">显示组详细数据(不可用)</button>\n\
+          </span>\n\
+          <div class="layui-tab" lay-filter="test1">\n\
+                <ul class="layui-tab-title">\n\
+                  <li class="layui-this" lay-id="11" style="color:#ebebeb;">组数据统计</li>\n\
+                  <li lay-id="22" style="color:#ebebeb;">留言数据统计</li>\n\
+                  <li lay-id="33" style="color:#ebebeb;">关系网统计</li>\n\
+                  <li lay-id="44" style="color:#ebebeb;">当前配置统计</li>\n\
+                  <li lay-id="55" style="color:#ebebeb;">查看组配置统计</li>\n\
+                </ul>\n\
+                <div class="layui-tab-content">\n\
+                        <div class="layui-tab-item layui-show">\n\
+                                分为:\n\
+                                数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\n\
+                                <table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\n\
+                                <div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                分为:\n\
+                                按国籍的饼图(总留言数量)\n\
+                                按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\n\
+                                数据表格(汇总所有的数据)\n\
+                                <div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                好友关系网(仅统计共同好友)\n\
+                                <div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                当前的配置数据和运行状态\n\
+                                <div id="container_currConfStatistics"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\n\
+                                <div id="container_friConfStatistics"></div>\n\
+                        </div>\n\
+                  </div>\n\
+          </div>\n\
+          \n\
+          <div id="pageDemo"></div>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+          <fieldset class="layui-elem-field">\n\
+                <legend>动态点赞助手</legend>\n\
+                         <form class="layui-form" action="" lay-filter="example">\n\
+                                 <div class="layui-form-item" pane="">\n\
+                                        <label class="layui-form-label">总开关</label>\n\
+                                        <div class="layui-input-block">\n\
+                                                <!-- checked="" -->\n\
+                                          <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest" title="开关" lay-text="开启|关闭" id="friendActivitySwitch">\n\
+                                        </div>\n\
+                                  </div>\n\
+                          </form>\n\
+                <div class="layui-field-box">\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置点赞内容:</legend>\n\
+                        </fieldset>\n\
+                        <form class="layui-form" action="">\n\
+                                <div class="layui-form-item">\n\
+                                        <label class="layui-form-label">点赞内容:</label>\n\
+                                        <div class="layui-row">\n\
+                                           <div class="layui-input-block">\n\
+                                                         <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                                  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友购买了游戏或者DLC" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[4]" lay-skin="primary" title="组发布了通知" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[5]" lay-skin="primary" title="组发布了活动" checked=""><br>\n\
+                                                         </div>\n\
+                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                                  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\n\
+                                                        </div>\n\
+                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                                  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[12]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[13]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[14]" lay-skin="primary" title="朋友收藏了载图" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[15]" lay-skin="primary" title="朋友收藏了视频" checked=""><br>\n\
+                                                        </div>\n\
+                                           </div>\n\
+                                          </div>\n\
+                                  </div>\n\
+                         </form>\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置自动点赞模式:</legend>\n\
+                        </fieldset>\n\
+                        <form class="layui-form" action="">\n\
+                                <div class="layui-form-item">\n\
+                                        <label class="layui-form-label">点赞模式:</label>\n\
+                                        <div class="layui-input-block">\n\
+                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="运行后自动开始点赞" checked=""><br>\n\
+                                          <input type="checkbox" name="like[2]" lay-skin="primary" title="点赞完成后自动刷新并点赞新动态时间间隔" checked=""><br>\n\
+                                        </div>\n\
+                                  </div>\n\
+                         </form>\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置自动点赞时间区间(默认今天~之前所有的动态内容)</legend>\n\
+                        </fieldset>\n\
+                        <div class="layui-form">\n\
+                          <div class="layui-form-item">\n\
+                                        <div class="layui-inline">\n\
+                                          <label class="layui-form-label">请选择范围</label>\n\
+                                          <div class="layui-input-inline">\n\
+                                                <input type="text" class="layui-input" id="test-limit3" readonly="" placeholder=" ~ "> <!--placeholder="yyyy-MM-dd"-->\n\
+                                          </div>\n\
+                                        </div>\n\
+                          </div>\n\
+                        </div>\n\
+                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">\n\
+                          <legend style="color:#66ccff;">点赞进度时间线</legend>\n\
+                        </fieldset>\n\
+                        <ul class="layui-timeline">\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\n\
+                                  <p style="color:#fff;">\n\
+                                        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\n\
+                                        <br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\n\
+                                        <br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\n\
+                                        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\n\
+                                        <br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\n\
+                                  </p>\n\
+                                </div>\n\
+                          </li>\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\n\
+                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\n\
+                                  <ul style="color:#fff;">\n\
+                                        <li>《登高》</li>\n\
+                                        <li>《茅屋为秋风所破歌》</li>\n\
+                                  </ul>\n\
+                                </div>\n\
+                          </li>\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\n\
+                                  <p style="color:#fff;">\n\
+                                        中国人民抗日战争胜利日\n\
+                                        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\n\
+                                        <br>铭记、感恩\n\
+                                        <br>所有为中华民族浴血奋战的英雄将士\n\
+                                        <br>永垂不朽\n\
+                                  </p>\n\
+                                </div>\n\
+                          </li>\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <div class="layui-timeline-title" style="color:#66ccff;">过去</div>\n\
+                                </div>\n\
+                          </li>\n\
+                        </ul>\n\
+                </div>\n\
+          </fieldset>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+          <fieldset class="layui-elem-field">\n\
+                <legend>喜加一助手</legend>\n\
+                <div class="layui-field-box">\n\
+                        <!-- <div>是否启动喜加一助手</div> -->\n\
+                <form class="layui-form" action="" lay-filter="example">\n\
+                        <div class="layui-form-item" pane="">\n\
+                           <label class="layui-form-label">总开关</label>\n\
+                           <div class="layui-input-block">\n\
+                                <!-- checked="" -->\n\
+                                 <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭" id="FreeGameSwitch">\n\
+                           </div>\n\
+                         </div>\n\
+                </form>\n\
+                <form class="layui-form" action="">\n\
+                        <div class="layui-form-item">\n\
+                                <label class="layui-form-label">设置:</label>\n\
+                                <div class="layui-row">\n\
+                                   <div class="layui-input-block">\n\
+                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="自动获取喜加一信息" checked=""><br>\n\
+                                                 </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="自动领取喜加一游戏" checked=""><br>\n\
+                                                </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="置顶显示在上方" checked=""><br>\n\
+                                                </div>\n\
+                                   </div>\n\
+                                  </div>\n\
+                          </div>\n\
+                 </form>\n\
+                 \n\
+                 <div>设置喜加一数据来源</div>\n\
+                 <form class="layui-form" action="">\n\
+                        <div class="layui-form-item">\n\
+                                <label class="layui-form-label">设置:</label>\n\
+                                <div class="layui-row">\n\
+                                   <div class="layui-input-block">\n\
+                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="SteamDB" checked=""><br>\n\
+                                                 </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="humblebundle" disabled=""><br>\n\
+                                                </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="fanatical" disabled=""><br>\n\
+                                                </div>\n\
+                                   </div>\n\
+                                  </div>\n\
+                          </div>\n\
+                  </form>\n\
+                </div>\n\
+          </fieldset>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+                <fieldset class="layui-elem-field">\n\
+                  <legend>功能设置</legend>\n\
+                  <div class="layui-field-box">\n\
+                          \n\
+                          <form class="layui-form" action="" lay-filter="example">\n\
+                                  <div class="layui-form-item" pane="">\n\
+                                         <label class="layui-form-label">Debug模式</label>\n\
+                                         <div class="layui-input-block">\n\
+                                                                                                        <!-- checked="" -->\n\
+                                           <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest3" title="开关" lay-text="开启|关闭">\n\
+                                         </div>\n\
+                                   </div>\n\
+                          </form>\n\
+                                <div>弹出层</div>\n\
+                                <div>滑块</div>\n\
+                                <button type="button" class="layui-btn">导入导出重置当前设置</button>\n\
+                                <div>弹出层</div>\n\
+                                \n\
+                                <div class="layui-upload-drag" id="uploadDemo">\n\
+                                  <i class="layui-icon"></i>\n\
+                                  <p>点击上传，或将文件拖拽到此处</p>\n\
+                                  <div class="layui-hide" id="uploadDemoView">\n\
+                                        <hr>\n\
+                                        <img src="" alt="上传成功后渲染" style="max-width: 100%">\n\
+                                  </div>\n\
+                                </div>\n\
+                  </div>\n\
+                </fieldset>\n\
+                \n\
+                <fieldset class="layui-elem-field">\n\
+                        <legend>界面设置</legend>\n\
+                        <div class="layui-field-box">\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>语言配置</legend>\n\
+                                        <button type="button" class="layui-btn">自动检测(简体中文)</button>\n\
+                                        <button type="button" class="layui-btn">简体中文</button>\n\
+                                        <button type="button" class="layui-btn">繁体中文</button>\n\
+                                        <button type="button" class="layui-btn">English</button>\n\
+                                </fieldset>\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>主题切换</legend>\n\
+                                        <div>请选择一个主题，然后点击应用</div>\n\
+                                        <button type="button" class="layui-btn">应用主题</button>\n\
+                                </fieldset>\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>UI设置</legend>\n\
+                                        <div>预览:</div>\n\
+                                        <div>\n\
+                                        主要字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all1"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        主要背景颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all2"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        留言成功字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all3"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        留言失败字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all4"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        留言发生错误字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all5"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <button type="button" class="layui-btn">保存为主题</button>\n\
+                                </fieldset>\n\
+                                \n\
+                        </div>\n\
+                </fieldset>\n\
+                \n\
+                <fieldset class="layui-elem-field">\n\
+                        <legend>关于 Steam assistant(Steam小助手)</legend>\n\
+                                <div class="layui-field-box">\n\
+                                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>程序信息:</legend>\n\
+                                        <div>当前版本: v0.2.3.0</div>\n\
+                                        <div>主程序框架更新时间: 2020年4月19日</div>\n\
+                                        <div>common 模块: 2020年4月19日</div>\n\
+                                        <div>databaseConf 模块: 2020年4月19日</div>\n\
+                                        <div>externalApis 模块: 2020年4月19日</div>\n\
+                                        <div>steamApis 模块: 2020年4月19日</div>\n\
+                                        <div>translateApis 模块: 2020年4月19日</div>\n\
+                                        <div>Utility 模块: 2020年4月19日</div>\n\
+                                        <div>UI 模块: 2020年4月19日</div>\n\
+                                        <div>Event 模块: 2020年4月19日</div>\n\
+                                        <div>CityList 模块: 2020年4月19日</div>\n\
+                                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>联系作者:</legend>\n\
+                                        <button type="button" class="layui-btn">反馈错误</button>\n\
+                                        <button type="button" class="layui-btn">提交建议</button>\n\
+                                </div>\n\
+                </fieldset>\n\
+                \n\
+                <div id="sliderDemo" style="margin: 50px 20px;"></div>\n\
+        </div>\n\
+        \n\
+        </div>\n\
+</div>\n\
+';
+
+var loadUI_Html = '\
+<div class="text-wrapper">\n\
+        <div class="text part1">\n\
+                <div>\n\
+                        <span class="letter">\n\
+                                <div class="character">L</div> <span></span>\n\
+                        </span>\n\
+                        \n\
+                        <span class="letter">\n\
+                                <div class="character">o</div> <span></span>\n\
+                        </span>\n\
+                        \n\
+                        <span class="letter">\n\
+                                <div class="character">a</div> <span></span>\n\
+                        </span>\n\
+                        \n\
+                        <span class="letter">\n\
+                                <div class="character">d</div> <span></span>\n\
+                        </span>\n\
+                        \n\
+                        <span class="letter">\n\
+                                <div class="character">i</div> <span></span>\n\
+                        </span>\n\
+                        \n\
+                        <span class="letter">\n\
+                                <div class="character">n</div> <span></span>\n\
+                        </span>\n\
+                        \n\
+                        <span class="letter">\n\
+                                <div class="character">g</div> <span></span>\n\
+                        </span>\n\
+                </div>\n\
+        </div>\n\
+        <div class="how-to"><span>正在加载资源中，已完成0/10，请您耐心等待...</span></div>\n\
+</div>\n\
 ';
 
 var mainUI_html = '\
-<div class="layui-tab layui-tab-brief" lay-filter="demo">\
-        <ul class="layui-tab-title" style="color: #ebebeb;">\
-                <li class="layui-this">留言</li>\
-                <li>留言设置</li>\
-                <li>数据分析</li>\
-                <li>动态助手</li>\
-                <li>拓展功能(测试)</li>\
-                <li>设置</li>\
-        </ul>\
-        <div class="layui-tab-content">\
-        <div class="layui-tab-item layui-show">\
-        <!----------------------------------------------------------------------------------------------------------------->\
-          <div class="commentthread_entry">\
-                        <div class="commentthread_entry_quotebox">\
-                                <!--<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>-->\
-                                <textarea class="commentthread_textarea" id="comment_textarea" onfocus="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\
-                        </div>\
-                        \
-                        <form class="layui-form" action="" lay-filter="example">\
-                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\
-                                <div class="layui-inline">\
-                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\
-                                        <div class="layui-input-inline">\
-                                                <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\
-                                                        <option value="">直接选择或搜索选择</option>\
-                                                        <option value="1">[h1] 标题文字 [/h1]</option>\
-                                                        <option value="2">[b] 粗体文本 [/b]</option>\
-                                                        <option value="3">[u] 下划线文本 [/u]</option>\
-                                                        <option value="4">[i] 斜体文本 [/i]</option>\
-                                                        <option value="5">[strike] 删除文本 [/strike]</option>\
-                                                        <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\
-                                                        <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\
-                                                        <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\
-                                                </select>\
-                                        </div>\
-                                        <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\
-                                </div>\
-                        </form>\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>翻译模块(需要提前设置国籍):</legend>\
-                        </fieldset>\
-                        <div id="translationOptions" style="color:#fff;">\
-                                <span>当前语言: \
-                                        <select id="origLanguageSelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\
-                                                <option name="auto" value="auto" style="color:#fff;background-color: #3E9AC6;">自动检测</option>\
-                                                <option name="zhc" value="zh-CN" style="color:#fff;background-color: #3E9AC6;">中文简体</option>\
-                                                <option name="en" value="en" style="color:#fff;background-color: #3E9AC6;">英语</option>\
-                                                <option name="jp" value="ja" style="color:#fff;background-color: #3E9AC6;">日语</option>\
-                                        </select>\
-                                </span>\
-                                \
-                                <span style="margin-left: 5px;">目标语言: \
-                                        <select id="selectBoxID" class="selectBox" multiple="multiple">\
-                                                <option value="en">英语</option>\
-                                                <option value="ja">日语</option>\
-                                                <option value="zh-CN">中文简体</option>\
-                                                <option value="zh-sg">马新简体[zh-sg]</option>\
-                                                <option value="zh-hant">繁體中文[zh-hant]</option>\
-                                                <option value="zh-hk">繁體中文(香港)[zh-hk]</option>\
-                                                <option value="zh-mo">繁體中文(澳门)[zh-mo]</option>\
-                                                <option value="zh-tw">繁體中文(台湾)[zh-tw]</option>\
-                                        </select>\
-                                </span>\
-                                \
-                                <span style="margin-left: 5px;vertical-align: middle;">\
-                                        <button id="translationText">翻译</button>\
-                                </span>\
-                        </div>\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>添加称呼模块(需要提前设置备注):</legend>\
-                        </fieldset>\
-                        <div class="commentthread_entry_submitlink" style="">\
-                                <span class="isCustom" style="display: block;text-align: left;">\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)</span>\
-                                        <input class="nameAddType" id="select_isCustom_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\
-                                        <span style="margin-left: 5px;vertical-align: middle;">\
-                                                <button id="addCustomName">在留言框添加自定义称呼标识符</button>\
-                                        </span>\
-                                </span>\
-                                \
-                                <span class="isName" style="display: block;text-align: left;">\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼 (如果好友没有备注则使用steam名称)</span>\
-                                        <input class="nameAddType" id="select_islName_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\
-                                </span>\
-                                \
-                                <span class="isSpecialName" style="display: block;text-align: left;">\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼 (如果好友设置有备注则使用,否则不添加称呼)</span>\
-                                        <input class="nameAddType" id="select_isSpecialName_checkbox" name="nameAddType"  type="radio" style="vertical-align: middle;margin:2px;">\
-                                </span>\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title" style="padding: 10px 0px;">\
-                                <span style="display: block;text-align: right;">\
-                                        <a class="btn_grey_black btn_small_thin" href="javascript:CCommentThread.FormattingHelpPopup( \'Profile\' );">\
-                                                <span class="btn_grey_black btn_small_thin_text">格式化帮助</span>\
-                                        </a>\
-                                        \
-                                        <span class="emoticon_container">\
-                                                <span class="emoticon_button small" id="emoticonbtn"></span>\
-                                        </span>\
-                                        \
-                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit">\
-                                                <span id="comment_submit_text">发送评论给选择的好友</span>\
-                                        </span>\
-                                        \
-                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit_special">\
-                                                <span id="comment_submit_special_text">根据国籍发送评论给选择的好友</span>\
-                                        </span>\
-                                </span>\
-                        </div>\
-                </div>\
-                <div id="log">\
-                        <span id="log_head"></span>\
-                        <span id="log_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\
-                </div>\
-                <!----------------------------------------------------------------------------------------------------------------->\
-          \
-        </div>\
-        \
-        <div class="layui-tab-item">\
-                <div style="text-align: left;margin: 5px 0px;">\
-                        <span style="margin-left: 5px;vertical-align: middle;">\
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>设置国籍:</legend>\
-                                </fieldset>\
-                                <div style="color: #67c1f5;">请选择要设置的国籍:</div>\
-                                <select id="nationalitySelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\
-                                        <option name="CN" value="CN" style="color:#fff;background-color: #3E9AC6;">简体中文</option>\
-                                        <option name="EN" value="EN" style="color:#fff;background-color: #3E9AC6;">英语</option>\
-                                        <option name="JP" value="JP" style="color:#fff;background-color: #3E9AC6;">日语</option>\
-                                        <option name="CN-SG" value="CN-SG" style="color:#fff;background-color: #3E9AC6;">马新简体(马来西亚,新加坡)[zh-sg]</option>\
-                                        <option name="CN-HANT" value="CN-HANT" style="color:#fff;background-color: #3E9AC6;">繁體中文[zh-hant]</option>\
-                                        <option name="CN-HK" value="CN-HK" style="color:#fff;background-color: #3E9AC6;">繁體中文(香港)[zh-hk]</option>\
-                                        <option name="CN-MO" value="CN-MO" style="color:#fff;background-color: #3E9AC6;">繁體中文(澳门)[zh-mo]</option>\
-                                        <option name="CN-TW" value="CN-TW" style="color:#fff;background-color: #3E9AC6;">繁體中文(台湾)[zh-tw]</option>\
-                                </select>\
-                                <button id="setNationality">为选择的好友设置国籍标识</button>\
-                        </span>\
-                        <span style="margin-left: 5px;vertical-align: top;">\
-                                <button id="unsetNationality">为选择的好友取消国籍标识</button>\
-                        </span>\
-                        <br />\
-                         <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>设置不留言:</legend>\
-                         </fieldset>\
-                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
-                                <span>\
-                                        <button id="setNoLeave">为选择的好友设置不留言</button>\
-                                </span>\
-                                <span>\
-                                        <button id="unsetNoLeave">为选择的好友取消设置不留言</button>\
-                                </span>\
-                        </div>\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>设置留言时间间隔:</legend>\
-                        </fieldset>\
-                        <div id="">这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\
-                        <div class="layui-form">\
-                          <div class="layui-form-item">\
-                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
-                                  <label class="layui-form-label">请选择留言</label> <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
-                                  <div class="layui-input-inline">\
-                                        <input type="text" class="layui-input" id="test-limit2" readonly="" placeholder="yyyy-MM-dd">\
-                                  </div>\
-                                </div>\
-                                <div class="layui-inline" style="position: relative;z-index: -1;">\
-                                  <label class="layui-form-label">留言日期差</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
-                                  <div class="layui-input-inline">\
-                                        <input type="text" class="layui-input" id="test-limit1" readonly="" placeholder="yyyy-MM-dd">\
-                                  </div>\
-                                </div>\
-                                \
-                          </div>\
-                        </div>\
-                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
-                                <span>\
-                                        <button id="setTimeInterval">为选择的好友设置留言时间间隔</button>\
-                                </span>\
-                                <span>\
-                                        <button id="unsetTimeInterval">为选择的好友取消设置留言时间间隔</button>\
-                                </span>\
-                        </div>\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置自动留言计划:</legend>\
-                        </fieldset>\
-                        <div class="layui-form">\
-                          <div class="layui-form-item">\
-                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
-                                        <label class="layui-form-label">请选择时间</label>  <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
-                                        <div class="layui-input-inline">\
-                                                <input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\
-                                        </div>\
-                                </div>\
-                                <div class="layui-inline" style="position: relative;z-index: -1;">\
-                                        <label class="layui-form-label">请选择时间</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
-                                        <div class="layui-input-inline">\
-                                                <input type="text" class="layui-input" id="test15" placeholder="H时m分s秒">\
-                                        </div>\
-                                </div>\
-                          </div>\
-                        </div>\
-                        \
-                        <table class="layui-hide" id="test" lay-filter="test"></table> <!-- 数据表格 -->\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>设置好友分组:</legend>\
-                        </fieldset>\
-                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
-                        \
-                        <form class="layui-form" action="">\
-                          <div class="layui-form-item">\
-                                <div class="layui-inline">\
-                                  <label class="layui-form-label">分组列表</label>\
-                                  <div class="layui-input-inline">\
-                                        <select name="modules" lay-verify="required" lay-search="">\
-                                          <option value="">直接选择或搜索选择</option>\
-                                          <option value="1">分组名称</option>\
-                                          <option value="2">分组名称</option>\
-                                          <option value="3">分组名称</option>\
-                                          <option value="4">分组名称</option>\
-                                          <option value="5">分组名称</option>\
-                                          <option value="6">分组名称</option>\
-                                          <option value="7">分组名称</option>\
-                                          <option value="8">分组名称</option>\
-                                          <option value="9">分组名称</option>\
-                                        </select>\
-                                  </div>\
-                                  <button type="button" class="layui-btn" id="editFriendGroup">编辑列表</button>\
-                                </div>\
-                          </div>\
-                        </form>\
-                        \
-                                <span>\
-                                        <button id="addFriendToGroup">为选择的好友添加分组</button>\
-                                </span>\
-                                <span>\
-                                        <button id="unaddFriendToGroup">为选择的好友取消添加分组</button>\
-                                </span>\
-                                \
-                                <div class="layui-collapse" lay-filter="test">\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户</p>\
-                                          <p>用户</p>\
-                                          <p>用户</p>\
-                                        </div>\
-                                  </div>\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户<br>用户\
-                                          </p>\
-                                        </div>\
-                                  </div>\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户\
-                                          <br><br>\
-                                          用户</p>\
-                                        </div>\
-                                  </div>\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户</p>\
-                                        </div>\
-                                  </div>\
-                                </div>\
-                                \
-                        </div>\
-                </div>\
-          <div id="laydateDemo"></div>\
-          <div id="log1">\
-                <span id="log_head1"></span>\
-                <span id="log_body1" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\
-          </div>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-          \
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="NationalityGroup">按国籍进行高亮分组</button>\
-          </span>\
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="NationalitySortGroup">按国籍进行排序分组(慢)</button>\
-          </span>\
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="OfflineTimeGroup">按在线时间进行排序分组</button>\
-          </span>\
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="ShowFriendData">显示好友详细数据(不可用)</button>\
-          </span>\
-          <div class="layui-tab" lay-filter="test1">\
-                <ul class="layui-tab-title">\
-                  <li class="layui-this" lay-id="11" style="color:#ebebeb;">好友数据统计</li>\
-                  <li lay-id="22" style="color:#ebebeb;">留言数据统计</li>\
-                  <li lay-id="33" style="color:#ebebeb;">关系网统计</li>\
-                  <li lay-id="44" style="color:#ebebeb;">当前配置统计</li>\
-                  <li lay-id="55" style="color:#ebebeb;">查看好友配置统计</li>\
-                </ul>\
-                <div class="layui-tab-content">\
-                        <div class="layui-tab-item layui-show">\
-                                分为:\
-                                数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\
-                                <table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\
-                                <div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                分为:\
-                                按国籍的饼图(总留言数量)\
-                                按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\
-                                数据表格(汇总所有的数据)\
-                                <div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                好友关系网(仅统计共同好友)\
-                                <div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                当前的配置数据和运行状态\
-                                <div id="container_currConfStatistics"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\
-                                <div id="container_friConfStatistics"></div>\
-                        </div>\
-                  </div>\
-          </div>\
-          \
-          <div id="pageDemo"></div>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-          <fieldset class="layui-elem-field">\
-                <legend>动态点赞助手</legend>\
-                         <form class="layui-form" action="" lay-filter="example">\
-                                 <div class="layui-form-item" pane="">\
-                                        <label class="layui-form-label">总开关</label>\
-                                        <div class="layui-input-block">\
-                                                <!-- checked="" -->\
-                                          <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest" title="开关" lay-text="开启|关闭" id="friendActivitySwitch">\
-                                        </div>\
-                                  </div>\
-                          </form>\
-                <div class="layui-field-box">\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置点赞内容:</legend>\
-                        </fieldset>\
-                        <form class="layui-form" action="">\
-                                <div class="layui-form-item">\
-                                        <label class="layui-form-label">点赞内容:</label>\
-                                        <div class="layui-row">\
-                                           <div class="layui-input-block">\
-                                                         <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                                  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\
-                                                                  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\
-                                                                  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友购买了游戏或者DLC" checked=""><br>\
-                                                                  <input type="checkbox" name="like[4]" lay-skin="primary" title="组发布了通知" checked=""><br>\
-                                                                  <input type="checkbox" name="like[5]" lay-skin="primary" title="组发布了活动" checked=""><br>\
-                                                         </div>\
-                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                                  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\
-                                                                  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\
-                                                                  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\
-                                                        </div>\
-                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                                  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[12]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[13]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\
-                                                                  <input type="checkbox" name="like[14]" lay-skin="primary" title="朋友收藏了载图" checked=""><br>\
-                                                                  <input type="checkbox" name="like[15]" lay-skin="primary" title="朋友收藏了视频" checked=""><br>\
-                                                        </div>\
-                                           </div>\
-                                          </div>\
-                                  </div>\
-                         </form>\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置自动点赞模式:</legend>\
-                        </fieldset>\
-                        <form class="layui-form" action="">\
-                                <div class="layui-form-item">\
-                                        <label class="layui-form-label">点赞模式:</label>\
-                                        <div class="layui-input-block">\
-                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="运行后自动开始点赞" checked=""><br>\
-                                          <input type="checkbox" name="like[2]" lay-skin="primary" title="点赞完成后自动刷新并点赞新动态时间间隔" checked=""><br>\
-                                        </div>\
-                                  </div>\
-                         </form>\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置自动点赞时间区间(默认今天~之前所有的动态内容)</legend>\
-                        </fieldset>\
-                        <div class="layui-form">\
-                          <div class="layui-form-item">\
-                                        <div class="layui-inline">\
-                                          <label class="layui-form-label">请选择范围</label>\
-                                          <div class="layui-input-inline">\
-                                                <input type="text" class="layui-input" id="test-limit3" readonly="" placeholder=" ~ "> <!--placeholder="yyyy-MM-dd"-->\
-                                          </div>\
-                                        </div>\
-                          </div>\
-                        </div>\
-                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">\
-                          <legend style="color:#66ccff;">点赞进度时间线</legend>\
-                        </fieldset>\
-                        <ul class="layui-timeline">\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\
-                                  <p style="color:#fff;">\
-                                        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\
-                                        <br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\
-                                        <br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\
-                                        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\
-                                        <br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\
-                                  </p>\
-                                </div>\
-                          </li>\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\
-                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\
-                                  <ul style="color:#fff;">\
-                                        <li>《登高》</li>\
-                                        <li>《茅屋为秋风所破歌》</li>\
-                                  </ul>\
-                                </div>\
-                          </li>\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\
-                                  <p style="color:#fff;">\
-                                        中国人民抗日战争胜利日\
-                                        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\
-                                        <br>铭记、感恩\
-                                        <br>所有为中华民族浴血奋战的英雄将士\
-                                        <br>永垂不朽\
-                                  </p>\
-                                </div>\
-                          </li>\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <div class="layui-timeline-title" style="color:#66ccff;">过去</div>\
-                                </div>\
-                          </li>\
-                        </ul>\
-                </div>\
-          </fieldset>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-          <fieldset class="layui-elem-field">\
-                <legend>喜加一助手</legend>\
-                <div class="layui-field-box">\
-                        <!-- <div>是否启动喜加一助手</div> -->\
-                <form class="layui-form" action="" lay-filter="example">\
-                        <div class="layui-form-item" pane="">\
-                           <label class="layui-form-label">总开关</label>\
-                           <div class="layui-input-block">\
-                                <!-- checked="" -->\
-                                 <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭" id="FreeGameSwitch">\
-                           </div>\
-                         </div>\
-                </form>\
-                <form class="layui-form" action="">\
-                        <div class="layui-form-item">\
-                                <label class="layui-form-label">设置:</label>\
-                                <div class="layui-row">\
-                                   <div class="layui-input-block">\
-                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="自动获取喜加一信息" checked=""><br>\
-                                                 </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="自动领取喜加一游戏" checked=""><br>\
-                                                </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="置顶显示在上方" checked=""><br>\
-                                                </div>\
-                                   </div>\
-                                  </div>\
-                          </div>\
-                 </form>\
-                 \
-                 <div>设置喜加一数据来源</div>\
-                 <form class="layui-form" action="">\
-                        <div class="layui-form-item">\
-                                <label class="layui-form-label">设置:</label>\
-                                <div class="layui-row">\
-                                   <div class="layui-input-block">\
-                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="SteamDB" checked=""><br>\
-                                                 </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="humblebundle" disabled=""><br>\
-                                                </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="fanatical" disabled=""><br>\
-                                                </div>\
-                                   </div>\
-                                  </div>\
-                          </div>\
-                  </form>\
-                </div>\
-          </fieldset>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-                <fieldset class="layui-elem-field">\
-                  <legend>功能设置</legend>\
-                  <div class="layui-field-box">\
-                          \
-                          <form class="layui-form" action="" lay-filter="example">\
-                                  <div class="layui-form-item" pane="">\
-                                         <label class="layui-form-label">Debug模式</label>\
-                                         <div class="layui-input-block">\
-                                                                                                        <!-- checked="" -->\
-                                           <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest3" title="开关" lay-text="开启|关闭">\
-                                         </div>\
-                                   </div>\
-                          </form>\
-                                <div>弹出层</div>\
-                                <div>滑块</div>\
-                                <button type="button" class="layui-btn">导入导出重置当前设置</button>\
-                                <div>弹出层</div>\
-                                \
-                                <div class="layui-upload-drag" id="uploadDemo">\
-                                  <i class="layui-icon"></i>\
-                                  <p>点击上传，或将文件拖拽到此处</p>\
-                                  <div class="layui-hide" id="uploadDemoView">\
-                                        <hr>\
-                                        <img src="" alt="上传成功后渲染" style="max-width: 100%">\
-                                  </div>\
-                                </div>\
-                  </div>\
-                </fieldset>\
-                \
-                <fieldset class="layui-elem-field">\
-                        <legend>界面设置</legend>\
-                        <div class="layui-field-box">\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>语言配置</legend>\
-                                        <button type="button" class="layui-btn">自动检测(简体中文)</button>\
-                                        <button type="button" class="layui-btn">简体中文</button>\
-                                        <button type="button" class="layui-btn">繁体中文</button>\
-                                        <button type="button" class="layui-btn">English</button>\
-                                </fieldset>\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>主题切换</legend>\
-                                        <div>请选择一个主题，然后点击应用</div>\
-                                        <button type="button" class="layui-btn">应用主题</button>\
-                                </fieldset>\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>UI设置</legend>\
-                                        <div>预览:</div>\
-                                        <div>\
-                                        主要字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all1"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        主要背景颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all2"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        留言成功字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all3"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        留言失败字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all4"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        留言发生错误字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all5"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <button type="button" class="layui-btn">保存为主题</button>\
-                                </fieldset>\
-                                \
-                        </div>\
-                </fieldset>\
-                \
-                <fieldset class="layui-elem-field">\
-                        <legend>关于 Steam assistant(Steam小助手)</legend>\
-                                <div class="layui-field-box">\
-                                        <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>程序信息:</legend>\
-                                        <div>当前版本: v0.2.3.0</div>\
-                                        <div>主程序框架更新时间: 2020年4月19日</div>\
-                                        <div>common 模块: 2020年4月19日</div>\
-                                        <div>databaseConf 模块: 2020年4月19日</div>\
-                                        <div>externalApis 模块: 2020年4月19日</div>\
-                                        <div>steamApis 模块: 2020年4月19日</div>\
-                                        <div>translateApis 模块: 2020年4月19日</div>\
-                                        <div>Utility 模块: 2020年4月19日</div>\
-                                        <div>UI 模块: 2020年4月19日</div>\
-                                        <div>Event 模块: 2020年4月19日</div>\
-                                        <div>CityList 模块: 2020年4月19日</div>\
-                                        <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>联系作者:</legend>\
-                                        <button type="button" class="layui-btn">反馈错误</button>\
-                                        <button type="button" class="layui-btn">提交建议</button>\
-                                </div>\
-                </fieldset>\
-                \
-                <div id="sliderDemo" style="margin: 50px 20px;"></div>\
-        </div>\
-        \
-        </div>\
-</div>\
+<div class="layui-tab layui-tab-brief" lay-filter="demo">\n\
+        <ul class="layui-tab-title" style="color: #ebebeb;">\n\
+                <li class="layui-this">留言</li>\n\
+                <li>留言设置</li>\n\
+                <li>数据分析</li>\n\
+                <li>点赞助手</li>\n\
+                <li>拓展功能(测试)</li>\n\
+                <li>设置</li>\n\
+        </ul>\n\
+        <div class="layui-tab-content">\n\
+        <div class="layui-tab-item layui-show" style="color: #ebebeb;">\n\
+        <!----------------------------------------------------------------------------------------------------------------->\n\
+          <div class="commentthread_entry">\n\
+                        <div class="commentthread_entry_quotebox">\n\
+                                <!--<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>-->\n\
+                                <textarea class="commentthread_textarea" id="comment_textarea" onfocus="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\n\
+                        </div>\n\
+                        \n\
+                        <form class="layui-form" action="" lay-filter="example">\n\
+                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\n\
+                                <div class="layui-inline">\n\
+                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\n\
+                                        <div class="layui-input-inline">\n\
+                                                <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\n\
+                                                        <option value="">直接选择或搜索选择</option>\n\
+                                                        <option value="1">[h1] 标题文字 [/h1]</option>\n\
+                                                        <option value="2">[b] 粗体文本 [/b]</option>\n\
+                                                        <option value="3">[u] 下划线文本 [/u]</option>\n\
+                                                        <option value="4">[i] 斜体文本 [/i]</option>\n\
+                                                        <option value="5">[strike] 删除文本 [/strike]</option>\n\
+                                                        <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\n\
+                                                        <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\n\
+                                                        <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\n\
+                                                </select>\n\
+                                        </div>\n\
+                                        <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\n\
+                                </div>\n\
+                        </form>\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>翻译模块(需要提前设置国籍):</legend>\n\
+                        </fieldset>\n\
+                        <div id="translationOptions" style="color:#fff;">\n\
+                                <span>当前语言: \n\
+                                        <select id="origLanguageSelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\n\
+                                                <option name="auto" value="auto" style="color:#fff;background-color: #3E9AC6;">自动检测</option>\n\
+                                                <option name="zhc" value="zh-CN" style="color:#fff;background-color: #3E9AC6;">中文简体</option>\n\
+                                                <option name="en" value="en" style="color:#fff;background-color: #3E9AC6;">英语</option>\n\
+                                                <option name="jp" value="ja" style="color:#fff;background-color: #3E9AC6;">日语</option>\n\
+                                        </select>\n\
+                                </span>\n\
+                                \n\
+                                <span style="margin-left: 5px;">目标语言: \n\
+                                        <select id="selectBoxID" class="selectBox" multiple="multiple">\n\
+                                                <option value="en">英语</option>\n\
+                                                <option value="ja">日语</option>\n\
+                                                <option value="zh-CN">中文简体</option>\n\
+                                                <option value="zh-sg">马新简体[zh-sg]</option>\n\
+                                                <option value="zh-hant">繁體中文[zh-hant]</option>\n\
+                                                <option value="zh-hk">繁體中文(香港)[zh-hk]</option>\n\
+                                                <option value="zh-mo">繁體中文(澳门)[zh-mo]</option>\n\
+                                                <option value="zh-tw">繁體中文(台湾)[zh-tw]</option>\n\
+                                        </select>\n\
+                                </span>\n\
+                                \n\
+                                <span style="margin-left: 5px;vertical-align: middle;">\n\
+                                        <button id="translationText">翻译</button>\n\
+                                </span>\n\
+                        </div>\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>添加称呼模块(需要提前设置备注):</legend>\n\
+                        </fieldset>\n\
+                        <div class="commentthread_entry_submitlink" style="">\n\
+                                <span class="isCustom" style="display: block;text-align: left;">\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)</span>\n\
+                                        <input class="nameAddType" id="select_isCustom_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
+                                        <span style="margin-left: 5px;vertical-align: middle;">\n\
+                                                <button id="addCustomName">在留言框添加自定义称呼标识符</button>\n\
+                                        </span>\n\
+                                </span>\n\
+                                \n\
+                                <span class="isName" style="display: block;text-align: left;">\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼 (如果好友没有备注则使用steam名称)</span>\n\
+                                        <input class="nameAddType" id="select_islName_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
+                                </span>\n\
+                                \n\
+                                <span class="isSpecialName" style="display: block;text-align: left;">\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼 (如果好友设置有备注则使用,否则不添加称呼)</span>\n\
+                                        <input class="nameAddType" id="select_isSpecialName_checkbox" name="nameAddType"  type="radio" style="vertical-align: middle;margin:2px;">\n\
+                                </span>\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title" style="padding: 10px 0px;">\n\
+                                <span style="display: block;text-align: right;">\n\
+                                        <a class="btn_grey_black btn_small_thin" href="javascript:CCommentThread.FormattingHelpPopup( \'Profile\' );">\n\
+                                                <span class="btn_grey_black btn_small_thin_text">格式化帮助</span>\n\
+                                        </a>\n\
+                                        \n\
+                                        <span class="emoticon_container">\n\
+                                                <span class="emoticon_button small" id="emoticonbtn"></span>\n\
+                                        </span>\n\
+                                        \n\
+                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit">\n\
+                                                <span id="comment_submit_text">发送评论给选择的好友</span>\n\
+                                        </span>\n\
+                                        \n\
+                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit_special">\n\
+                                                <span id="comment_submit_special_text">根据国籍发送评论给选择的好友</span>\n\
+                                        </span>\n\
+                                </span>\n\
+                        </div>\n\
+                </div>\n\
+                <div id="log">\n\
+                        <span id="log_head"></span>\n\
+                        <span id="log_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\n\
+                </div>\n\
+                <!----------------------------------------------------------------------------------------------------------------->\n\
+          \n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+                <div style="text-align: left;margin: 5px 0px;">\n\
+                        <span style="margin-left: 5px;vertical-align: middle;">\n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>设置国籍:</legend>\n\
+                                </fieldset>\n\
+                                <div style="color: #67c1f5;">请选择要设置的国籍:</div>\n\
+                                <select id="nationalitySelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\n\
+                                        <option name="CN" value="CN" style="color:#fff;background-color: #3E9AC6;">简体中文</option>\n\
+                                        <option name="EN" value="EN" style="color:#fff;background-color: #3E9AC6;">英语</option>\n\
+                                        <option name="JP" value="JP" style="color:#fff;background-color: #3E9AC6;">日语</option>\n\
+                                        <option name="CN-SG" value="CN-SG" style="color:#fff;background-color: #3E9AC6;">马新简体(马来西亚,新加坡)[zh-sg]</option>\n\
+                                        <option name="CN-HANT" value="CN-HANT" style="color:#fff;background-color: #3E9AC6;">繁體中文[zh-hant]</option>\n\
+                                        <option name="CN-HK" value="CN-HK" style="color:#fff;background-color: #3E9AC6;">繁體中文(香港)[zh-hk]</option>\n\
+                                        <option name="CN-MO" value="CN-MO" style="color:#fff;background-color: #3E9AC6;">繁體中文(澳门)[zh-mo]</option>\n\
+                                        <option name="CN-TW" value="CN-TW" style="color:#fff;background-color: #3E9AC6;">繁體中文(台湾)[zh-tw]</option>\n\
+                                </select>\n\
+                                <button id="setNationality">为选择的好友设置国籍标识</button>\n\
+                        </span>\n\
+                        <span style="margin-left: 5px;vertical-align: top;">\n\
+                                <button id="unsetNationality">为选择的好友取消国籍标识</button>\n\
+                        </span>\n\
+                        <br />\n\
+                         <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>设置不留言:</legend>\n\
+                         </fieldset>\n\
+                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
+                                <span>\n\
+                                        <button id="setNoLeave">为选择的好友设置不留言</button>\n\
+                                </span>\n\
+                                <span>\n\
+                                        <button id="unsetNoLeave">为选择的好友取消设置不留言</button>\n\
+                                </span>\n\
+                        </div>\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>设置留言时间间隔:</legend>\n\
+                        </fieldset>\n\
+                        <div id="">只选择日期则过n天后再留言，只选择时间则过x时后再留言(严格模式)，日期和时间都选择了则过n天x时后再留言(严格模式)</div>\n\
+                        <div id="">这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\n\
+                        <div class="layui-form">\n\
+                          <div class="layui-form-item">\n\
+                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\n\
+                                  <label class="layui-form-label">请选择留言</label> <!--这个是被点击对象，隐藏、不占空间、触发事件-->\n\
+                                  <div class="layui-input-inline">\n\
+                                        <input type="text" class="layui-input" id="test-limit2" readonly="" placeholder="yyyy-MM-dd">\n\
+                                  </div>\n\
+                                </div>\n\
+                                <div class="layui-inline" style="position: relative;z-index: -1;">\n\
+                                  <label class="layui-form-label">留言日期差</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\n\
+                                  <div class="layui-input-inline">\n\
+                                        <input type="text" class="layui-input" id="test-limit1" readonly="" placeholder="yyyy-MM-dd">\n\
+                                  </div>\n\
+                                </div>\n\
+                                \n\
+                          </div>\n\
+                        </div>\n\
+                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
+                                <span>\n\
+                                        <button id="setTimeInterval">为选择的好友设置留言时间间隔</button>\n\
+                                </span>\n\
+                                <span>\n\
+                                        <button id="unsetTimeInterval">为选择的好友取消设置留言时间间隔</button>\n\
+                                </span>\n\
+                        </div>\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置自动留言计划:</legend>\n\
+                        </fieldset>\n\
+                        <div class="layui-form">\n\
+                          <div class="layui-form-item">\n\
+                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\n\
+                                        <label class="layui-form-label">请选择时间</label>  <!--这个是被点击对象，隐藏、不占空间、触发事件-->\n\
+                                        <div class="layui-input-inline">\n\
+                                                <input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\n\
+                                        </div>\n\
+                                </div>\n\
+                                <div class="layui-inline" style="position: relative;z-index: -1;">\n\
+                                        <label class="layui-form-label">请选择时间</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\n\
+                                        <div class="layui-input-inline">\n\
+                                                <input type="text" class="layui-input" id="test15" placeholder="H时m分s秒">\n\
+                                        </div>\n\
+                                </div>\n\
+                          </div>\n\
+                        </div>\n\
+                        \n\
+                        <table class="layui-hide" id="test" lay-filter="test"></table> <!-- 数据表格 -->\n\
+                        \n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>设置好友分组:</legend>\n\
+                        </fieldset>\n\
+                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
+                        \n\
+                        <form class="layui-form" action="">\n\
+                          <div class="layui-form-item">\n\
+                                <div class="layui-inline">\n\
+                                  <label class="layui-form-label">分组列表</label>\n\
+                                  <div class="layui-input-inline">\n\
+                                        <select name="modules" lay-verify="required" lay-search="">\n\
+                                          <option value="">直接选择或搜索选择</option>\n\
+                                          <option value="1">分组名称</option>\n\
+                                          <option value="2">分组名称</option>\n\
+                                          <option value="3">分组名称</option>\n\
+                                          <option value="4">分组名称</option>\n\
+                                          <option value="5">分组名称</option>\n\
+                                          <option value="6">分组名称</option>\n\
+                                          <option value="7">分组名称</option>\n\
+                                          <option value="8">分组名称</option>\n\
+                                          <option value="9">分组名称</option>\n\
+                                        </select>\n\
+                                  </div>\n\
+                                  <button type="button" class="layui-btn" id="editFriendGroup">编辑列表</button>\n\
+                                </div>\n\
+                          </div>\n\
+                        </form>\n\
+                        \n\
+                                <span>\n\
+                                        <button id="addFriendToGroup">为选择的好友添加分组</button>\n\
+                                </span>\n\
+                                <span>\n\
+                                        <button id="unaddFriendToGroup">为选择的好友取消添加分组</button>\n\
+                                </span>\n\
+                                \n\
+                                <div class="layui-collapse" lay-filter="test">\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户<br>用户\n\
+                                          </p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户\n\
+                                          <br><br>\n\
+                                          用户</p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                  <div class="layui-colla-item">\n\
+                                        <h2 class="layui-colla-title">分组名称</h2>\n\
+                                        <div class="layui-colla-content">\n\
+                                          <p>用户</p>\n\
+                                        </div>\n\
+                                  </div>\n\
+                                </div>\n\
+                                \n\
+                        </div>\n\
+                </div>\n\
+          <div id="laydateDemo"></div>\n\
+          <div id="log1">\n\
+                <span id="log_head1"></span>\n\
+                <span id="log_body1" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\n\
+          </div>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+          \n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="NationalityGroup">按国籍进行高亮分组</button>\n\
+          </span>\n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="NationalitySortGroup">按国籍进行排序分组(慢)</button>\n\
+          </span>\n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="OfflineTimeGroup">按在线时间进行排序分组</button>\n\
+          </span>\n\
+          <span style="margin-left: 5px;vertical-align: top;">\n\
+                <button id="ShowFriendData">显示好友详细数据(不可用)</button>\n\
+          </span>\n\
+          <div class="layui-tab" lay-filter="test1">\n\
+                <ul class="layui-tab-title">\n\
+                  <li class="layui-this" lay-id="11" style="color:#ebebeb;">好友数据统计</li>\n\
+                  <li lay-id="22" style="color:#ebebeb;">留言数据统计</li>\n\
+                  <li lay-id="33" style="color:#ebebeb;">关系网统计</li>\n\
+                  <li lay-id="44" style="color:#ebebeb;">当前配置统计</li>\n\
+                  <li lay-id="55" style="color:#ebebeb;">查看好友配置统计</li>\n\
+                </ul>\n\
+                <div class="layui-tab-content">\n\
+                        <div class="layui-tab-item layui-show">\n\
+                                分为:\n\
+                                数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\n\
+                                <table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\n\
+                                <div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                分为:\n\
+                                按国籍的饼图(总留言数量)\n\
+                                按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\n\
+                                数据表格(汇总所有的数据)\n\
+                                <div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                好友关系网(仅统计共同好友)\n\
+                                <div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                当前的配置数据和运行状态\n\
+                                <div id="container_currConfStatistics"></div>\n\
+                        </div>\n\
+                        <div class="layui-tab-item">\n\
+                                对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\n\
+                                <div id="container_friConfStatistics"></div>\n\
+                        </div>\n\
+                  </div>\n\
+          </div>\n\
+          \n\
+          <div id="pageDemo"></div>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+          <fieldset class="layui-elem-field">\n\
+                <legend>动态点赞助手</legend>\n\
+                         <form class="layui-form" action="" lay-filter="example">\n\
+                                 <div class="layui-form-item" pane="">\n\
+                                        <label class="layui-form-label">总开关</label>\n\
+                                        <div class="layui-input-block">\n\
+                                                <!-- checked="" -->\n\
+                                          <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest" title="开关" lay-text="开启|关闭" id="friendActivitySwitch">\n\
+                                        </div>\n\
+                                  </div>\n\
+                          </form>\n\
+                <div class="layui-field-box">\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置点赞内容:</legend>\n\
+                        </fieldset>\n\
+                        <form class="layui-form" action="">\n\
+                                <div class="layui-form-item">\n\
+                                        <label class="layui-form-label">点赞内容:</label>\n\
+                                        <div class="layui-row">\n\
+                                           <div class="layui-input-block">\n\
+                                                         <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                                  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友购买了游戏或者DLC" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[4]" lay-skin="primary" title="组发布了通知" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[5]" lay-skin="primary" title="组发布了活动" checked=""><br>\n\
+                                                         </div>\n\
+                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                                  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\n\
+                                                        </div>\n\
+                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                                  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[12]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[13]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[14]" lay-skin="primary" title="朋友收藏了载图" checked=""><br>\n\
+                                                                  <input type="checkbox" name="like[15]" lay-skin="primary" title="朋友收藏了视频" checked=""><br>\n\
+                                                        </div>\n\
+                                           </div>\n\
+                                          </div>\n\
+                                  </div>\n\
+                         </form>\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置自动点赞模式:</legend>\n\
+                        </fieldset>\n\
+                        <form class="layui-form" action="">\n\
+                                <div class="layui-form-item">\n\
+                                        <label class="layui-form-label">点赞模式:</label>\n\
+                                        <div class="layui-input-block">\n\
+                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="运行后自动开始点赞" checked=""><br>\n\
+                                          <input type="checkbox" name="like[2]" lay-skin="primary" title="点赞完成后自动刷新并点赞新动态时间间隔" checked=""><br>\n\
+                                        </div>\n\
+                                  </div>\n\
+                         </form>\n\
+                        <fieldset class="layui-elem-field layui-field-title">\n\
+                           <legend>设置自动点赞时间区间(默认今天~之前所有的动态内容)</legend>\n\
+                        </fieldset>\n\
+                        <div class="layui-form">\n\
+                          <div class="layui-form-item">\n\
+                                        <div class="layui-inline">\n\
+                                          <label class="layui-form-label">请选择范围</label>\n\
+                                          <div class="layui-input-inline">\n\
+                                                <input type="text" class="layui-input" id="test-limit3" readonly="" placeholder=" ~ "> <!--placeholder="yyyy-MM-dd"-->\n\
+                                          </div>\n\
+                                        </div>\n\
+                          </div>\n\
+                        </div>\n\
+                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">\n\
+                          <legend style="color:#66ccff;">点赞进度时间线</legend>\n\
+                        </fieldset>\n\
+                        <ul class="layui-timeline">\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\n\
+                                  <p style="color:#fff;">\n\
+                                        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\n\
+                                        <br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\n\
+                                        <br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\n\
+                                        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\n\
+                                        <br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\n\
+                                  </p>\n\
+                                </div>\n\
+                          </li>\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\n\
+                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\n\
+                                  <ul style="color:#fff;">\n\
+                                        <li>《登高》</li>\n\
+                                        <li>《茅屋为秋风所破歌》</li>\n\
+                                  </ul>\n\
+                                </div>\n\
+                          </li>\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\n\
+                                  <p style="color:#fff;">\n\
+                                        中国人民抗日战争胜利日\n\
+                                        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\n\
+                                        <br>铭记、感恩\n\
+                                        <br>所有为中华民族浴血奋战的英雄将士\n\
+                                        <br>永垂不朽\n\
+                                  </p>\n\
+                                </div>\n\
+                          </li>\n\
+                          <li class="layui-timeline-item">\n\
+                                <i class="layui-icon layui-timeline-axis"></i>\n\
+                                <div class="layui-timeline-content layui-text">\n\
+                                  <div class="layui-timeline-title" style="color:#66ccff;">过去</div>\n\
+                                </div>\n\
+                          </li>\n\
+                        </ul>\n\
+                </div>\n\
+          </fieldset>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+          <fieldset class="layui-elem-field">\n\
+                <legend>喜加一助手</legend>\n\
+                <div class="layui-field-box">\n\
+                        <!-- <div>是否启动喜加一助手</div> -->\n\
+                <form class="layui-form" action="" lay-filter="example">\n\
+                        <div class="layui-form-item" pane="">\n\
+                           <label class="layui-form-label">总开关</label>\n\
+                           <div class="layui-input-block">\n\
+                                <!-- checked="" -->\n\
+                                 <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭" id="FreeGameSwitch">\n\
+                           </div>\n\
+                         </div>\n\
+                </form>\n\
+                <form class="layui-form" action="">\n\
+                        <div class="layui-form-item">\n\
+                                <label class="layui-form-label">设置:</label>\n\
+                                <div class="layui-row">\n\
+                                   <div class="layui-input-block">\n\
+                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="自动获取喜加一信息" checked=""><br>\n\
+                                                 </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="自动领取喜加一游戏" checked=""><br>\n\
+                                                </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="置顶显示在上方" checked=""><br>\n\
+                                                </div>\n\
+                                   </div>\n\
+                                  </div>\n\
+                          </div>\n\
+                 </form>\n\
+                 \n\
+                 <div>设置喜加一数据来源</div>\n\
+                 <form class="layui-form" action="">\n\
+                        <div class="layui-form-item">\n\
+                                <label class="layui-form-label">设置:</label>\n\
+                                <div class="layui-row">\n\
+                                   <div class="layui-input-block">\n\
+                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="SteamDB" checked=""><br>\n\
+                                                 </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="humblebundle" disabled=""><br>\n\
+                                                </div>\n\
+                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\n\
+                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="fanatical" disabled=""><br>\n\
+                                                </div>\n\
+                                   </div>\n\
+                                  </div>\n\
+                          </div>\n\
+                  </form>\n\
+                </div>\n\
+          </fieldset>\n\
+        </div>\n\
+        \n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+                <fieldset class="layui-elem-field">\n\
+                  <legend>功能设置</legend>\n\
+                  <div class="layui-field-box">\n\
+                          \n\
+                          <form class="layui-form" action="" lay-filter="example">\n\
+                                  <div class="layui-form-item" pane="">\n\
+                                         <label class="layui-form-label">Debug模式</label>\n\
+                                         <div class="layui-input-block">\n\
+                                                                                                        <!-- checked="" -->\n\
+                                           <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest3" title="开关" lay-text="开启|关闭">\n\
+                                         </div>\n\
+                                   </div>\n\
+                          </form>\n\
+                                <div>弹出层</div>\n\
+                                <div>滑块</div>\n\
+                                <button type="button" class="layui-btn">导入导出重置当前设置</button>\n\
+                                <div>弹出层</div>\n\
+                                \n\
+                                <div class="layui-upload-drag" id="uploadDemo">\n\
+                                  <i class="layui-icon"></i>\n\
+                                  <p>点击上传，或将文件拖拽到此处</p>\n\
+                                  <div class="layui-hide" id="uploadDemoView">\n\
+                                        <hr>\n\
+                                        <img src="" alt="上传成功后渲染" style="max-width: 100%">\n\
+                                  </div>\n\
+                                </div>\n\
+                  </div>\n\
+                </fieldset>\n\
+                \n\
+                <fieldset class="layui-elem-field">\n\
+                        <legend>界面设置</legend>\n\
+                        <div class="layui-field-box">\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                <legend>语言配置</legend>\n\
+                                        <button type="button" class="layui-btn">自动检测(简体中文)</button>\n\
+                                        <button type="button" class="layui-btn">简体中文</button>\n\
+                                        <button type="button" class="layui-btn">繁体中文</button>\n\
+                                        <button type="button" class="layui-btn">English</button>\n\
+                                </fieldset>\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>主题切换</legend>\n\
+                                        <div>请选择一个主题，然后点击应用</div>\n\
+                                        <button type="button" class="layui-btn">应用主题</button>\n\
+                                </fieldset>\n\
+                                \n\
+                                <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>UI设置</legend>\n\
+                                        <div>预览:</div>\n\
+                                        <div>\n\
+                                        主要字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all1"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        主要背景颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all2"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        留言成功字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all3"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        留言失败字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all4"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <div>\n\
+                                        留言发生错误字体颜色:\n\
+                                                <span style="margin-left: 30px;">\n\
+                                                        <input type="hidden" name="color" value="" id="test-all-input">\n\
+                                                        <div id="test-all5"></div>\n\
+                                                </span>\n\
+                                        </div>\n\
+                                        \n\
+                                        <button type="button" class="layui-btn">保存为主题</button>\n\
+                                </fieldset>\n\
+                                \n\
+                        </div>\n\
+                </fieldset>\n\
+                \n\
+                <fieldset class="layui-elem-field">\n\
+                        <legend>关于 Steam assistant(Steam小助手)</legend>\n\
+                                <div class="layui-field-box">\n\
+                                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>程序信息:</legend>\n\
+                                        <div>当前版本: v0.2.3.0</div>\n\
+                                        <div>主程序框架更新时间: 2020年4月19日</div>\n\
+                                        <div>common 模块: 2020年4月19日</div>\n\
+                                        <div>databaseConf 模块: 2020年4月19日</div>\n\
+                                        <div>externalApis 模块: 2020年4月19日</div>\n\
+                                        <div>steamApis 模块: 2020年4月19日</div>\n\
+                                        <div>translateApis 模块: 2020年4月19日</div>\n\
+                                        <div>Utility 模块: 2020年4月19日</div>\n\
+                                        <div>UI 模块: 2020年4月19日</div>\n\
+                                        <div>Event 模块: 2020年4月19日</div>\n\
+                                        <div>CityList 模块: 2020年4月19日</div>\n\
+                                        <fieldset class="layui-elem-field layui-field-title">\n\
+                                        <legend>联系作者:</legend>\n\
+                                        <button type="button" class="layui-btn">反馈错误</button>\n\
+                                        <button type="button" class="layui-btn">提交建议</button>\n\
+                                </div>\n\
+                </fieldset>\n\
+                \n\
+                <div id="sliderDemo" style="margin: 50px 20px;"></div>\n\
+        </div>\n\
+        \n\
+        </div>\n\
+</div>\n\
 ';
 
-var ExpandUI_QuickNavigationBar_html = //拓展UI-快捷导航栏的html代码
-'<div style="position: fixed;top: 30%;right: 0;">\
-        <div class="layui-input-block" style="margin-left:0; text-align: center;min-height:0;padding: 2px 0px;background: #282B33;">快捷导航栏</div>\
-        \
-        <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="demo" style="margin-right: 10px;">\
-                <li class="layui-nav-item layui-nav-itemed">\
-                        <a href="javascript:;">好友分组</a>\
-                        <dl class="layui-nav-child">\
-                                <dd><a href="javascript:;">选项一</a></dd>\
-                                <dd><a href="javascript:;">选项二</a></dd>\
-                                <dd><a href="javascript:;">选项三</a></dd>\
-                                <dd><a href="">跳转项</a></dd>\
-                        </dl>\
-                </li>\
-                \
-                <li class="layui-nav-item">\
-                        <a href="javascript:;">功能模块</a>\
-                        <dl class="layui-nav-child">\
-                                <dd><a href="javascript:;">选项一</a></dd>\
-                                <dd><a href="javascript:;">选项二</a></dd>\
-                                <dd><a href="javascript:;">选项三</a></dd>\
-                                <dd><a href="">跳转项</a></dd>\
-                        </dl>\
-                </li>\
-                \
-                <li class="layui-nav-item">\
-                        <a href="javascript:;">其他</a>\
-                        <dl class="layui-nav-child">\
-                                <dd><a href="javascript:;">返回顶部</a></dd>\
-                                <dd><a href="javascript:;">返回底部</a></dd>\
-                                <dd><a href="javascript:;">选项三</a></dd>\
-                                <dd><a href="">跳转项</a></dd>\
-                        </dl>\
-                </li>\
-                \
-                <li class="layui-nav-item">\
-                        <a href="javascript:;">解决方案</a>\
-                        <dl class="layui-nav-child">\
-                                <dd><a href="">移动模块</a></dd>\
-                                <dd><a href="">后台模版</a></dd>\
-                                <dd><a href="">电商平台</a></dd>\
-                        </dl>\
-                </li>\
-                \
-                <li class="layui-nav-item"><a href="">云市场</a></li>\
-                <li class="layui-nav-item"><a href="">社区</a></li>\
-        </ul>\
-</div>\
+var mainUI_template = '\
+<script type="text/html" id="switchTpl">\n\
+        <!-- 这里的 checked 的状态只是演示 -->\n\
+        <input type="checkbox" name="front" value="{{d.id}}" lay-skin="switch" lay-text="是|否" lay-filter="frontDemo" {{ d.id == 10003 ? \'checked\' : \'\' }}>\n\
+</script>\n\
+\n\
+<script type="text/html" id="checkboxTpl">\n\
+        <!-- 这里的 checked 的状态只是演示 -->\n\
+        <input type="checkbox" name="lock" value="{{d.id}}" title="锁定" lay-filter="lockDemo" {{ d.id == 10006 ? \'checked\' : \'\' }}>\n\
+</script>\n\
 ';
-
-
-var groupUI_html = '\
-<div class="layui-tab layui-tab-brief" lay-filter="demo">\
-        <ul class="layui-tab-title" style="color: #ebebeb;">\
-                <li class="layui-this">组留言</li>\
-                <li>留言设置</li>\
-                <li>数据分析</li>\
-                <li>动态助手</li>\
-                <li>拓展功能(测试)</li>\
-                <li>设置</li>\
-        </ul>\
-        <div class="layui-tab-content">\
-        <div class="layui-tab-item layui-show">\
-        <!----------------------------------------------------------------------------------------------------------------->\
-          <div class="commentthread_entry">\
-                        <div class="commentthread_entry_quotebox">\
-                                <!--<textarea class="commentthread_textarea" id="comment_textarea" onfocus="this.focus();this.select();inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>-->\
-                                <textarea class="commentthread_textarea" id="comment_textarea" onfocus="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',false);" onClick="" onblur="inBoxonblurID=0;inBoxShrinkage(\'comment_textarea\',true);" placeholder="添加留言" style="overflow: hidden; height: 28px;"></textarea>\
-                        </div>\
-                        \
-                        <form class="layui-form" action="" lay-filter="example">\
-                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\
-                                <div class="layui-inline">\
-                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\
-                                        <div class="layui-input-inline">\
-                                                <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\
-                                                        <option value="">直接选择或搜索选择</option>\
-                                                        <option value="1">[h1] 标题文字 [/h1]</option>\
-                                                        <option value="2">[b] 粗体文本 [/b]</option>\
-                                                        <option value="3">[u] 下划线文本 [/u]</option>\
-                                                        <option value="4">[i] 斜体文本 [/i]</option>\
-                                                        <option value="5">[strike] 删除文本 [/strike]</option>\
-                                                        <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\
-                                                        <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\
-                                                        <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\
-                                                </select>\
-                                        </div>\
-                                        <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\
-                                </div>\
-                        </form>\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>翻译模块(需要提前设置国籍):</legend>\
-                        </fieldset>\
-                        <div id="translationOptions" style="color:#fff;">\
-                                <span>当前语言: \
-                                        <select id="origLanguageSelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\
-                                                <option name="auto" value="auto" style="color:#fff;background-color: #3E9AC6;">自动检测</option>\
-                                                <option name="zhc" value="zh-CN" style="color:#fff;background-color: #3E9AC6;">中文简体</option>\
-                                                <option name="en" value="en" style="color:#fff;background-color: #3E9AC6;">英语</option>\
-                                                <option name="jp" value="ja" style="color:#fff;background-color: #3E9AC6;">日语</option>\
-                                        </select>\
-                                </span>\
-                                \
-                                <span style="margin-left: 5px;">目标语言: \
-                                        <select id="selectBoxID" class="selectBox" multiple="multiple">\
-                                                <option value="en">英语</option>\
-                                                <option value="ja">日语</option>\
-                                                <option value="zh-CN">中文简体</option>\
-                                                <option value="zh-sg">马新简体[zh-sg]</option>\
-                                                <option value="zh-hant">繁體中文[zh-hant]</option>\
-                                                <option value="zh-hk">繁體中文(香港)[zh-hk]</option>\
-                                                <option value="zh-mo">繁體中文(澳门)[zh-mo]</option>\
-                                                <option value="zh-tw">繁體中文(台湾)[zh-tw]</option>\
-                                        </select>\
-                                </span>\
-                                \
-                                <span style="margin-left: 5px;vertical-align: middle;">\
-                                        <button id="translationText">翻译</button>\
-                                </span>\
-                        </div>\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>添加称呼模块(需要提前设置备注):</legend>\
-                        </fieldset>\
-                        <div class="commentthread_entry_submitlink" style="">\
-                                <span class="isCustom" style="display: block;text-align: left;">\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式 (默认为{name}, 可以自行修改, 称呼为组名称<待完善>)</span>\
-                                        <input class="nameAddType" id="select_isCustom_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\
-                                        <span style="margin-left: 5px;vertical-align: middle;">\
-                                                <button id="addCustomName">在留言框添加自定义称呼标识符</button>\
-                                        </span>\
-                                </span>\
-                                \
-                                <span class="isName" style="display: block;text-align: left;">\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为留言添加称呼 (称呼为组名称<待完善>)</span>\
-                                        <input class="nameAddType" id="select_islName_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\
-                                </span>\
-                                \
-                                <span class="isSpecialName" style="display: block;text-align: left;">\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为留言添加称呼 (称呼为组名称<待完善>)</span>\
-                                        <input class="nameAddType" id="select_isSpecialName_checkbox" name="nameAddType"  type="radio" style="vertical-align: middle;margin:2px;">\
-                                </span>\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title" style="padding: 10px 0px;">\
-                                <span style="display: block;text-align: right;">\
-                                        <a class="btn_grey_black btn_small_thin" href="javascript:CCommentThread.FormattingHelpPopup( \'Profile\' );">\
-                                                <span class="btn_grey_black btn_small_thin_text">格式化帮助</span>\
-                                        </a>\
-                                        \
-                                        <span class="emoticon_container">\
-                                                <span class="emoticon_button small" id="emoticonbtn"></span>\
-                                        </span>\
-                                        \
-                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit">\
-                                                <span id="comment_submit_text">发送评论给选择的组</span>\
-                                        </span>\
-                                        \
-                                        <span class="btn_green_white_innerfade btn_small" id="comment_submit_special">\
-                                                <span id="comment_submit_special_text">根据国籍发送评论给选择的组</span>\
-                                        </span>\
-                                </span>\
-                        </div>\
-                </div>\
-                <div id="log">\
-                        <span id="log_head"></span>\
-                        <span id="log_body" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\
-                </div>\
-                <!----------------------------------------------------------------------------------------------------------------->\
-          \
-        </div>\
-        \
-        <div class="layui-tab-item">\
-                <div style="text-align: left;margin: 5px 0px;">\
-                        <span style="margin-left: 5px;vertical-align: middle;">\
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>设置国籍:</legend>\
-                                </fieldset>\
-                                <div style="color: #67c1f5;">请选择要设置的国籍:</div>\
-                                <select id="nationalitySelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\
-                                        <option name="CN" value="CN" style="color:#fff;background-color: #3E9AC6;">简体中文</option>\
-                                        <option name="EN" value="EN" style="color:#fff;background-color: #3E9AC6;">英语</option>\
-                                        <option name="JP" value="JP" style="color:#fff;background-color: #3E9AC6;">日语</option>\
-                                        <option name="CN-SG" value="CN-SG" style="color:#fff;background-color: #3E9AC6;">马新简体(马来西亚,新加坡)[zh-sg]</option>\
-                                        <option name="CN-HANT" value="CN-HANT" style="color:#fff;background-color: #3E9AC6;">繁體中文[zh-hant]</option>\
-                                        <option name="CN-HK" value="CN-HK" style="color:#fff;background-color: #3E9AC6;">繁體中文(香港)[zh-hk]</option>\
-                                        <option name="CN-MO" value="CN-MO" style="color:#fff;background-color: #3E9AC6;">繁體中文(澳门)[zh-mo]</option>\
-                                        <option name="CN-TW" value="CN-TW" style="color:#fff;background-color: #3E9AC6;">繁體中文(台湾)[zh-tw]</option>\
-                                </select>\
-                                <button id="setNationality">为选择的组设置国籍标识</button>\
-                        </span>\
-                        <span style="margin-left: 5px;vertical-align: top;">\
-                                <button id="unsetNationality">为选择的组取消国籍标识</button>\
-                        </span>\
-                        <br />\
-                         <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>设置不留言:</legend>\
-                         </fieldset>\
-                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
-                                <span>\
-                                        <button id="setNoLeave">为选择的组设置不留言</button>\
-                                </span>\
-                                <span>\
-                                        <button id="unsetNoLeave">为选择的组取消设置不留言</button>\
-                                </span>\
-                        </div>\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>设置留言时间间隔:</legend>\
-                        </fieldset>\
-                        <div id="">这里其实是一个时间差，比如指定的组3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\
-                        <div class="layui-form">\
-                          <div class="layui-form-item">\
-                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
-                                  <label class="layui-form-label">请选择留言</label> <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
-                                  <div class="layui-input-inline">\
-                                        <input type="text" class="layui-input" id="test-limit2" readonly="" placeholder="yyyy-MM-dd">\
-                                  </div>\
-                                </div>\
-                                <div class="layui-inline" style="position: relative;z-index: -1;">\
-                                  <label class="layui-form-label">留言日期差</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
-                                  <div class="layui-input-inline">\
-                                        <input type="text" class="layui-input" id="test-limit1" readonly="" placeholder="yyyy-MM-dd">\
-                                  </div>\
-                                </div>\
-                                \
-                          </div>\
-                        </div>\
-                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
-                                <span>\
-                                        <button id="setTimeInterval">为选择的组设置留言时间间隔</button>\
-                                </span>\
-                                <span>\
-                                        <button id="unsetTimeInterval">为选择的组取消设置留言时间间隔</button>\
-                                </span>\
-                        </div>\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置自动留言计划:</legend>\
-                        </fieldset>\
-                        <div class="layui-form">\
-                          <div class="layui-form-item">\
-                                <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\
-                                        <label class="layui-form-label">请选择时间</label>  <!--这个是被点击对象，隐藏、不占空间、触发事件-->\
-                                        <div class="layui-input-inline">\
-                                                <input type="text" class="layui-input" id="test14" placeholder="H时m分s秒">\
-                                        </div>\
-                                </div>\
-                                <div class="layui-inline" style="position: relative;z-index: -1;">\
-                                        <label class="layui-form-label">请选择时间</label> <!--这个是克隆出来的对象，显示，占空间、被覆盖，不触发事件-->\
-                                        <div class="layui-input-inline">\
-                                                <input type="text" class="layui-input" id="test15" placeholder="H时m分s秒">\
-                                        </div>\
-                                </div>\
-                          </div>\
-                        </div>\
-                        \
-                        <table class="layui-hide" id="test" lay-filter="test"></table> <!-- 数据表格 -->\
-                        \
-                        <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>设置组分组:</legend>\
-                        </fieldset>\
-                        <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\
-                        \
-                        <form class="layui-form" action="">\
-                          <div class="layui-form-item">\
-                                <div class="layui-inline">\
-                                  <label class="layui-form-label">分组列表</label>\
-                                  <div class="layui-input-inline">\
-                                        <select name="modules" lay-verify="required" lay-search="">\
-                                          <option value="">直接选择或搜索选择</option>\
-                                          <option value="1">分组名称</option>\
-                                          <option value="2">分组名称</option>\
-                                          <option value="3">分组名称</option>\
-                                          <option value="4">分组名称</option>\
-                                          <option value="5">分组名称</option>\
-                                          <option value="6">分组名称</option>\
-                                          <option value="7">分组名称</option>\
-                                          <option value="8">分组名称</option>\
-                                          <option value="9">分组名称</option>\
-                                        </select>\
-                                  </div>\
-                                  <button type="button" class="layui-btn" id="editFriendGroup">编辑列表</button>\
-                                </div>\
-                          </div>\
-                        </form>\
-                        \
-                                <span>\
-                                        <button id="addFriendToGroup">为选择的组添加分组</button>\
-                                </span>\
-                                <span>\
-                                        <button id="unaddFriendToGroup">为选择的组取消添加分组</button>\
-                                </span>\
-                                \
-                                <div class="layui-collapse" lay-filter="test">\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户</p>\
-                                          <p>用户</p>\
-                                          <p>用户</p>\
-                                        </div>\
-                                  </div>\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户<br>用户\
-                                          </p>\
-                                        </div>\
-                                  </div>\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户\
-                                          <br><br>\
-                                          用户</p>\
-                                        </div>\
-                                  </div>\
-                                  <div class="layui-colla-item">\
-                                        <h2 class="layui-colla-title">分组名称</h2>\
-                                        <div class="layui-colla-content">\
-                                          <p>用户</p>\
-                                        </div>\
-                                  </div>\
-                                </div>\
-                                \
-                        </div>\
-                </div>\
-          <div id="laydateDemo"></div>\
-          <div id="log1">\
-                <span id="log_head1"></span>\
-                <span id="log_body1" style="display:inline-block;width:100%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; /*超出部分用...代替*/"></span>\
-          </div>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-          \
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="NationalityGroup">按国籍进行高亮分组</button>\
-          </span>\
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="NationalitySortGroup">按国籍进行排序分组(慢)</button>\
-          </span>\
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="OfflineTimeGroup">按在线时间进行排序分组</button>\
-          </span>\
-          <span style="margin-left: 5px;vertical-align: top;">\
-                <button id="ShowFriendData">显示组详细数据(不可用)</button>\
-          </span>\
-          <div class="layui-tab" lay-filter="test1">\
-                <ul class="layui-tab-title">\
-                  <li class="layui-this" lay-id="11" style="color:#ebebeb;">组数据统计</li>\
-                  <li lay-id="22" style="color:#ebebeb;">留言数据统计</li>\
-                  <li lay-id="33" style="color:#ebebeb;">关系网统计</li>\
-                  <li lay-id="44" style="color:#ebebeb;">当前配置统计</li>\
-                  <li lay-id="55" style="color:#ebebeb;">查看组配置统计</li>\
-                </ul>\
-                <div class="layui-tab-content">\
-                        <div class="layui-tab-item layui-show">\
-                                分为:\
-                                数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\
-                                <table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\
-                                <div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                分为:\
-                                按国籍的饼图(总留言数量)\
-                                按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\
-                                数据表格(汇总所有的数据)\
-                                <div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                好友关系网(仅统计共同好友)\
-                                <div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                当前的配置数据和运行状态\
-                                <div id="container_currConfStatistics"></div>\
-                        </div>\
-                        <div class="layui-tab-item">\
-                                对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\
-                                <div id="container_friConfStatistics"></div>\
-                        </div>\
-                  </div>\
-          </div>\
-          \
-          <div id="pageDemo"></div>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-          <fieldset class="layui-elem-field">\
-                <legend>动态点赞助手</legend>\
-                         <form class="layui-form" action="" lay-filter="example">\
-                                 <div class="layui-form-item" pane="">\
-                                        <label class="layui-form-label">总开关</label>\
-                                        <div class="layui-input-block">\
-                                                <!-- checked="" -->\
-                                          <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest" title="开关" lay-text="开启|关闭" id="friendActivitySwitch">\
-                                        </div>\
-                                  </div>\
-                          </form>\
-                <div class="layui-field-box">\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置点赞内容:</legend>\
-                        </fieldset>\
-                        <form class="layui-form" action="">\
-                                <div class="layui-form-item">\
-                                        <label class="layui-form-label">点赞内容:</label>\
-                                        <div class="layui-row">\
-                                           <div class="layui-input-block">\
-                                                         <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                                  <input type="checkbox" name="like[1]" lay-skin="primary" title="朋友发布了状态" checked=""><br>\
-                                                                  <input type="checkbox" name="like[2]" lay-skin="primary" title="朋友发布了评测" checked=""><br>\
-                                                                  <input type="checkbox" name="like[3]" lay-skin="primary" title="朋友购买了游戏或者DLC" checked=""><br>\
-                                                                  <input type="checkbox" name="like[4]" lay-skin="primary" title="组发布了通知" checked=""><br>\
-                                                                  <input type="checkbox" name="like[5]" lay-skin="primary" title="组发布了活动" checked=""><br>\
-                                                         </div>\
-                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                                  <input type="checkbox" name="like[6]" lay-skin="primary" title="朋友发布了艺术作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[7]" lay-skin="primary" title="朋友发布了创意工坊作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[8]" lay-skin="primary" title="朋友发布了指南" checked=""><br>\
-                                                                  <input type="checkbox" name="like[9]" lay-skin="primary" title="朋友上传了载图" checked=""><br>\
-                                                                  <input type="checkbox" name="like[10]" lay-skin="primary" title="朋友上传了视频" checked=""><br>\
-                                                        </div>\
-                                                        <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                                  <input type="checkbox" name="like[11]" lay-skin="primary" title="朋友收藏了艺术作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[12]" lay-skin="primary" title="朋友收藏了创意工坊作品" checked=""><br>\
-                                                                  <input type="checkbox" name="like[13]" lay-skin="primary" title="朋友收藏了指南" checked=""><br>\
-                                                                  <input type="checkbox" name="like[14]" lay-skin="primary" title="朋友收藏了载图" checked=""><br>\
-                                                                  <input type="checkbox" name="like[15]" lay-skin="primary" title="朋友收藏了视频" checked=""><br>\
-                                                        </div>\
-                                           </div>\
-                                          </div>\
-                                  </div>\
-                         </form>\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置自动点赞模式:</legend>\
-                        </fieldset>\
-                        <form class="layui-form" action="">\
-                                <div class="layui-form-item">\
-                                        <label class="layui-form-label">点赞模式:</label>\
-                                        <div class="layui-input-block">\
-                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="运行后自动开始点赞" checked=""><br>\
-                                          <input type="checkbox" name="like[2]" lay-skin="primary" title="点赞完成后自动刷新并点赞新动态时间间隔" checked=""><br>\
-                                        </div>\
-                                  </div>\
-                         </form>\
-                        <fieldset class="layui-elem-field layui-field-title">\
-                           <legend>设置自动点赞时间区间(默认今天~之前所有的动态内容)</legend>\
-                        </fieldset>\
-                        <div class="layui-form">\
-                          <div class="layui-form-item">\
-                                        <div class="layui-inline">\
-                                          <label class="layui-form-label">请选择范围</label>\
-                                          <div class="layui-input-inline">\
-                                                <input type="text" class="layui-input" id="test-limit3" readonly="" placeholder=" ~ "> <!--placeholder="yyyy-MM-dd"-->\
-                                          </div>\
-                                        </div>\
-                          </div>\
-                        </div>\
-                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">\
-                          <legend style="color:#66ccff;">点赞进度时间线</legend>\
-                        </fieldset>\
-                        <ul class="layui-timeline">\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\
-                                  <p style="color:#fff;">\
-                                        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\
-                                        <br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\
-                                        <br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\
-                                        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\
-                                        <br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\
-                                  </p>\
-                                </div>\
-                          </li>\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\
-                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\
-                                  <ul style="color:#fff;">\
-                                        <li>《登高》</li>\
-                                        <li>《茅屋为秋风所破歌》</li>\
-                                  </ul>\
-                                </div>\
-                          </li>\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\
-                                  <p style="color:#fff;">\
-                                        中国人民抗日战争胜利日\
-                                        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\
-                                        <br>铭记、感恩\
-                                        <br>所有为中华民族浴血奋战的英雄将士\
-                                        <br>永垂不朽\
-                                  </p>\
-                                </div>\
-                          </li>\
-                          <li class="layui-timeline-item">\
-                                <i class="layui-icon layui-timeline-axis"></i>\
-                                <div class="layui-timeline-content layui-text">\
-                                  <div class="layui-timeline-title" style="color:#66ccff;">过去</div>\
-                                </div>\
-                          </li>\
-                        </ul>\
-                </div>\
-          </fieldset>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-          <fieldset class="layui-elem-field">\
-                <legend>喜加一助手</legend>\
-                <div class="layui-field-box">\
-                        <!-- <div>是否启动喜加一助手</div> -->\
-                <form class="layui-form" action="" lay-filter="example">\
-                        <div class="layui-form-item" pane="">\
-                           <label class="layui-form-label">总开关</label>\
-                           <div class="layui-input-block">\
-                                <!-- checked="" -->\
-                                 <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest2" title="开关" lay-text="开启|关闭" id="FreeGameSwitch">\
-                           </div>\
-                         </div>\
-                </form>\
-                <form class="layui-form" action="">\
-                        <div class="layui-form-item">\
-                                <label class="layui-form-label">设置:</label>\
-                                <div class="layui-row">\
-                                   <div class="layui-input-block">\
-                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="自动获取喜加一信息" checked=""><br>\
-                                                 </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="自动领取喜加一游戏" checked=""><br>\
-                                                </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="置顶显示在上方" checked=""><br>\
-                                                </div>\
-                                   </div>\
-                                  </div>\
-                          </div>\
-                 </form>\
-                 \
-                 <div>设置喜加一数据来源</div>\
-                 <form class="layui-form" action="">\
-                        <div class="layui-form-item">\
-                                <label class="layui-form-label">设置:</label>\
-                                <div class="layui-row">\
-                                   <div class="layui-input-block">\
-                                                 <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[1]" lay-skin="primary" title="SteamDB" checked=""><br>\
-                                                 </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[6]" lay-skin="primary" title="humblebundle" disabled=""><br>\
-                                                </div>\
-                                                <div class="layui-input-block" style="display:inline-block; margin-left:0px; vertical-align:top;">\
-                                                          <input type="checkbox" name="like[11]" lay-skin="primary" title="fanatical" disabled=""><br>\
-                                                </div>\
-                                   </div>\
-                                  </div>\
-                          </div>\
-                  </form>\
-                </div>\
-          </fieldset>\
-        </div>\
-        \
-        <div class="layui-tab-item">\
-                <fieldset class="layui-elem-field">\
-                  <legend>功能设置</legend>\
-                  <div class="layui-field-box">\
-                          \
-                          <form class="layui-form" action="" lay-filter="example">\
-                                  <div class="layui-form-item" pane="">\
-                                         <label class="layui-form-label">Debug模式</label>\
-                                         <div class="layui-input-block">\
-                                                                                                        <!-- checked="" -->\
-                                           <input type="checkbox" name="close" lay-skin="switch" lay-filter="switchTest3" title="开关" lay-text="开启|关闭">\
-                                         </div>\
-                                   </div>\
-                          </form>\
-                                <div>弹出层</div>\
-                                <div>滑块</div>\
-                                <button type="button" class="layui-btn">导入导出重置当前设置</button>\
-                                <div>弹出层</div>\
-                                \
-                                <div class="layui-upload-drag" id="uploadDemo">\
-                                  <i class="layui-icon"></i>\
-                                  <p>点击上传，或将文件拖拽到此处</p>\
-                                  <div class="layui-hide" id="uploadDemoView">\
-                                        <hr>\
-                                        <img src="" alt="上传成功后渲染" style="max-width: 100%">\
-                                  </div>\
-                                </div>\
-                  </div>\
-                </fieldset>\
-                \
-                <fieldset class="layui-elem-field">\
-                        <legend>界面设置</legend>\
-                        <div class="layui-field-box">\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                <legend>语言配置</legend>\
-                                        <button type="button" class="layui-btn">自动检测(简体中文)</button>\
-                                        <button type="button" class="layui-btn">简体中文</button>\
-                                        <button type="button" class="layui-btn">繁体中文</button>\
-                                        <button type="button" class="layui-btn">English</button>\
-                                </fieldset>\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>主题切换</legend>\
-                                        <div>请选择一个主题，然后点击应用</div>\
-                                        <button type="button" class="layui-btn">应用主题</button>\
-                                </fieldset>\
-                                \
-                                <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>UI设置</legend>\
-                                        <div>预览:</div>\
-                                        <div>\
-                                        主要字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all1"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        主要背景颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all2"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        留言成功字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all3"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        留言失败字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all4"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <div>\
-                                        留言发生错误字体颜色:\
-                                                <span style="margin-left: 30px;">\
-                                                        <input type="hidden" name="color" value="" id="test-all-input">\
-                                                        <div id="test-all5"></div>\
-                                                </span>\
-                                        </div>\
-                                        \
-                                        <button type="button" class="layui-btn">保存为主题</button>\
-                                </fieldset>\
-                                \
-                        </div>\
-                </fieldset>\
-                \
-                <fieldset class="layui-elem-field">\
-                        <legend>关于 Steam assistant(Steam小助手)</legend>\
-                                <div class="layui-field-box">\
-                                        <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>程序信息:</legend>\
-                                        <div>当前版本: v0.2.3.0</div>\
-                                        <div>主程序框架更新时间: 2020年4月19日</div>\
-                                        <div>common 模块: 2020年4月19日</div>\
-                                        <div>databaseConf 模块: 2020年4月19日</div>\
-                                        <div>externalApis 模块: 2020年4月19日</div>\
-                                        <div>steamApis 模块: 2020年4月19日</div>\
-                                        <div>translateApis 模块: 2020年4月19日</div>\
-                                        <div>Utility 模块: 2020年4月19日</div>\
-                                        <div>UI 模块: 2020年4月19日</div>\
-                                        <div>Event 模块: 2020年4月19日</div>\
-                                        <div>CityList 模块: 2020年4月19日</div>\
-                                        <fieldset class="layui-elem-field layui-field-title">\
-                                        <legend>联系作者:</legend>\
-                                        <button type="button" class="layui-btn">反馈错误</button>\
-                                        <button type="button" class="layui-btn">提交建议</button>\
-                                </div>\
-                </fieldset>\
-                \
-                <div id="sliderDemo" style="margin: 50px 20px;"></div>\
-        </div>\
-        \
-        </div>\
-</div>\
-';
-
 
 var winBaseFrame = '\
-<div></div>\
+<div></div>\n\
 ';
 
 /**
- * injectJS.js
+ * JS_library.js
  */
 
 function wordCount(data) {
@@ -4832,6 +4847,27 @@ function _ySelects($) {
                 }
                 return result;
         }
+}
+
+
+function injectJS(){
+        var funcCode = "";
+        funcCode += wordCount.toString() + "\n\n";
+        funcCode += "var arrComment = []; /*id文本框的id, height文本框的高度, scrollTop存储收缩状态下的进度条, visible可见性*/" + "\n";
+        funcCode += inBoxShrinkage.toString() + "\n\n";
+        funcCode += "var change;" + "\n";
+        funcCode += autoTextarea.toString() + "\n\n";
+        funcCode += openThisAndCloseOtherAllinBoxShrinkage.toString() + "\n\n";
+        funcCode += "var inBoxonblurID = 0;" + "\n";
+        funcCode += addEmojiEvent.toString() + "\n\n";
+        addNewScript('styles_Script',funcCode);
+        
+        var funcCode = "";
+        funcCode += emojiFix.toString() + "\n\n";
+        funcCode += dvWidthFix.toString() + "\n\n";
+        funcCode += deleteSelectText.toString() + "\n\n";
+        funcCode += _ySelects.toString() + "\n\n";
+        addNewScript('Utility_Script',funcCode);
 }
 
 /**
@@ -8644,14 +8680,14 @@ var isReCreateUi = ()=>{ //是否重新创建Ui(url正则表达式,回调函数)
                                 else if(g_otherUrlRegExp2_2.test(url)){
                                         //_fn();
                                         //console.log("重新构建UI-您的组.");
-                                        window.location.reload(false); //重新加载当前页面
+                                        window.location.reload(true); //重新加载当前页面
                                         //gc_menu_groups_ui && typeof gc_menu_groups_ui.reCreateUI === 'function' && gc_menu_groups_ui.reCreateUI(); //调用回调
                                         return;
                                 }
                                 else if(g_otherUrlRegExp2_3.test(url)){
                                         _fn();
                                         console.log("不处理UI-组待处理邀请!");
-                                        //window.location.reload(false); //重新加载当前页面
+                                        //window.location.reload(true); //重新加载当前页面
                                         //暂时 不处理
                                         return;
                                 }
@@ -10540,85 +10576,85 @@ class menu_groups_ui extends UI {
         async createUI() {
                 super.createUI();
                 //修改html代码并注册事件，使点击后和刷新后的ui都保持一致
-                jQuery(".profile_groups.title_bar").remove(); //删除
+                //jQuery(".profile_groups.title_bar").remove(); //删除
                 
-                jQuery("#groups_list").prepend('\
-                <div class="profile_groups title_bar">\
-                        <span class="profile_groups title">您的组</span>\
-                        <div class="es-sortbox es-sortbox--groups" style="flex-grow: 2; margin-right: 20px; margin-top: 0px; text-align: right;">\
-                                <div class="es-sortbox__label">排序依据：</div>\
-                                        <div class="es-sortbox__container">\
-                                                <input value="default" name="groups" type="hidden" id="sort_by_groups">\
-                                                <a id="sort_by_groups_trigger" class="trigger">默认</a>\
-                                                <div class="es-dropdown">\
-                                                        <ul class="es-dropdown__list dropdownhidden" id="sort_by_groups_droplist">\
-                                                                <li><a id="sort_by_groups_default" tabindex="99999" class="highlighted_selection">默认</a></li>\
-                                                                <li><a id="sort_by_groups_members" tabindex="99999" class="inactive_selection">成员</a></li>\
-                                                                <li><a id="sort_by_groups_names" tabindex="99999" class="inactive_selection">名称</a></li>\
-                                                        </ul>\
-                                                </div>\
-                                        </div>\
-                                        <span class="es-sortbox__reverse">↓</span>\
-                                </div>\
-                        <button class="profile_friends manage_link btnv6_blue_hoverfade btn_medium btn_uppercase" id="manage_friends_control">\
-                                <span>管理组</span>\
-                    </button>\
-                        </div>\
-                        \
-                        <div class="manage_friends_panel" id="manage_friends">\
-                                <div class="row">请在下方选择您要操作的组。\
-                                        <span class="row">\
-                                                <span class="dimmed">选择：</span>\
-                                                        <span id="es_select_all" class="selection_type">全部</span>\
-                                                        <span id="es_select_none" class="selection_type">无</span>\
-                                                        <span id="es_select_inverse" class="selection_type">逆序</span>\
-                                                </span>\
-                                </div>\
-                                <div class="row">\
-                                        <span id="es_leave_groups" class="manage_action anage_action btnv6_lightblue_blue btn_medium btn_uppercase">\
-                                                <span>离开组</span>\
-                                        </span>\
-                                        <span class="selected_msg error hidden" id="selected_msg_err"></span>\
-                                        <span class="selected_msg hidden" id="selected_msg">已选择 <span id="selected_count"></span> 个。</span>\
-                                </div>\
-                                <div class="row"></div>\
-                        </div>\
-                        \
-                        <div class="searchBarContainer">\
-                                <input name="search_text_box" id="search_text_box" class="groups_search_text_box" value="" onkeyup="ShowMatching( \'search_results\', \'group_block\', \'data-search\', $J(\'#search_text_box\').val(), UpdateGroupList );" autocomplete="off" autofocus="" placeholder="通过名称搜索组">\
-                        </div>\
-                </div>\
-                ');
+                // jQuery("#groups_list").prepend('\
+                // <div class="profile_groups title_bar">\
+                //      <span class="profile_groups title">您的组</span>\
+                //      <div class="es-sortbox es-sortbox--groups" style="flex-grow: 2; margin-right: 20px; margin-top: 0px; text-align: right;">\
+                //              <div class="es-sortbox__label">排序依据：</div>\
+                //                      <div class="es-sortbox__container">\
+                //                              <input value="default" name="groups" type="hidden" id="sort_by_groups">\
+                //                              <a id="sort_by_groups_trigger" class="trigger">默认</a>\
+                //                              <div class="es-dropdown">\
+                //                                      <ul class="es-dropdown__list dropdownhidden" id="sort_by_groups_droplist">\
+                //                                              <li><a id="sort_by_groups_default" tabindex="99999" class="highlighted_selection">默认</a></li>\
+                //                                              <li><a id="sort_by_groups_members" tabindex="99999" class="inactive_selection">成员</a></li>\
+                //                                              <li><a id="sort_by_groups_names" tabindex="99999" class="inactive_selection">名称</a></li>\
+                //                                      </ul>\
+                //                              </div>\
+                //                      </div>\
+                //                      <span class="es-sortbox__reverse">↓</span>\
+                //              </div>\
+                //      <button class="profile_friends manage_link btnv6_blue_hoverfade btn_medium btn_uppercase" id="manage_friends_control">\
+                //              <span>管理组1</span>\
+                //     </button>\
+                //      </div>\
+                //      \
+                //      <div class="manage_friends_panel" id="manage_friends">\
+                //              <div class="row">请在下方选择您要操作的组。\
+                //                      <span class="row">\
+                //                              <span class="dimmed">选择：</span>\
+                //                                      <span id="es_select_all" class="selection_type">全部</span>\
+                //                                      <span id="es_select_none" class="selection_type">无</span>\
+                //                                      <span id="es_select_inverse" class="selection_type">逆序</span>\
+                //                              </span>\
+                //              </div>\
+                //              <div class="row">\
+                //                      <span id="es_leave_groups" class="manage_action anage_action btnv6_lightblue_blue btn_medium btn_uppercase">\
+                //                              <span>离开组</span>\
+                //                      </span>\
+                //                      <span class="selected_msg error hidden" id="selected_msg_err"></span>\
+                //                      <span class="selected_msg hidden" id="selected_msg">已选择 <span id="selected_count"></span> 个。</span>\
+                //              </div>\
+                //              <div class="row"></div>\
+                //      </div>\
+                //      \
+                //      <div class="searchBarContainer">\
+                //              <input name="search_text_box" id="search_text_box" class="groups_search_text_box" value="" onkeyup="ShowMatching( \'search_results\', \'group_block\', \'data-search\', $J(\'#search_text_box\').val(), UpdateGroupList );" autocomplete="off" autofocus="" placeholder="通过名称搜索组1">\
+                //      </div>\
+                // </div>\
+                // ');
                 
                 //正常html代码
                 jQuery("#manage_friends").after(groupUI_html);
                 
-                document.querySelector("#manage_friends_control").addEventListener("click", () => {
-                        ToggleManageFriends();
-                        var obj = jQuery(".group_block.invite_row");
+                // document.querySelector("#manage_friends_control").addEventListener("click", () => {
+                //      ToggleManageFriends();
+                //      var obj = jQuery(".group_block.invite_row");
                         
-                        if(obj.hasClass("manage")){
-                                obj.removeClass("selectable");
-                                obj.removeClass("manage");
-                        }
-                        else{
-                                obj.addClass("selectable");
-                                obj.addClass("manage");
-                        }
+                //      if(obj.hasClass("manage")){
+                //              obj.removeClass("selectable");
+                //              obj.removeClass("manage");
+                //      }
+                //      else{
+                //              obj.addClass("selectable");
+                //              obj.addClass("manage");
+                //      }
                                 
-                });
+                // });
                 
-                document.querySelector("#es_select_all").addEventListener("click", () => {
-                        SelectAll();
-                });
+                // document.querySelector("#es_select_all").addEventListener("click", () => {
+                //      SelectAll();
+                // });
                 
-                document.querySelector("#es_select_none").addEventListener("click", () => {
-                        SelectNone();
-                });
+                // document.querySelector("#es_select_none").addEventListener("click", () => {
+                //      SelectNone();
+                // });
                 
-                document.querySelector("#es_select_inverse").addEventListener("click", () => {
-                        SelectInverse();
-                });
+                // document.querySelector("#es_select_inverse").addEventListener("click", () => {
+                //      SelectInverse();
+                // });
                 
                 
                 

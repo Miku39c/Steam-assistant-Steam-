@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.4.3
-// @date         2020.5.17
+// @version      1.2.3.4.4
+// @date         2020.5.19
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -33,11 +33,12 @@
 // @resource     JS_pep https://code.jquery.com/pep/0.4.3/pep.js
 // @resource     JS_babylon https://preview.babylonjs.com/babylon.js
 // @resource     JS_babylon_loaders https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js
-// @require      file://E:\Source\web\steam\git Steam assistant\databaseConf.js
+// @require      file://E:\Source\web\steam\git Steam assistant\config\databaseConf.js
+// @require      file://E:\Source\web\steam\git Steam assistant\config\confMerge_handle.js
 // @require      file://E:\Source\web\steam\git Steam assistant\resource.js
-// @require      file://E:\Source\web\steam\git Steam assistant\res\injectCSS.js
-// @require      file://E:\Source\web\steam\git Steam assistant\res\injectHTML.js
-// @require      file://E:\Source\web\steam\git Steam assistant\res\injectJS.js
+// @require      file://E:\Source\web\steam\git Steam assistant\res\CSSs.js
+// @require      file://E:\Source\web\steam\git Steam assistant\res\HTMLs.js
+// @require      file://E:\Source\web\steam\git Steam assistant\res\JSs.js
 // @require      file://E:\Source\web\steam\git Steam assistant\ui\uiStyle.js
 // @require      file://E:\Source\web\steam\git Steam assistant\steamData.js
 // @require      file://E:\Source\web\steam\git Steam assistant\src\shortcuts.js
@@ -65,10 +66,19 @@
 // @icon         http://store.steampowered.com/favicon.ico
 // @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
 // @updateURL    https://greasyfork.org/scripts/397073-steam-assistant-steam%E5%B0%8F%E5%8A%A9%E6%89%8B/code/Steam%20assistant(Steam%E5%B0%8F%E5%8A%A9%E6%89%8B).user.js
+// @note         社区
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?(add|pending|blocked|coplay|broadcast_moderator)?\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/(following|groups|groups\/pending)\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/
+// @note         创意工坊-我的
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
+// @note         创意工坊-我的收藏
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
+// @note         创意工坊-我的订阅
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
+// @note         创意工坊-运行过的
+// @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getResourceText
 // @grant        GM_getResourceURL

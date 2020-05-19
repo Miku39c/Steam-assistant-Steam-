@@ -189,14 +189,14 @@ var isReCreateUi = ()=>{ //是否重新创建Ui(url正则表达式,回调函数)
 				else if(g_otherUrlRegExp2_2.test(url)){
 					//_fn();
 					//console.log("重新构建UI-您的组.");
-					window.location.reload(false); //重新加载当前页面
+					window.location.reload(true); //重新加载当前页面
 					//gc_menu_groups_ui && typeof gc_menu_groups_ui.reCreateUI === 'function' && gc_menu_groups_ui.reCreateUI(); //调用回调
 					return;
 				}
 				else if(g_otherUrlRegExp2_3.test(url)){
 					_fn();
 					console.log("不处理UI-组待处理邀请!");
-					//window.location.reload(false); //重新加载当前页面
+					//window.location.reload(true); //重新加载当前页面
 					//暂时 不处理
 					return;
 				}

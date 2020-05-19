@@ -1,0 +1,2 @@
+A：浏览器报错：SyntaxError: Invalid or unexpected token
+B：请检查在运行Generate the release versions.bat时，输入的一个符号是否是英文状态下的'或者"
