@@ -13,20 +13,18 @@ class resource {
 			await this._loadResource(type);  //加载资源
 	}
 	
-	async _loadResource(type,resourceID){ //加载资源
+	async _loadResource(type){ //加载资源
 		//提前加载资源，等待所有资源加载完毕后直接运行，以最大程序缩减脚本初始化等待的时间
 		if(type) //第一次加载才需要加载基础资源
 			await this._loadBaseResources(); //加载基础资源
-		
-		
 	}
 	
-	async _loadBaseResources(){
+	async _loadBaseResources(){ //加载基础资源
 		let arr = [];
 		var arrjsData = new Array(5);
 		
 		arr.push(new Promise(async function (resolve, reject){
-			if(document.getElementById('search_results') == null){
+			if(document.readyState == "loading"){
 				document.addEventListener("DOMContentLoaded", function(event) {
 					//console.log("DOM fully loaded and parsed");
 					// if(gc_menu_friends_ui.loadProgress < 9) //资源是否已经加载完毕(已缓存)，如果加载完成则不需要显示加载UI
@@ -39,49 +37,128 @@ class resource {
 					// reject('失败') // 数据处理出错
 				});
 			}
-			else{
+			else{ //document.readyState == "interactive" || document.readyState == "complete"
 				resolve('DOM advance loaded(possible)') // 数据处理完成
 			}
 		}));
 		
-		arr.push(new Promise(async function (resolve, reject){
-			// //var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
-			// //addNewStyle('layui_style',cssData);
-			// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
-			let css = GM_getResourceText('css_layui');
-			addNewStyle('css_layui',css);
-			resolve('css_layui') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
-			let css = GM_getResourceText('css_laydate');
-			addNewStyle('css_laydate',css);
-			resolve('css_laydate') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
-			let css = GM_getResourceText('css_layer');
-			addNewStyle('css_layer',css);
-			resolve('css_layer') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
-			let css = GM_getResourceText('css_layui_Modules');
-			addNewStyle('css_layui_Modules',css);
-			resolve('css_layui_Modules') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			// //font-awesome
-			// loadjscssFile("https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css", "css");
-			let css = GM_getResourceText('css_fontAwesome');
-			addNewStyle('css_fontAwesome',css);
-			resolve('css_fontAwesome') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
+		debugger
+		
+		var resList = getResConfByID("BaseResources"); //通过资源id获取对应的资源列表, 返回资源列表数组 resInfo
+		for (let i = 0; i < resList.length; i++) { //遍历所有的资源
+			var resChildList = resList[i].res;
+			for (let j = 0; j < resChildList.length; j++) { //遍历每个资源的res
+				
+				if(resChildList[j].isFight == true){
+					
+				}
+				else{
+					switch (resChildList[j].resMode){
+						case _RESMODE.res_Tampermonkey:
+							arr.push(new Promise(async function (resolve, reject){
+								var resData = GM_getResourceText(resChildList[j].sourceInfo[0]);
+								if(_RESTYPE.res_css == resChildList[j].resType){
+									if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+										resData = resChildList[j].onSucceed(resData);
+									addNewStyle(resList[i].resName, resData);
+								}
+								else if(_RESTYPE.res_js == resChildList[j].resType){
+									if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+										resData = resChildList[j].onSucceed(resData);
+									addNewScript(resList[i].resName, resData);
+								}
+							
+								resolve(resList[i].resName) // 数据处理完成
+								// reject('失败') // 数据处理出错
+							}));
+							break;
+						case _RESMODE.res_CDN:
+							arr.push(new Promise(async function (resolve, reject){
+								let URLs =  resChildList[j].sourceInfo;
+								var resData;
+								for (let i = 0; i < URLs.length; i++) {
+									//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
+									resData = await getResourceByURL(URLs[i],true); //
+								}
+								//console.log("数据获取成果",resData);
+								if(_RESTYPE.res_css == resChildList[j].resType){
+									if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+										resData = resChildList[j].onSucceed(resData);
+									addNewStyle(resList[i].resName, resData);
+								}
+								else if(_RESTYPE.res_js == resChildList[j].resType){
+									if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+										resData = resChildList[j].onSucceed(resData);
+									addNewScript(resList[i].resName, resData);
+								}
+								
+								resolve(resList[i].resName) // 数据处理完成
+								// reject('失败') // 数据处理出错
+							}));
+							break;
+						case _RESMODE.res_LocalVariables:
+							arr.push(new Promise(async function (resolve, reject){
+								if(_RESTYPE.res_css == resChildList[j].resType){
+									if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+										eval(resChildList[j].sourceInfo[0]) = resChildList[j].onSucceed( eval(resChildList[j].sourceInfo[0]) );
+									addNewStyle(resList[i].resName, eval(resChildList[j].sourceInfo[0]));
+								}
+								else if(_RESTYPE.res_js == resChildList[j].resType){
+									if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+										eval(resChildList[j].sourceInfo[0]) = resChildList[j].onSucceed( eval(resChildList[j].sourceInfo[0]) );
+									addNewScript(resList[i].resName, eval(resChildList[j].sourceInfo[0]));
+								}
+								resolve(resList[i].resName) // 数据处理完成
+								// reject('失败') // 数据处理出错
+							}));
+							break;
+						default:
+							
+							break;
+					}
+				}
+			}
+		}
+		
+		
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	// //var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
+		// 	// //addNewStyle('layui_style',cssData);
+		// 	// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
+		// 	let css = GM_getResourceText('css_layui');
+		// 	addNewStyle('css_layui',css);
+		// 	resolve('css_layui') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
+		// 	let css = GM_getResourceText('css_laydate');
+		// 	addNewStyle('css_laydate',css);
+		// 	resolve('css_laydate') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
+		// 	let css = GM_getResourceText('css_layer');
+		// 	addNewStyle('css_layer',css);
+		// 	resolve('css_layer') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	// loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
+		// 	let css = GM_getResourceText('css_layui_Modules');
+		// 	addNewStyle('css_layui_Modules',css);
+		// 	resolve('css_layui_Modules') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	// //font-awesome
+		// 	// loadjscssFile("https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css", "css");
+		// 	let css = GM_getResourceText('css_fontAwesome');
+		// 	addNewStyle('css_fontAwesome',css);
+		// 	resolve('css_fontAwesome') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
 			
 		//0.基本环境-加载css
 		arr.push(new Promise(function (resolve, reject){
@@ -155,55 +232,55 @@ class resource {
 			// reject('失败') // 数据处理出错
 		}));
 		
-		//1.基本环境-加载js到页面上，方便调试
-		arr.push(new Promise(async function (resolve, reject){
-			let js = GM_getResourceText('JS_highstock')
-			addNewScript('JS_highstock',js);
-			resolve('JS_highstock') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			let js = GM_getResourceText('JS_highstock_exporting')
-			addNewScript('JS_highstock_exporting',js);
-			resolve('JS_highstock_exporting') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			let js = GM_getResourceText('JS_highstock_oldie')
-			addNewScript('JS_highstock_oldie',js);
-			resolve('JS_highstock_oldie') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			let js = GM_getResourceText('JS_highstock_networkgraph')
-			addNewScript('JS_highstock_networkgraph',js);
-			resolve('JS_highstock_networkgraph') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			let js = GM_getResourceText('JS_highstock_zh_CN')
-			addNewScript('JS_highstock_zh_CN',js);
-			resolve('JS_highstock_zh_CN') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			let js = GM_getResourceText('JS_layui');
-			//对 o.prototype.addcss 打补丁，使其直接return this, 而不是去加载css, css通过脚本欲加载的资源手动添加
-			var findStr = 'layui.link(n.dir+"css/"+e,t,o)';
-			var index = js.indexOf(findStr); //查找代补丁代码的位置
-			var fixJS = js.slice(0,index); //提取 代补丁代码前部分
-			fixJS += 'this'; //添加 补丁代码
-			fixJS += js.slice(index+findStr.length); //提取 代补丁代码后部分
-			addNewScript('JS_layui',fixJS);
-			resolve('JS_layui') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
-		arr.push(new Promise(async function (resolve, reject){
-			let js = GM_getResourceText('JS_localforage');
-			addNewScript('JS_localforage',js);
-			resolve('JS_localforage') // 数据处理完成
-			// reject('失败') // 数据处理出错
-		}));
+		// //1.基本环境-加载js到页面上，方便调试
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	let js = GM_getResourceText('JS_highstock')
+		// 	addNewScript('JS_highstock',js);
+		// 	resolve('JS_highstock') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	let js = GM_getResourceText('JS_highstock_exporting')
+		// 	addNewScript('JS_highstock_exporting',js);
+		// 	resolve('JS_highstock_exporting') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	let js = GM_getResourceText('JS_highstock_oldie')
+		// 	addNewScript('JS_highstock_oldie',js);
+		// 	resolve('JS_highstock_oldie') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	let js = GM_getResourceText('JS_highstock_networkgraph')
+		// 	addNewScript('JS_highstock_networkgraph',js);
+		// 	resolve('JS_highstock_networkgraph') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	let js = GM_getResourceText('JS_highstock_zh_CN')
+		// 	addNewScript('JS_highstock_zh_CN',js);
+		// 	resolve('JS_highstock_zh_CN') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	let js = GM_getResourceText('JS_layui');
+		// 	//对 o.prototype.addcss 打补丁，使其直接return this, 而不是去加载css, css通过脚本欲加载的资源手动添加
+		// 	var findStr = 'layui.link(n.dir+"css/"+e,t,o)';
+		// 	var index = js.indexOf(findStr); //查找代补丁代码的位置
+		// 	var fixJS = js.slice(0,index); //提取 代补丁代码前部分
+		// 	fixJS += 'this'; //添加 补丁代码
+		// 	fixJS += js.slice(index+findStr.length); //提取 代补丁代码后部分
+		// 	addNewScript('JS_layui',fixJS);
+		// 	resolve('JS_layui') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	let js = GM_getResourceText('JS_localforage');
+		// 	addNewScript('JS_localforage',js);
+		// 	resolve('JS_localforage') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
 		
 		// arr.push(new Promise(async function (resolve, reject){
 		// 	//loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
@@ -282,6 +359,17 @@ class resource {
 			resolve('css js') // 数据处理完成
 			// reject('失败') // 数据处理出错
 		}));
+		
+		// arr.push(new Promise(async function (resolve, reject){
+		// 	addNewStyle('css_jquery_localizationTool',jquery_localizationTool); /* 选择的文本 */
+			
+		// 	let js = GM_getResourceText('Jquery_localizationtool');
+		// 	addNewScript('js_jquery_localizationTool',js);
+			
+		// 	//gc_menu_friends_ui.loadTextChange(true); //改变当前加载进度
+		// 	resolve('jquery localizationTool') // 数据处理完成
+		// 	// reject('失败') // 数据处理出错
+		// }));
 		
 		let res = await Promise.all(arr);
 		

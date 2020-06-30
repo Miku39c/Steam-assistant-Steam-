@@ -21,9 +21,9 @@ echo 开始修改...
 REM 使用UTF-8编码
 chcp 65001 & cls & echo=
 
-del CSSs.js
+del _AutoGeneration_CSSs.js
 pushd css
-REM 遍历整个文件夹里的所有.html文件
+REM 遍历整个文件夹里的所有.css文件
 for %%i in (*.css) do (
   REM 延迟变量
   SETLOCAL ENABLEDELAYEDEXPANSION
@@ -33,22 +33,22 @@ for %%i in (*.css) do (
   REM echo !str:~0,-4!
 
   REM 代码注入函数开始
-  echo var !str:~0,-4! = %before%\>> CSSs.js
+  echo var !str:~0,-4! = %before%\>> _AutoGeneration_CSSs.js.tmp
   
   endlocal
   
-  REM 保留空行的修改，依次读取每个.html文件
+  REM 保留空行的修改，依次读取每个.css文件
   for /f "tokens=1* delims=:" %%a in ('findstr .* /n %%i') do (
     if not "%%~zb" == "0" (
-      echo %%b^\n^\>> CSSs.js
-    ) else echo=>> CSSs.js
+      echo %%b^\n^\>> _AutoGeneration_CSSs.js.tmp
+    ) else echo=>> _AutoGeneration_CSSs.js.tmp
   )
   
   REM 添加字符串结束"或'和代码注入函数结束
-  echo %before%;>> CSSs.js
+  echo %before%;>> _AutoGeneration_CSSs.js.tmp
   REM 换行
-  echo=>> CSSs.js
+  echo=>> _AutoGeneration_CSSs.js.tmp
 )
-move CSSs.js ..\
+move _AutoGeneration_CSSs.js.tmp ..\_AutoGeneration_CSSs.js
 popd
 chcp 936 & cls & echo=

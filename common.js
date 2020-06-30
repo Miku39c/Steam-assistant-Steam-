@@ -245,6 +245,57 @@ async function getResourceByURL(resourceURL,retDataMode){
 	return retData;
 }
 
+async function getResourceByURL_UsabilitTest(resourceURLs,retDataMode,timeouts){
+	var retData = null;
+	var waitStatus = true;
+	
+	GM_xmlhttpRequest({
+		method: 'GET',
+		url: resourceURL,
+		headers: {
+			'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
+			//'Accept': 'application/atom+xml,application/xml,text/xml',
+			//"Content-Type": "application/x-www-form-urlencoded",
+		},
+		timeout: timeouts,
+		onload: function(response) {
+			if (response.status === 200) {
+				console.log('getResourceByURL()请求成功!');
+				
+				if(retDataMode == true)
+					retData = response.responseText;
+				else
+					retData = response;
+				
+				waitStatus = false; //不等待
+			} else {
+				console.log('getResourceByURL()请求失败! 状态码:' + response.status);
+				//console.log(response);
+				//console.log(response.responseText);
+			}
+		},
+		onerror: function(err) {
+			console.log('getResourceByURL()请求错误!', err);
+			//waitStatus = false; //不等待
+		},
+		onabort: function(err) {
+			console.log('getResourceByURL()请求被中止!', err);
+			//waitStatus = false; //不等待
+		},
+		ontimeout: function(err) {
+			console.log('getResourceByURL()请求超时!', err);
+			//waitStatus = false; //不等待
+		},
+	});
+	
+	while (waitStatus){ //强制等待异步函数执行完毕后再执行
+		console.log("wait...");
+		await sleep(100); //延迟0.1秒
+	}
+	//console.log(retData);
+	return retData;
+}
+
 /**
  * 获取URL对应的资源数据(不通过插件，不能跨域，未来可能会被删除)(伪同步, 会阻塞当前线程, 配合 async 和 await 使用)
  * @summary 获取URL对应的资源数据(不通过插件，不能跨域，未来可能会被删除)

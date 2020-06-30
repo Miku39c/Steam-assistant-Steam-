@@ -2,7 +2,7 @@
 color 3F
 title 文件合并生成器(config专用JS代码生成器)
 del confMerge.js
-del confMerge_handle.js
+del _AutoGeneration_ConfS.js
 echo 正在生成文件...
 REM 使用UTF-8编码
 chcp 65001 & cls & echo=
@@ -34,15 +34,6 @@ for %%b in (g_debug_info.js) do (
   ) else echo=>> confMerge.js
 )
 
-REM more g_languageList.js >> confMerge.js
-REM for /f "delims=" %%a in ('type "g_languageList.js"') do echo %%~a >> confMerge.js
-REM 保留空行的合并
-for %%b in (g_languageList.js) do (
-  if not "%%~zb" == "0" (
-    type g_languageList.js >> confMerge.js
-  ) else echo=>> confMerge.js
-)
-
 REM more g_uiConf.js >> confMerge.js
 REM for /f "delims=" %%a in ('type "g_uiConf.js"') do echo %%~a >> confMerge.js
 REM 保留空行的合并
@@ -54,13 +45,13 @@ for %%b in (g_uiConf.js) do (
 
 echo 合并完毕! 开始修改...
 REM 不保留空行的修改
-REM for /f "delims=" %%a in ('type "confMerge.js"') do echo %%~a^\n^\ >> confMerge_handle.js
+REM for /f "delims=" %%a in ('type "confMerge.js"') do echo %%~a^\n^\ >> _AutoGeneration_ConfS.js
 
 REM 不保留空行的修改
 REM for /f "delims=" %%a in ('type "confMerge.js"') do (
 REM   if not "%%~zb" == "0" (
-REM     echo %%a^\n^\ >> confMerge_handle.js
-REM   ) else echo=>> confMerge_handle.js
+REM     echo %%a^\n^\ >> _AutoGeneration_ConfS.js
+REM   ) else echo=>> _AutoGeneration_ConfS.js
 REM )
 REM )
 
@@ -75,17 +66,17 @@ call colstr 30 0 "或者" 0 1 0
 call colstr 3f 0 "'" 0 1 1
 set /p before=请输入字符串标识符"或者':
 chcp 65001 & cls & echo=
-echo addNewScript('g_conf_Script', %before%\>> confMerge_handle.js
+echo addNewScript('g_conf_Script', %before%\>> _AutoGeneration_ConfS.js
 
 REM 保留空行的修改
 for /f "tokens=1* delims=:" %%a in ('findstr .* /n confMerge.js') do (
   if not "%%~zb" == "0" (
-    echo %%b^\n^\>> confMerge_handle.js
-  ) else echo=>> confMerge_handle.js
+    echo %%b^\n^\>> _AutoGeneration_ConfS.js
+  ) else echo=>> _AutoGeneration_ConfS.js
 )
 
 REM 添加字符串结束"或'和代码注入函数结束
-echo %before%);>> confMerge_handle.js
+echo %before%);>> _AutoGeneration_ConfS.js
 
 del confMerge.js
 REM 使用默认的GBK编码

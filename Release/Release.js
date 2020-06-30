@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Steam assistant(Steam小助手)
 // @description  WEB端Steam小助手，集合多种功能如Steam批量留言,点赞,好友管理,喜加一...，佛系更新中...欢迎提出您的建议或者共同学习交流
-// @version      1.2.3.4.4
-// @date         2020.5.19
+// @version      1.2.3.4.5
+// @date         2020.6.30
 // @source       https://github.com/Mikuof39/Steam-assistant-Steam-
 // @homepage     https://steamcommunity.com/sharedfiles/filedetails/?id=1993903275
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397073/feedback
@@ -11,6 +11,9 @@
 // @namespace    https://steamcommunity.com/id/miku-39/
 // @namespace    https://www.tampermonkey.net/
 // @namespace    https://greasyfork.org/
+// @icon         https://store.steampowered.com/favicon.ico
+// @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
+// @updateURL    https://greasyfork.org/scripts/397073-steam-assistant-steam%E5%B0%8F%E5%8A%A9%E6%89%8B/code/Steam%20assistant(Steam%E5%B0%8F%E5%8A%A9%E6%89%8B).user.js
 // @note         CSS-----------------------------------------------------------------------
 // @resource     css_layui https://www.layuicdn.com/layui-v2.5.6/css/layui.css
 // @resource     css_laydate https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9
@@ -33,22 +36,21 @@
 // @resource     JS_pep https://code.jquery.com/pep/0.4.3/pep.js
 // @resource     JS_babylon https://preview.babylonjs.com/babylon.js
 // @resource     JS_babylon_loaders https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js
-// @icon         http://store.steampowered.com/favicon.ico
-// @icon64       https://steamcommunity-a.akamaihd.net/public/shared/images/responsive/share_steam_logo.png
-// @updateURL    https://greasyfork.org/scripts/397073-steam-assistant-steam%E5%B0%8F%E5%8A%A9%E6%89%8B/code/Steam%20assistant(Steam%E5%B0%8F%E5%8A%A9%E6%89%8B).user.js
-// @note         社区
+// @resource     Jquery_localizationtool https://greasyfork.org/scripts/403927-jquery-localizationtool-js/code/jquerylocalizationTooljs.js?version=808323
+// @note         运行页面-> 社区
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?(add|pending|blocked|coplay|broadcast_moderator)?\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/(following|groups|groups\/pending)\/?$/
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/
-// @note         创意工坊-我的
+// @note         运行页面-> 创意工坊-我的
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
-// @note         创意工坊-我的收藏
+// @note         运行页面-> 创意工坊-我的收藏
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
-// @note         创意工坊-我的订阅
+// @note         运行页面-> 创意工坊-我的订阅
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
-// @note         创意工坊-运行过的
+// @note         运行页面-> 创意工坊-运行过的
 // @include      /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/myworkshopfiles\/\?appid=+[0-9]+&browsefilter=myfavorites$/
+// @note         脚本功能-----------------------------------------------------------------------
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getResourceText
 // @grant        GM_getResourceURL
@@ -66,9 +68,18 @@
 // @grant        GM_listValues
 // @grant        GM_info
 // @note         Cdn-----------------------------------------------------------------------
-// @connect      cdnjs.cloudflare.com
+// @connect      code.highcharts.com
 // @connect      code.highcharts.com.cn
 // @connect      www.layuicdn.com
+// @connect      cdnjs.cloudflare.com
+// @connect      cdn.90so.net
+// @connect      www.jsdelivr.com
+// @connect      cdn.bootcss.com
+// @connect      stackpath.bootstrapcdn.com
+// @connect      greasyfork.org
+// @connect      github.com
+// @connect      www.bootcdn.cn
+// @connect      cdn.jsdelivr.net
 // @note         Translate-----------------------------------------------------------------
 // @connect      www.deepl.com
 // @connect      api.deepl.com
@@ -111,19 +122,29 @@
  var g_db,g_db1,g_db2,g_db3,g_db4;
  //----------------------------------------------------------------------------------------------------------------------------------------------------
  //模块: databaseConf.js -> ui.js UI::initUI()
- const g_friendUrlRegExp = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/;
- const g_otherUrlRegExp1_1 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/add?\/?$/;
- const g_otherUrlRegExp1_2 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/pending?\/?$/;
- //已屏蔽
- const g_otherUrlRegExp1_3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/blocked?\/?$/;
- const g_otherUrlRegExp1_4 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/coplay?\/?$/;
- const g_otherUrlRegExp1_5 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/broadcast_moderator?\/?$/;
- const g_otherUrlRegExp2_1 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/following\/?$/;
- //您的组
- const g_otherUrlRegExp2_2 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/?$/;
- const g_otherUrlRegExp2_3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/pending\/?$/;
  
- const g_otherUrlRegExp3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/;
+ const URLs = {
+         //您的好友
+         g_friendUrlRegExp: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/,
+         //添加好友
+         g_otherUrlRegExp1_1: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/add?\/?$/,
+         //待处理邀请
+         g_otherUrlRegExp1_2: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/pending?\/?$/,
+         //已屏蔽
+         g_otherUrlRegExp1_3: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/blocked?\/?$/,
+         //近期共同游戏的玩家
+         g_otherUrlRegExp1_4: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/coplay?\/?$/,
+         //直播版主
+         g_otherUrlRegExp1_5: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/broadcast_moderator?\/?$/,
+         //关注的玩家
+         g_otherUrlRegExp2_1: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/following\/?$/,
+         //您的组
+         g_otherUrlRegExp2_2: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/?$/,
+         //待处理邀请
+         g_otherUrlRegExp2_3: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/pending\/?$/,
+         //
+         g_otherUrlRegExp3: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/,
+ };
  //----------------------------------------------------------------------------------------------------------------------------------------------------
  //模块: databaseConf.js -> ui.js UI::initUI()
  const g_steamId64RegExp = /7656119[0-9]{10}/;
@@ -132,6 +153,7 @@
  /* 全局对象 */
  var gc_res = null;
  
+
  
  var gc_ai = null;
  var gc_steamdb = null;
@@ -1071,9 +1093,11 @@ class DB{
 
 addNewScript('g_conf_Script', '\
 \n\
+var gc_multiLanguage = null;\n\
+\n\
 var g_conf = [\n\
         {steamID: ""\n\
-        ,language: "automatic" /*语言: 自动检测*/\n\
+        ,language: "auto_detected" /*语言: 自动检测*/\n\
         ,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
         ,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
         ,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
@@ -1099,7 +1123,7 @@ var g_conf = [\n\
 \n\
 const g_default_configuration = {\n\
         steamID: ""\n\
-        ,language: "automatic" /*语言: 自动检测*/\n\
+        ,language: "auto_detected" /*语言: 自动检测*/\n\
         ,delay: 4 /*设置你的留言时间间隔,单位秒*/\n\
         ,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/\n\
         ,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/\n\
@@ -1117,137 +1141,6 @@ const g_debug_info = [\n\
         }\n\
 ];\n\
 \n\
-/*多语言支持-UI*/\n\
-\n\
-const g_languageList = [\n\
-        {language: "简体中文"\n\
-        ,mainName: "Steam小助手"\n\
-        ,Tabs1: "留言"\n\
-        ,commentThread_textarea_Placeholder: "添加留言"\n\
-        ,strInBytes: "当前字符字节数: "\n\
-        ,translationModule: "翻译模块(需要提前设置国籍):"\n\
-        /* ,: "当前语言"\n\
-         ,: "自动检测"\n\
-         ,: "中文简体"\n\
-         ,: "英语"\n\
-         ,: "日语"\n\
-         ,: "目标语言:"\n\
-         ,: "请先选择要翻译为的语言"\n\
-         ,: "英语"\n\
-         ,: "日语"\n\
-         ,: "中文简体"\n\
-         ,: "马新简体[zh-sg]"\n\
-         ,: "繁體中文[zh-hant]"\n\
-         ,: "繁體中文(香港)[zh-hk]"\n\
-         ,: "繁體中文(澳门)[zh-mo]"\n\
-         ,: "繁體中文(台湾)[zh-tw]"\n\
-         ,: "翻译"\n\
-         ,: "添加称呼模块(需要提前设置备注):"\n\
-         ,: "自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)"\n\
-         ,: "在留言框添加自定义称呼标识符"\n\
-         ,: "是否为好友添加称呼 (如果好友没有备注则使用steam名称)"\n\
-         ,: "格式化帮助"\n\
-         ,: "发送评论给选择的好友"\n\
-         ,: "根据国籍发送评论给选择的好友"\n\
-        \n\
-        ,Tabs2: "留言设置"\n\
-         ,: "设置国籍:"\n\
-         ,: "请选择要设置的国籍:"\n\
-         ,: "简体中文"\n\
-         ,: "英语"\n\
-         ,: "日语"\n\
-         ,: "马新简体(马来西亚,新加坡)[zh-sg]"\n\
-         ,: "繁體中文[zh-hant]"\n\
-         ,: "繁體中文(香港)[zh-hk]"\n\
-         ,: "繁體中文(澳门)[zh-mo]"\n\
-         ,: "繁體中文(台湾)[zh-tw]"\n\
-         ,: "为选择的好友设置国籍标识"\n\
-         ,: "为选择的好友取消国籍标识"\n\
-         ,: "设置不留言:"\n\
-         ,: "为选择的好友设置不留言"\n\
-         ,: "为选择的好友取消设置不留言"\n\
-         ,: "设置留言时间间隔:"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        ,Tabs3: "数据分析"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        \n\
-        ,Tabs4: "动态助手"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        \n\
-        ,Tabs5: "拓展功能(测试)"\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-        \n\
-        ,Tabs6: "设置",\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""\n\
-         ,: ""*/\n\
-        \n\
-        },\n\
-        {language: "English"\n\
-        ,mainName: "Steam assistant"\n\
-        }\n\
-];\n\
-\n\
 /*ui配置相关信息*/\n\
 \n\
 var g_uiConf = {\n\
@@ -1261,6 +1154,710 @@ var g_uiConf = {\n\
 \n\
 ');
 /**
+ * common.js
+ */
+
+//-------------------------------------------------------------------------------------------------------------
+
+/**
+ * @summary 使线程进入休眠模式
+ * @async
+ * @param {UINT} ms 毫秒数
+ * @example
+ * await sleep(1000); //使当前线程等待1s后继续执行
+ */
+function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+}
+/**
+ * @summary 判断页面是移动端还是pc端
+ * @return {Boolean} 如果是移动端返回true, 如果是pc端返回false
+ */
+function opinion() {
+        if ((navigator.userAgent.match(
+                        /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
+                ))) {
+                return true; //移动端
+        } else {
+                return false; //pc端
+        }
+}
+/**
+ * @summary 判断是否是非负整数
+ * @param {int} val 待判断的整数
+ * @return {Boolean} 是则返回true，否则返回false
+ */
+function isIntNum(val){ //
+    var regPos = /^\d+$/; // 非负整数
+    if(regPos.test(val)){
+        return true;
+    }else{
+        return false;
+    }
+}
+/**
+ * @summary 解析JSON字符串
+ * @param {String} jsonText JSON字符串
+ * @return {Object} JSON对象
+ */
+function JSON_processing_parsing_JsObj(jsonText){ //
+        var JSON_jsObj;
+        if (jsonText == "")
+                return;
+        
+        //console.log("待处理数据:");
+        //console.log(jsonText);
+        JSON_jsObj = JSON.parse(jsonText);
+        console.log("解析后数据:");
+        console.log(JSON_jsObj);
+        return JSON_jsObj;
+}
+/**
+ * @summary 添加新的CSS样式
+ * @param {String} id 新的<style>标签id, 可用于修改和删除等
+ * @param {String} newStyle 待添加的CSS样式字符串
+ */
+function addNewStyle(id, newStyle) {
+        var styleElement = document.getElementById(id);
+
+        if (!styleElement) {
+                styleElement = document.createElement('style');
+                styleElement.type = 'text/css';
+                styleElement.id = id;
+                document.getElementsByTagName('head')[0].appendChild(styleElement);
+        }
+        styleElement.appendChild(document.createTextNode(newStyle));
+}
+/**
+ * @summary 添加新的JS脚本
+ * @param {String} id 新的<script>标签id, 可用于修改和删除等
+ * @param {String} newScript 待添加的JS脚本字符串
+ */
+function addNewScript(id, newScript) {
+        var styleElement = document.getElementById(id);
+
+        if (!styleElement) {
+                styleElement = document.createElement('script');
+                styleElement.type = 'text/javascript';
+                styleElement.id = id;
+                document.getElementsByTagName('head')[0].appendChild(styleElement);
+        }
+        styleElement.appendChild(document.createTextNode(newScript));
+}
+/**
+ * @summary 添加新的JS脚本(拓展)
+ * @param {String} id 新的<script>标签id, 可用于修改和删除等
+ * @param {String} newScript 待添加的JS脚本字符串
+ * @param {String} mode 添加模式(一般来说是<script>标签的格外标识符, 目前有 "async" 和 "defer" )
+ */
+function addNewScriptEx(id, newScript,mode) {
+        var styleElement = document.getElementById(id);
+        
+        if (!styleElement) {
+                styleElement = document.createElement('script');
+                styleElement.type = 'text/javascript';
+                styleElement.id = id;
+                
+                if(mode == "async"){
+                        styleElement.setAttribute('async');
+                }else if(mode == "defer"){
+                        styleElement.setAttribute('defer');
+                }
+                document.getElementsByTagName('head')[0].appendChild(styleElement);
+        }
+        styleElement.appendChild(document.createTextNode(newScript));
+}
+/**
+ * @summary 添加新的JS模块(实验)
+ * @param {String} id 新的<script>标签id, 可用于修改和删除等
+ * @param {String} newScript
+ */
+function addNewModule(id, newScript){
+        var styleElement = document.getElementById(id);
+        
+        if (!styleElement) {
+                styleElement = document.createElement('script');
+                styleElement.type = 'module';
+                styleElement.id = id;
+                document.getElementsByTagName('head')[0].appendChild(styleElement);
+        }
+        styleElement.appendChild(document.createTextNode(newScript));
+}
+/**
+ * 动态加载一个js/css文件, 位于<head>标签最后面新的<script>标签里, 通过src引入指定的url
+ * @summary 动态加载一个js/css文件
+ * @param {String} filePath 文件路径
+ * @param {String} filetype 文件类型
+ */
+function loadjscssFile(filePath, filetype) {
+        if (filetype == "js") {
+                var fileref = document.createElement('script')
+                fileref.setAttribute("type", "text/javascript")
+                fileref.setAttribute("src", filePath)
+        } else if (filetype == "css") {
+                var fileref = document.createElement("link")
+                fileref.setAttribute("rel", "stylesheet")
+                fileref.setAttribute("type", "text/css")
+                fileref.setAttribute("href", filePath)
+        }
+
+        if (typeof fileref != "undefined") {
+                document.getElementsByTagName("head")[0].appendChild(fileref); //向元素添加新的子节点，作为最后一个子节点
+        }
+}
+/**
+ * 动态加载一个js/css文件(此方法可以添加id和media类型), 位于<head>标签最后面新的<script>标签里, 通过src引入指定的url
+ * @summary 动态加载一个js/css文件(拓展)
+ * @param {String} filePath  文件路径
+ * @param {String} id        节点id
+ * @param {String} filetype  文件类型
+ */
+function loadjscssFile_media(filePath,id, filetype) { //动态加载一个js/css文件
+        if (filetype == "js") {
+                var fileref = document.createElement('script')
+                fileref.setAttribute("type", "text/javascript")
+                fileref.setAttribute("src", filePath)
+        } else if (filetype == "css") {
+                var fileref = document.createElement("link")
+                if(id != "" || id != null || id != undefined){
+                        fileref.setAttribute("id", id)
+                }
+                fileref.setAttribute("rel", "stylesheet")
+                fileref.setAttribute("type", "text/css")
+                fileref.setAttribute("href", filePath)
+                fileref.setAttribute("media", "all")
+        }
+
+        if (typeof fileref != "undefined") {
+                document.getElementsByTagName("head")[0].appendChild(fileref); //向元素添加新的子节点，作为最后一个子节点
+        }
+}
+/**
+ * 获取URL对应的资源数据(伪同步, 会阻塞当前线程, 配合 async 和 await 使用)
+ * @summary 获取URL对应的资源数据
+ * @async
+ * @param {String} resourceURL 资源url
+ * @param {Boolean} retDataMode 返回的数据方式
+ * @return {String} 返回获取到的数据
+ */
+async function getResourceByURL(resourceURL,retDataMode){
+        var retData = null;
+        var waitStatus = true;
+        
+        GM_xmlhttpRequest({
+                method: 'GET',
+                url: resourceURL,
+                headers: {
+                        'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
+                        //'Accept': 'application/atom+xml,application/xml,text/xml',
+                        //"Content-Type": "application/x-www-form-urlencoded",
+                },
+                onload: function(response) {
+                        if (response.status === 200) {
+                                console.log('getResourceByURL()请求成功!');
+                                
+                                if(retDataMode == true)
+                                        retData = response.responseText;
+                                else
+                                        retData = response;
+                                
+                                waitStatus = false; //不等待
+                        } else {
+                                console.log('getResourceByURL()请求失败! 状态码:' + response.status);
+                                //console.log(response);
+                                //console.log(response.responseText);
+                        }
+                },
+                onerror: function(err) {
+                        console.log('getResourceByURL()请求错误!', err);
+                        //waitStatus = false; //不等待
+                },
+                onabort: function(err) {
+                        console.log('getResourceByURL()请求被中止!', err);
+                        //waitStatus = false; //不等待
+                },
+                ontimeout: function(err) {
+                        console.log('getResourceByURL()请求超时!', err);
+                        //waitStatus = false; //不等待
+                }
+        });
+        
+        while (waitStatus){ //强制等待异步函数执行完毕后再执行
+                console.log("wait...");
+                await sleep(100); //延迟0.1秒
+        }
+        //console.log(retData);
+        return retData;
+}
+
+async function getResourceByURL_UsabilitTest(resourceURLs,retDataMode,timeouts){
+        var retData = null;
+        var waitStatus = true;
+        
+        GM_xmlhttpRequest({
+                method: 'GET',
+                url: resourceURL,
+                headers: {
+                        'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
+                        //'Accept': 'application/atom+xml,application/xml,text/xml',
+                        //"Content-Type": "application/x-www-form-urlencoded",
+                },
+                timeout: timeouts,
+                onload: function(response) {
+                        if (response.status === 200) {
+                                console.log('getResourceByURL()请求成功!');
+                                
+                                if(retDataMode == true)
+                                        retData = response.responseText;
+                                else
+                                        retData = response;
+                                
+                                waitStatus = false; //不等待
+                        } else {
+                                console.log('getResourceByURL()请求失败! 状态码:' + response.status);
+                                //console.log(response);
+                                //console.log(response.responseText);
+                        }
+                },
+                onerror: function(err) {
+                        console.log('getResourceByURL()请求错误!', err);
+                        //waitStatus = false; //不等待
+                },
+                onabort: function(err) {
+                        console.log('getResourceByURL()请求被中止!', err);
+                        //waitStatus = false; //不等待
+                },
+                ontimeout: function(err) {
+                        console.log('getResourceByURL()请求超时!', err);
+                        //waitStatus = false; //不等待
+                },
+        });
+        
+        while (waitStatus){ //强制等待异步函数执行完毕后再执行
+                console.log("wait...");
+                await sleep(100); //延迟0.1秒
+        }
+        //console.log(retData);
+        return retData;
+}
+
+/**
+ * @async
+ * @param {String} resourceURL 资源url
+ */
+async function getResourceByURL_original(resourceURL) {
+        var retData;
+        var waitStatus = true;
+        
+        jQuery.ajax({
+                type: "Get", //请求方式
+                //async: false,
+                //contentType: "application/json;charset=UTF-8",//请求的媒体类型
+                url: resourceURL, //请求地址
+                // headers: {
+                //      'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
+                //      //'Accept': 'application/atom+xml,application/xml,text/xml',
+                //      //"Content-Type": "application/x-www-form-urlencoded",
+                // },
+                //data: JSON.stringify(list),                           //数据，json字符串
+                success: function(result) { //请求成功
+                        retData = result;
+                        console.log("请求成功了!",retData);
+                        //let nIstart = Data.indexOf('StartTradeOffer(');
+                        //let nIend = Data.indexOf(');', nIstart);
+                        //let AccountID = Data.slice(nIstart + 'StartTradeOffer('.length + 1, nIend - 1);
+                        //nIstart = Data.indexOf('"steamid":"');
+                        //nIend = Data.indexOf('",', nIstart);
+                        //let profileID = Data.slice(nIstart + '"steamid":"'.length, nIend);
+                        //console.log("getgetProfilesID() i:", i, "AccountID:", AccountID, "profileID:", profileID);
+
+                        // for (let i = 0; i < waitStatus1.length; i++) {
+                        //      if (waitStatus1[i][0] == profileID) //是否是同一个用户
+                        //      {
+                        //              if (waitStatus1[i][1] == false) //这个用户是否已经获取过了(测试多个相同用户信息的获取)
+                        //                      continue;
+                        //              waitStatus1[i][1] = false;
+                        //              //returnData1.push(AccountID); //存储数据
+                        //              returnData1[i] = AccountID; //存储数据到对应的位置(受网络影响,响应顺序可能会不同)
+                        //              //console.log("getgetProfilesID() 成功存储数据 AccountID:",AccountID);
+                        //              return;
+                        //              //console.log("waitStatus1[i][1] break",i,waitStatus1[i][1]);
+                        //      }
+                        // }
+                        // console.log("getgetProfilesID 数据错误!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                        // console.log("waitStatus1:", waitStatus1, 'returnData1:', returnData1);
+                        // console.log('profileID:', profileID, 'AccountID:', AccountID);
+                        return;
+                        //console.log("DBG!",nIstart,nIend);
+                },
+                error: function(e) { //请求失败，包含具体的错误信息
+                        console.log("请求失败了!", e.status);
+                        console.log("请求失败了!", e.responseText);
+                }
+        });
+        //console.log("getgetProfilesID() i:",i,"waitStatus1:",waitStatus1);
+        while (waitStatus){ //强制等待异步函数执行完毕后再执行
+                console.log("wait...");
+                await sleep(50); //延迟0.1秒
+        }
+        //console.log("waitStatus1[i][1]:",waitStatus1[i][1],"returnData1[i]:",returnData1[i]);
+        return retData;
+
+        // jQuery.get(URL, {
+        //      // "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        //      // // "Content-Type": "application/x-www-form-urlencoded", //非常重要
+        //      // "Accept-Encoding": "gzip, deflate, br",
+        //      // "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        //      // "Cache-Control": "max-age=0",
+        //      // "Connection": "keep-alive",
+        //      // "Cookie": "sessionid=6f84a0f48cddb56ad66394b6; steamCountry=HK%7Cda7daa2682f7a361e594f8dad55fe9df; timezoneOffset=28800,0",
+        //      // "Host": "steamcommunity.com",
+        //      // "Upgrade-Insecure-Requests": "1",
+        //      'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
+        // }, function(response) {
+        //      if (response.status === 200) {
+        //              console.log("获取失败!",response.responseText);
+        //      } else {
+        //              console.log("获取成功!",response.responseText);
+        //      }
+        // }).fail(function() {
+        //      console.log("无法获取!");
+        // }).always(function() {
+        //      //console.log("当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.");
+        // });
+}
+//-------------------------------------------------------------------------------------------------------------
+function WriteLog() {
+        // eslint-disable-next-line no-console
+        console.log('%c[SteamDB]%c', 'color:#2196F3; font-weight:bold;', '', ...arguments);
+}
+//console.log("%c百度2020校园招聘简历提交：http://dwz.cn/XpoFdepe", "color:red"))
+//color:#00a1d6
+
+//-------------------------------------------------------------------------------------------------------------
+
+class Arguments {
+        static getArgumentsAllValue(argumentsObj) { //解析函数的参数并进行合并为字符串
+                let str = "";
+                for (let i = 0; i < argumentsObj.length; i++) {
+                        str += argumentsObj[i] + " ";
+                }
+                return str;
+        }
+        static getArgumentsAllValue_noFunction(argumentsObj) { //解析函数的参数并进行合并为字符串
+                let str = "";
+                for (let i = 0; i < argumentsObj.length; i++) {
+                        if (typeof argumentsObj[i] == 'function') { //如果是函数则跳过
+                                continue;
+                        }
+                        str += argumentsObj[i] + " ";
+                }
+                return str;
+        }
+        static getArgumentsAllValueByDebug(argumentsObj) { //解析函数的参数并进行合并为字符串 //返回数组[track,str]
+                let str = "";
+                let track = "";
+                console.log(arguments);
+                //console.log(arguments.callee.name);
+                for (let i = 0; i < argumentsObj.length; i++) {
+                        if (typeof argumentsObj[i] == 'number') { //如果是数字则转为字符串
+                                //argumentsObj[i] = argumentsObj[i].toString();
+                                str += argumentsObj[i] + " ";
+                                continue;
+                        }
+                        let s = argumentsObj[i].match(/\s*[A-Za-z\$\_][A-Za-z\$\_\.0-9]+\s*\(/);
+                        if (s != null) {
+                                if (null != s[0]) { //提取出' 函数名 ('这样的字符串
+                                        track = s[0].slice(0, -1); //去掉最后的(，得到函数名
+                                        let s1 = argumentsObj[i].replace(/\s*[A-Za-z\$\_][A-Za-z\$\_\.0-9]+\s*\(/, ""); //从字符串中删除函数名，然后剩下的部分
+                                        str += s1.slice(1, s1.length) + " "; //去掉最前面的)，得到提示信息
+                                        continue;
+                                }
+                        }
+                        str += argumentsObj[i] + " ";
+                }
+                return [track, str];
+        }
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+/**
+ * @class
+ * @classdesc 用于输出和记录调试信息的类
+ * 
+ */
+class Log {
+         /**
+          * @constructs 构造方法(模块名称,调试状态) //默认开启调试
+          * @param {String} moduleName 模块名称 (当输出调试信息时会在最前面显示出来)
+          * @param {Boolean} debugStatus 调试状态
+          */
+        constructor(moduleName, debugStatus = true) {
+                this.m_moduleNamel = moduleName; //设置模块名称
+                this.arrlogContent = []; //日志内容(数组)
+                g_conf[0].is_Debug = debugStatus; //设置调试状态
+        }
+        /**
+         *  @param {Boolean} debugStatus 调试状态
+         */
+        setDebugStatus(debugStatus = true) {
+                g_conf[0].is_Debug = debugStatus;
+        }
+        /**
+         * 清除控制台输出
+         */
+        clear() {
+                console.clear();
+        }
+        /**
+         * @param {String} mode 释放资源模式
+         */
+        release(mode){
+                this.arrlogContent = [];
+        }
+        /**
+         * 用于对此类进行测试
+         * @param {Object} strTestInfo 需要进行测试输出的字符串
+         */
+        test(strTestInfo) { //用于对Log类进行输出测试
+                if (strTestInfo == undefined)
+                        strTestInfo = "默认测试内容";
+                log.out("模块名称:", this.m_moduleNamel);
+                log.out("是否开启调试:", g_conf[0].is_Debug);
+                log.debug(strTestInfo);
+                log.info(strTestInfo);
+                log.warn(strTestInfo);
+                log.error(strTestInfo);
+                log.fatal(strTestInfo);
+        }
+        /**
+         * @param {Object} strLog 需要直接输出的字符串
+         */
+        out(strLog) {
+                console.log('%c[' + this.m_moduleNamel + ' out]%c' + Arguments.getArgumentsAllValue(arguments),
+                        'color:#000000; font-weight:bold;', 'color:#000000;');
+        }
+        /**
+         * 输出Debug等级的日志信息
+         * @param {String} $funcName 需要输出的函数名称
+         * @param {String} $strDebugInfo 需要输出的字符串
+         */
+        //伪重载实现，两种版本
+        //log.debug("getArgumentsAllValueByDebug() 111");
+        //log.debug(getArgumentsAllValueByDebug,"111");
+        debug($funcName, $strDebugInfo) {
+                //var This = this;
+                //debugger;
+                let fontStyle =
+                        'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
+                let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
+                let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #1475b2;color: #fff;' + fontStyle;
+                let arr;
+                if (typeof $funcName == 'function') { //
+                        if (g_conf[0].is_Debug) {
+                                //debugger;
+                                console.log($funcName);
+                                $funcName = '.' + $funcName.name;
+
+                                arr = Arguments.getArgumentsAllValue_noFunction(arguments);
+                                console.log('%c[' + this.m_moduleNamel + ' Debug-B]%c' + $funcName + '%c' + arr,
+                                        'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
+                        }
+                } else {
+                        if (g_conf[0].is_Debug) {
+                                arr = Arguments.getArgumentsAllValueByDebug(arguments);
+                                console.log('%c[' + this.m_moduleNamel + ' Debug-A]%c' + arr[0] + '%c' + arr[1],
+                                        'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
+                        }
+                }
+        }
+        /**
+         * 输出Info等级的日志信息
+         * @param {String} $funcName 需要输出的函数名称
+         * @param {String} $strDebugInfo 需要输出的字符串
+         */
+        info($strLogInfo) {
+                if (g_conf[0].is_Debug) {
+                        let fontStyle =
+                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
+                        let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
+                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #42c02e;color: #fff;' + fontStyle;
+                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
+
+                        console.log('%c[' + this.m_moduleNamel + ' Info]%c' + arr[0] + '%c' + arr[1], 'color:#00edc3; font-weight:bold;',
+                                titleStyle, contentStyle);
+                }
+        }
+        /**
+         * 输出Warn等级的日志信息
+         * @param {String} $funcName 需要输出的函数名称
+         * @param {String} $strDebugInfo 需要输出的字符串
+         */
+        warn($strWarnInfo) {
+                if (g_conf[0].is_Debug) {
+                        let fontStyle =
+                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
+                        let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
+                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #ff7800;color: #fff;' + fontStyle;
+                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
+
+                        console.log('%c[' + this.m_moduleNamel + ' Warn]%c' + arr[0] + '%c' + arr[1], 'color:#ffa800; font-weight:bold;',
+                                titleStyle, contentStyle);
+                }
+        }
+        /**
+         * 输出Error等级的日志信息
+         * @param {String} $funcName 需要输出的函数名称
+         * @param {String} $strDebugInfo 需要输出的字符串
+         */
+        error($strErrInfo) {
+                if (g_conf[0].is_Debug) {
+                        let fontStyle =
+                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
+                        let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
+                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #ff00a2;color: #fff;' + fontStyle;
+                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
+
+                        console.trace('%c[' + this.m_moduleNamel + ' Error]%c' + arr[0] + '%c' + arr[1], 'color:#ff00c0; font-weight:bold;',
+                                titleStyle, contentStyle);
+                }
+        }
+        /**
+         * 输出Fatal等级的日志信息
+         * @param {String} $funcName 需要输出的函数名称
+         * @param {String} $strDebugInfo 需要输出的字符串
+         */
+        fatal($strFatalInfo) {
+                if (g_conf[0].is_Debug) {
+                        let fontStyle =
+                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
+                        let titleStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #606060;color: #fff;' + fontStyle;
+                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #ff5252;color: #fff;' + fontStyle;
+                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
+
+                        console.trace('%c[' + this.m_moduleNamel + ' Fatal]%c' + arr[0] + '%c' + arr[1], 'color:#ff0000; font-weight:bold;',
+                                titleStyle, contentStyle);
+                }
+        }
+}
+var log = new Log("Main");
+log.info("Test");
+//log.test("Arguments.getArgumentsAllValueByDebug() successed!");
+//log.debug("Arguments.getArgumentsAllValueByDebug() 111");
+//log.debug(Arguments.getArgumentsAllValueByDebug, "111");
+
+// /**
+//  */
+// function getRuntimeEnviInfo(){
+//      var naObj = window.navigator;
+//      document.write("浏览器的信息如下: <hr>");
+//      for (var i in naObj) {
+//              console.log(i + " : <span style='color:blue;'>" + typeof naObj[i] + '</span><br><span style=\'color:red;\'>' + naObj[i] + "</span><br>");
+//      }
+
+// /**
+//  */
+// function getRuntimeEnviInfo(){
+//      var naObj = window.navigator;
+//      document.write("浏览器的信息如下: <hr>");
+//      for (var i in naObj) {
+//              document.write(i + " : <span style='color:blue;'>" + typeof naObj[i] + '</span><br><span style=\'color:red;\'>' + naObj[i] + "</span><br>");
+//      }
+
+
+//      function openWin(url,name,width,height){
+//              var str = 'width=' + width + ',height=' + height;
+//              return window.open(url,name,str);
+//      }
+
+//      function closeWin(winObj){
+//              return winObj.close();
+//      }
+// }
+
+
+// var textNode = '<div style="z-index: 999;position: relative;"><a href="https://www.baidu.com/" target="newWin">百度</a><button id="open">打开窗口</button><button id="close">关闭窗口</button></div>';
+
+// function createNode(template){
+//      var start = Date.now();
+//      //var tempNode = document.createElement('div');
+//      //tempNode.innerHTML = template;
+//      //var node = tempNode;
+//      var node = document.createRange().createContextualFragment(textNode);
+//      console.log(Date.now() - start);
+//      return node;
+// }
+// document.getElementsByTagName('body')[0].appendChild(createNode(textNode));
+
+// document.getElementById('open').onclick = ()=>{
+//      openWin('','newWin',320,240);
+// };
+// document.getElementById('close').onclick = ()=>{
+//      closeWin(newWin);
+// };
+
+/**
+ * 通知类
+ * https://developer.mozilla.org/zh-CN/docs/Web/API/notification/Using_Web_Notifications
+ */
+class Notifications{
+        constructor(arg) {
+                this.enabled = true; //是否启用通知
+                this.defaultWaitTime = 2000; //通知默认等待时间 (x秒后关闭通知)
+        }
+        init(){
+                // 检查浏览器是否支持通知
+                if (!("Notification" in window)) {
+                        console.log("此浏览器不支持桌面通知!");
+                }
+                
+                // 检查是否已经授予通知权限
+                else if (Notification.permission === "granted") {
+                        // 如果用户已经同意了通知权限
+                        var notification = new Notification("通知已启用.");
+                        return true;
+                }
+                
+                // 否则，需要请求用户的许可
+                else if (Notification.permission !== 'denied' || Notification.permission === "default") {
+                        Notification.requestPermission(function (permission) {
+                                // 如果用户许可了，则创建一个通知进行测试
+                                if (permission === "granted") {
+                                        var notification = new Notification("通知已启用.");
+                                        return true;
+                                }
+                        });
+                }
+                return false;
+        }
+        /**
+         * 输出一条通知
+         * @param {String} strNotifications
+         */
+        show(strNotifications){
+                if(this.enabled){
+                        var notification = new Notification(strNotifications);
+                }
+                
+        }
+        /**
+         * 设置通知状态
+         * @param {Boolean} notificationsStatus 通知状态
+         */
+        setNotificationsStatus(notificationsStatus = true){
+                this.enabled = notificationsStatus;
+        }
+        /**
+         * 设置默认等待时间
+         * @param {Number} defaultWaitTime 通知默认等待时间 (x秒后关闭通知)
+         */
+        setNotificationsDefaultWaitTime(defaultWaitTime = 2000){
+                this.defaultWaitTime = defaultWaitTime;
+        }
+}
+
+/**
  * resource.js
  */
  
@@ -1273,19 +1870,17 @@ class resource {
                         await this._loadResource(type);  //加载资源
         }
         
-        async _loadResource(type,resourceID){ //加载资源
+        async _loadResource(type){ //加载资源
                 if(type) //第一次加载才需要加载基础资源
                         await this._loadBaseResources(); //加载基础资源
-                
-                
         }
         
-        async _loadBaseResources(){
+        async _loadBaseResources(){ //加载基础资源
                 let arr = [];
                 var arrjsData = new Array(5);
                 
                 arr.push(new Promise(async function (resolve, reject){
-                        if(document.getElementById('search_results') == null){
+                        if(document.readyState == "loading"){
                                 document.addEventListener("DOMContentLoaded", function(event) {
                                         //console.log("DOM fully loaded and parsed");
                                         // if(gc_menu_friends_ui.loadProgress < 9) //资源是否已经加载完毕(已缓存)，如果加载完成则不需要显示加载UI
@@ -1298,49 +1893,128 @@ class resource {
                                         // reject('失败') // 数据处理出错
                                 });
                         }
-                        else{
+                        else{ //document.readyState == "interactive" || document.readyState == "complete"
                                 resolve('DOM advance loaded(possible)') // 数据处理完成
                         }
                 }));
                 
-                arr.push(new Promise(async function (resolve, reject){
-                        // //var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
-                        // //addNewStyle('layui_style',cssData);
-                        // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
-                        let css = GM_getResourceText('css_layui');
-                        addNewStyle('css_layui',css);
-                        resolve('css_layui') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
-                        let css = GM_getResourceText('css_laydate');
-                        addNewStyle('css_laydate',css);
-                        resolve('css_laydate') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
-                        let css = GM_getResourceText('css_layer');
-                        addNewStyle('css_layer',css);
-                        resolve('css_layer') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
-                        let css = GM_getResourceText('css_layui_Modules');
-                        addNewStyle('css_layui_Modules',css);
-                        resolve('css_layui_Modules') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        // //font-awesome
-                        // loadjscssFile("https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css", "css");
-                        let css = GM_getResourceText('css_fontAwesome');
-                        addNewStyle('css_fontAwesome',css);
-                        resolve('css_fontAwesome') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
+                debugger
+                
+                var resList = getResConfByID("BaseResources"); //通过资源id获取对应的资源列表, 返回资源列表数组 resInfo
+                for (let i = 0; i < resList.length; i++) { //遍历所有的资源
+                        var resChildList = resList[i].res;
+                        for (let j = 0; j < resChildList.length; j++) { //遍历每个资源的res
+                                
+                                if(resChildList[j].isFight == true){
+                                        
+                                }
+                                else{
+                                        switch (resChildList[j].resMode){
+                                                case _RESMODE.res_Tampermonkey:
+                                                        arr.push(new Promise(async function (resolve, reject){
+                                                                var resData = GM_getResourceText(resChildList[j].sourceInfo[0]);
+                                                                if(_RESTYPE.res_css == resChildList[j].resType){
+                                                                        if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+                                                                                resData = resChildList[j].onSucceed(resData);
+                                                                        addNewStyle(resList[i].resName, resData);
+                                                                }
+                                                                else if(_RESTYPE.res_js == resChildList[j].resType){
+                                                                        if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+                                                                                resData = resChildList[j].onSucceed(resData);
+                                                                        addNewScript(resList[i].resName, resData);
+                                                                }
+                                                        
+                                                                resolve(resList[i].resName) // 数据处理完成
+                                                                // reject('失败') // 数据处理出错
+                                                        }));
+                                                        break;
+                                                case _RESMODE.res_CDN:
+                                                        arr.push(new Promise(async function (resolve, reject){
+                                                                let URLs =  resChildList[j].sourceInfo;
+                                                                var resData;
+                                                                for (let i = 0; i < URLs.length; i++) {
+                                                                        //loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
+                                                                        resData = await getResourceByURL(URLs[i],true); //
+                                                                }
+                                                                //console.log("数据获取成果",resData);
+                                                                if(_RESTYPE.res_css == resChildList[j].resType){
+                                                                        if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+                                                                                resData = resChildList[j].onSucceed(resData);
+                                                                        addNewStyle(resList[i].resName, resData);
+                                                                }
+                                                                else if(_RESTYPE.res_js == resChildList[j].resType){
+                                                                        if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+                                                                                resData = resChildList[j].onSucceed(resData);
+                                                                        addNewScript(resList[i].resName, resData);
+                                                                }
+                                                                
+                                                                resolve(resList[i].resName) // 数据处理完成
+                                                                // reject('失败') // 数据处理出错
+                                                        }));
+                                                        break;
+                                                case _RESMODE.res_LocalVariables:
+                                                        arr.push(new Promise(async function (resolve, reject){
+                                                                if(_RESTYPE.res_css == resChildList[j].resType){
+                                                                        if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+                                                                                eval(resChildList[j].sourceInfo[0]) = resChildList[j].onSucceed( eval(resChildList[j].sourceInfo[0]) );
+                                                                        addNewStyle(resList[i].resName, eval(resChildList[j].sourceInfo[0]));
+                                                                }
+                                                                else if(_RESTYPE.res_js == resChildList[j].resType){
+                                                                        if(resChildList[j].onSucceed != null && typeof(resChildList[j].onSucceed) === 'function')
+                                                                                eval(resChildList[j].sourceInfo[0]) = resChildList[j].onSucceed( eval(resChildList[j].sourceInfo[0]) );
+                                                                        addNewScript(resList[i].resName, eval(resChildList[j].sourceInfo[0]));
+                                                                }
+                                                                resolve(resList[i].resName) // 数据处理完成
+                                                                // reject('失败') // 数据处理出错
+                                                        }));
+                                                        break;
+                                                default:
+                                                        
+                                                        break;
+                                        }
+                                }
+                        }
+                }
+                
+                
+                // arr.push(new Promise(async function (resolve, reject){
+                //      // //var cssData = await getResourceByURL("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",true);
+                //      // //addNewStyle('layui_style',cssData);
+                //      // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/layui.css",null, "css");
+                //      let css = GM_getResourceText('css_layui');
+                //      addNewStyle('css_layui',css);
+                //      resolve('css_layui') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9", "layuicss-laydate", "css");
+                //      let css = GM_getResourceText('css_laydate');
+                //      addNewStyle('css_laydate',css);
+                //      resolve('css_laydate') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1", "layuicss-layer", "css");
+                //      let css = GM_getResourceText('css_layer');
+                //      addNewStyle('css_layer',css);
+                //      resolve('css_layer') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      // loadjscssFile_media("https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css", "layuicss-skincodecss", "css");
+                //      let css = GM_getResourceText('css_layui_Modules');
+                //      addNewStyle('css_layui_Modules',css);
+                //      resolve('css_layui_Modules') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      // //font-awesome
+                //      // loadjscssFile("https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css", "css");
+                //      let css = GM_getResourceText('css_fontAwesome');
+                //      addNewStyle('css_fontAwesome',css);
+                //      resolve('css_fontAwesome') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
                         
                 //0.基本环境-加载css
                 arr.push(new Promise(function (resolve, reject){
@@ -1414,55 +2088,55 @@ class resource {
                         // reject('失败') // 数据处理出错
                 }));
                 
-                //1.基本环境-加载js到页面上，方便调试
-                arr.push(new Promise(async function (resolve, reject){
-                        let js = GM_getResourceText('JS_highstock')
-                        addNewScript('JS_highstock',js);
-                        resolve('JS_highstock') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        let js = GM_getResourceText('JS_highstock_exporting')
-                        addNewScript('JS_highstock_exporting',js);
-                        resolve('JS_highstock_exporting') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        let js = GM_getResourceText('JS_highstock_oldie')
-                        addNewScript('JS_highstock_oldie',js);
-                        resolve('JS_highstock_oldie') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        let js = GM_getResourceText('JS_highstock_networkgraph')
-                        addNewScript('JS_highstock_networkgraph',js);
-                        resolve('JS_highstock_networkgraph') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        let js = GM_getResourceText('JS_highstock_zh_CN')
-                        addNewScript('JS_highstock_zh_CN',js);
-                        resolve('JS_highstock_zh_CN') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        let js = GM_getResourceText('JS_layui');
-                        //对 o.prototype.addcss 打补丁，使其直接return this, 而不是去加载css, css通过脚本欲加载的资源手动添加
-                        var findStr = 'layui.link(n.dir+"css/"+e,t,o)';
-                        var index = js.indexOf(findStr); //查找代补丁代码的位置
-                        var fixJS = js.slice(0,index); //提取 代补丁代码前部分
-                        fixJS += 'this'; //添加 补丁代码
-                        fixJS += js.slice(index+findStr.length); //提取 代补丁代码后部分
-                        addNewScript('JS_layui',fixJS);
-                        resolve('JS_layui') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
-                arr.push(new Promise(async function (resolve, reject){
-                        let js = GM_getResourceText('JS_localforage');
-                        addNewScript('JS_localforage',js);
-                        resolve('JS_localforage') // 数据处理完成
-                        // reject('失败') // 数据处理出错
-                }));
+                // //1.基本环境-加载js到页面上，方便调试
+                // arr.push(new Promise(async function (resolve, reject){
+                //      let js = GM_getResourceText('JS_highstock')
+                //      addNewScript('JS_highstock',js);
+                //      resolve('JS_highstock') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      let js = GM_getResourceText('JS_highstock_exporting')
+                //      addNewScript('JS_highstock_exporting',js);
+                //      resolve('JS_highstock_exporting') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      let js = GM_getResourceText('JS_highstock_oldie')
+                //      addNewScript('JS_highstock_oldie',js);
+                //      resolve('JS_highstock_oldie') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      let js = GM_getResourceText('JS_highstock_networkgraph')
+                //      addNewScript('JS_highstock_networkgraph',js);
+                //      resolve('JS_highstock_networkgraph') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      let js = GM_getResourceText('JS_highstock_zh_CN')
+                //      addNewScript('JS_highstock_zh_CN',js);
+                //      resolve('JS_highstock_zh_CN') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      let js = GM_getResourceText('JS_layui');
+                //      //对 o.prototype.addcss 打补丁，使其直接return this, 而不是去加载css, css通过脚本欲加载的资源手动添加
+                //      var findStr = 'layui.link(n.dir+"css/"+e,t,o)';
+                //      var index = js.indexOf(findStr); //查找代补丁代码的位置
+                //      var fixJS = js.slice(0,index); //提取 代补丁代码前部分
+                //      fixJS += 'this'; //添加 补丁代码
+                //      fixJS += js.slice(index+findStr.length); //提取 代补丁代码后部分
+                //      addNewScript('JS_layui',fixJS);
+                //      resolve('JS_layui') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
+                // arr.push(new Promise(async function (resolve, reject){
+                //      let js = GM_getResourceText('JS_localforage');
+                //      addNewScript('JS_localforage',js);
+                //      resolve('JS_localforage') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
                 
                 // arr.push(new Promise(async function (resolve, reject){
                 //      //loadjscssFile("https://www.layuicdn.com/layui-v2.5.6/layui.all.js","js");
@@ -1541,6 +2215,17 @@ class resource {
                         resolve('css js') // 数据处理完成
                         // reject('失败') // 数据处理出错
                 }));
+                
+                // arr.push(new Promise(async function (resolve, reject){
+                //      addNewStyle('css_jquery_localizationTool',jquery_localizationTool); /* 选择的文本 */
+                        
+                //      let js = GM_getResourceText('Jquery_localizationtool');
+                //      addNewScript('js_jquery_localizationTool',js);
+                        
+                //      //gc_menu_friends_ui.loadTextChange(true); //改变当前加载进度
+                //      resolve('jquery localizationTool') // 数据处理完成
+                //      // reject('失败') // 数据处理出错
+                // }));
                 
                 let res = await Promise.all(arr);
                 
@@ -1773,6 +2458,876 @@ var fs_css = '\
         -webkit-border-radius: 2em;\n\
         -moz-border-radius: 2em;\n\
         border-radius: 2em\n\
+}\n\
+';
+
+var jquery_localizationTool_css = '\
+.flag {\n\
+  width: 16px;\n\
+  height: 11px;\n\
+  background: url(flags.png) no-repeat;\n\
+}\n\
+.flag.flag-ad {\n\
+  background-position: -16px 0;\n\
+}\n\
+.flag.flag-ae {\n\
+  background-position: -32px 0;\n\
+}\n\
+.flag.flag-af {\n\
+  background-position: -48px 0;\n\
+}\n\
+.flag.flag-ag {\n\
+  background-position: -64px 0;\n\
+}\n\
+.flag.flag-ai {\n\
+  background-position: -80px 0;\n\
+}\n\
+.flag.flag-al {\n\
+  background-position: -96px 0;\n\
+}\n\
+.flag.flag-am {\n\
+  background-position: -112px 0;\n\
+}\n\
+.flag.flag-an {\n\
+  background-position: -128px 0;\n\
+}\n\
+.flag.flag-ao {\n\
+  background-position: -144px 0;\n\
+}\n\
+.flag.flag-ar {\n\
+  background-position: -160px 0;\n\
+}\n\
+.flag.flag-as {\n\
+  background-position: -176px 0;\n\
+}\n\
+.flag.flag-at {\n\
+  background-position: -192px 0;\n\
+}\n\
+.flag.flag-au {\n\
+  background-position: -208px 0;\n\
+}\n\
+.flag.flag-aw {\n\
+  background-position: -224px 0;\n\
+}\n\
+.flag.flag-az {\n\
+  background-position: -240px 0;\n\
+}\n\
+.flag.flag-ba {\n\
+  background-position: 0 -11px;\n\
+}\n\
+.flag.flag-bb {\n\
+  background-position: -16px -11px;\n\
+}\n\
+.flag.flag-bd {\n\
+  background-position: -32px -11px;\n\
+}\n\
+.flag.flag-be {\n\
+  background-position: -48px -11px;\n\
+}\n\
+.flag.flag-bf {\n\
+  background-position: -64px -11px;\n\
+}\n\
+.flag.flag-bg {\n\
+  background-position: -80px -11px;\n\
+}\n\
+.flag.flag-bh {\n\
+  background-position: -96px -11px;\n\
+}\n\
+.flag.flag-bi {\n\
+  background-position: -112px -11px;\n\
+}\n\
+.flag.flag-bj {\n\
+  background-position: -128px -11px;\n\
+}\n\
+.flag.flag-bm {\n\
+  background-position: -144px -11px;\n\
+}\n\
+.flag.flag-bn {\n\
+  background-position: -160px -11px;\n\
+}\n\
+.flag.flag-bo {\n\
+  background-position: -176px -11px;\n\
+}\n\
+.flag.flag-br {\n\
+  background-position: -192px -11px;\n\
+}\n\
+.flag.flag-bs {\n\
+  background-position: -208px -11px;\n\
+}\n\
+.flag.flag-bt {\n\
+  background-position: -224px -11px;\n\
+}\n\
+.flag.flag-bv {\n\
+  background-position: -240px -11px;\n\
+}\n\
+.flag.flag-bw {\n\
+  background-position: 0 -22px;\n\
+}\n\
+.flag.flag-by {\n\
+  background-position: -16px -22px;\n\
+}\n\
+.flag.flag-bz {\n\
+  background-position: -32px -22px;\n\
+}\n\
+.flag.flag-ca {\n\
+  background-position: -48px -22px;\n\
+}\n\
+.flag.flag-catalonia {\n\
+  background-position: -64px -22px;\n\
+}\n\
+.flag.flag-cd {\n\
+  background-position: -80px -22px;\n\
+}\n\
+.flag.flag-cf {\n\
+  background-position: -96px -22px;\n\
+}\n\
+.flag.flag-cg {\n\
+  background-position: -112px -22px;\n\
+}\n\
+.flag.flag-ch {\n\
+  background-position: -128px -22px;\n\
+}\n\
+.flag.flag-ci {\n\
+  background-position: -144px -22px;\n\
+}\n\
+.flag.flag-ck {\n\
+  background-position: -160px -22px;\n\
+}\n\
+.flag.flag-cl {\n\
+  background-position: -176px -22px;\n\
+}\n\
+.flag.flag-cm {\n\
+  background-position: -192px -22px;\n\
+}\n\
+.flag.flag-cn {\n\
+  background-position: -208px -22px;\n\
+}\n\
+.flag.flag-co {\n\
+  background-position: -224px -22px;\n\
+}\n\
+.flag.flag-cr {\n\
+  background-position: -240px -22px;\n\
+}\n\
+.flag.flag-cu {\n\
+  background-position: 0 -33px;\n\
+}\n\
+.flag.flag-cv {\n\
+  background-position: -16px -33px;\n\
+}\n\
+.flag.flag-cw {\n\
+  background-position: -32px -33px;\n\
+}\n\
+.flag.flag-cy {\n\
+  background-position: -48px -33px;\n\
+}\n\
+.flag.flag-cz {\n\
+  background-position: -64px -33px;\n\
+}\n\
+.flag.flag-de {\n\
+  background-position: -80px -33px;\n\
+}\n\
+.flag.flag-dj {\n\
+  background-position: -96px -33px;\n\
+}\n\
+.flag.flag-dk {\n\
+  background-position: -112px -33px;\n\
+}\n\
+.flag.flag-dm {\n\
+  background-position: -128px -33px;\n\
+}\n\
+.flag.flag-do {\n\
+  background-position: -144px -33px;\n\
+}\n\
+.flag.flag-dz {\n\
+  background-position: -160px -33px;\n\
+}\n\
+.flag.flag-ec {\n\
+  background-position: -176px -33px;\n\
+}\n\
+.flag.flag-ee {\n\
+  background-position: -192px -33px;\n\
+}\n\
+.flag.flag-eg {\n\
+  background-position: -208px -33px;\n\
+}\n\
+.flag.flag-eh {\n\
+  background-position: -224px -33px;\n\
+}\n\
+.flag.flag-england {\n\
+  background-position: -240px -33px;\n\
+}\n\
+.flag.flag-er {\n\
+  background-position: 0 -44px;\n\
+}\n\
+.flag.flag-es {\n\
+  background-position: -16px -44px;\n\
+}\n\
+.flag.flag-esperanto {\n\
+  background-position: -192px -165px;\n\
+}\n\
+.flag.flag-et {\n\
+  background-position: -32px -44px;\n\
+}\n\
+.flag.flag-eu {\n\
+  background-position: -48px -44px;\n\
+}\n\
+.flag.flag-fi {\n\
+  background-position: -64px -44px;\n\
+}\n\
+.flag.flag-fj {\n\
+  background-position: -80px -44px;\n\
+}\n\
+.flag.flag-fk {\n\
+  background-position: -96px -44px;\n\
+}\n\
+.flag.flag-fm {\n\
+  background-position: -112px -44px;\n\
+}\n\
+.flag.flag-fo {\n\
+  background-position: -128px -44px;\n\
+}\n\
+.flag.flag-fr {\n\
+  background-position: -144px -44px;\n\
+}\n\
+.flag.flag-ga {\n\
+  background-position: -160px -44px;\n\
+}\n\
+.flag.flag-gb {\n\
+  background-position: -176px -44px;\n\
+}\n\
+.flag.flag-gd {\n\
+  background-position: -192px -44px;\n\
+}\n\
+.flag.flag-ge {\n\
+  background-position: -208px -44px;\n\
+}\n\
+.flag.flag-gf {\n\
+  background-position: -224px -44px;\n\
+}\n\
+.flag.flag-gg {\n\
+  background-position: -240px -44px;\n\
+}\n\
+.flag.flag-gh {\n\
+  background-position: 0 -55px;\n\
+}\n\
+.flag.flag-gi {\n\
+  background-position: -16px -55px;\n\
+}\n\
+.flag.flag-gl {\n\
+  background-position: -32px -55px;\n\
+}\n\
+.flag.flag-gm {\n\
+  background-position: -48px -55px;\n\
+}\n\
+.flag.flag-gn {\n\
+  background-position: -64px -55px;\n\
+}\n\
+.flag.flag-gp {\n\
+  background-position: -80px -55px;\n\
+}\n\
+.flag.flag-gq {\n\
+  background-position: -96px -55px;\n\
+}\n\
+.flag.flag-gr {\n\
+  background-position: -112px -55px;\n\
+}\n\
+.flag.flag-gs {\n\
+  background-position: -128px -55px;\n\
+}\n\
+.flag.flag-gt {\n\
+  background-position: -144px -55px;\n\
+}\n\
+.flag.flag-gu {\n\
+  background-position: -160px -55px;\n\
+}\n\
+.flag.flag-gw {\n\
+  background-position: -176px -55px;\n\
+}\n\
+.flag.flag-gy {\n\
+  background-position: -192px -55px;\n\
+}\n\
+.flag.flag-hk {\n\
+  background-position: -208px -55px;\n\
+}\n\
+.flag.flag-hm {\n\
+  background-position: -224px -55px;\n\
+}\n\
+.flag.flag-hn {\n\
+  background-position: -240px -55px;\n\
+}\n\
+.flag.flag-hr {\n\
+  background-position: 0 -66px;\n\
+}\n\
+.flag.flag-ht {\n\
+  background-position: -16px -66px;\n\
+}\n\
+.flag.flag-hu {\n\
+  background-position: -32px -66px;\n\
+}\n\
+.flag.flag-ic {\n\
+  background-position: -48px -66px;\n\
+}\n\
+.flag.flag-id {\n\
+  background-position: -64px -66px;\n\
+}\n\
+.flag.flag-ie {\n\
+  background-position: -80px -66px;\n\
+}\n\
+.flag.flag-il {\n\
+  background-position: -96px -66px;\n\
+}\n\
+.flag.flag-im {\n\
+  background-position: -112px -66px;\n\
+}\n\
+.flag.flag-in {\n\
+  background-position: -128px -66px;\n\
+}\n\
+.flag.flag-io {\n\
+  background-position: -144px -66px;\n\
+}\n\
+.flag.flag-iq {\n\
+  background-position: -160px -66px;\n\
+}\n\
+.flag.flag-ir {\n\
+  background-position: -176px -66px;\n\
+}\n\
+.flag.flag-is {\n\
+  background-position: -192px -66px;\n\
+}\n\
+.flag.flag-it {\n\
+  background-position: -208px -66px;\n\
+}\n\
+.flag.flag-je {\n\
+  background-position: -224px -66px;\n\
+}\n\
+.flag.flag-jm {\n\
+  background-position: -240px -66px;\n\
+}\n\
+.flag.flag-jo {\n\
+  background-position: 0 -77px;\n\
+}\n\
+.flag.flag-jp {\n\
+  background-position: -16px -77px;\n\
+}\n\
+.flag.flag-ke {\n\
+  background-position: -32px -77px;\n\
+}\n\
+.flag.flag-kg {\n\
+  background-position: -48px -77px;\n\
+}\n\
+.flag.flag-kh {\n\
+  background-position: -64px -77px;\n\
+}\n\
+.flag.flag-ki {\n\
+  background-position: -80px -77px;\n\
+}\n\
+.flag.flag-km {\n\
+  background-position: -96px -77px;\n\
+}\n\
+.flag.flag-kn {\n\
+  background-position: -112px -77px;\n\
+}\n\
+.flag.flag-kp {\n\
+  background-position: -128px -77px;\n\
+}\n\
+.flag.flag-kr {\n\
+  background-position: -144px -77px;\n\
+}\n\
+.flag.flag-kurdistan {\n\
+  background-position: -160px -77px;\n\
+}\n\
+.flag.flag-kw {\n\
+  background-position: -176px -77px;\n\
+}\n\
+.flag.flag-ky {\n\
+  background-position: -192px -77px;\n\
+}\n\
+.flag.flag-kz {\n\
+  background-position: -208px -77px;\n\
+}\n\
+.flag.flag-la {\n\
+  background-position: -224px -77px;\n\
+}\n\
+.flag.flag-lb {\n\
+  background-position: -240px -77px;\n\
+}\n\
+.flag.flag-lc {\n\
+  background-position: 0 -88px;\n\
+}\n\
+.flag.flag-li {\n\
+  background-position: -16px -88px;\n\
+}\n\
+.flag.flag-lk {\n\
+  background-position: -32px -88px;\n\
+}\n\
+.flag.flag-lr {\n\
+  background-position: -48px -88px;\n\
+}\n\
+.flag.flag-ls {\n\
+  background-position: -64px -88px;\n\
+}\n\
+.flag.flag-lt {\n\
+  background-position: -80px -88px;\n\
+}\n\
+.flag.flag-lu {\n\
+  background-position: -96px -88px;\n\
+}\n\
+.flag.flag-lv {\n\
+  background-position: -112px -88px;\n\
+}\n\
+.flag.flag-ly {\n\
+  background-position: -128px -88px;\n\
+}\n\
+.flag.flag-ma {\n\
+  background-position: -144px -88px;\n\
+}\n\
+.flag.flag-mc {\n\
+  background-position: -160px -88px;\n\
+}\n\
+.flag.flag-md {\n\
+  background-position: -176px -88px;\n\
+}\n\
+.flag.flag-me {\n\
+  background-position: -192px -88px;\n\
+}\n\
+.flag.flag-mg {\n\
+  background-position: -208px -88px;\n\
+}\n\
+.flag.flag-mh {\n\
+  background-position: -224px -88px;\n\
+}\n\
+.flag.flag-mk {\n\
+  background-position: -240px -88px;\n\
+}\n\
+.flag.flag-ml {\n\
+  background-position: 0 -99px;\n\
+}\n\
+.flag.flag-mm {\n\
+  background-position: -16px -99px;\n\
+}\n\
+.flag.flag-mn {\n\
+  background-position: -32px -99px;\n\
+}\n\
+.flag.flag-mo {\n\
+  background-position: -48px -99px;\n\
+}\n\
+.flag.flag-mp {\n\
+  background-position: -64px -99px;\n\
+}\n\
+.flag.flag-mq {\n\
+  background-position: -80px -99px;\n\
+}\n\
+.flag.flag-mr {\n\
+  background-position: -96px -99px;\n\
+}\n\
+.flag.flag-ms {\n\
+  background-position: -112px -99px;\n\
+}\n\
+.flag.flag-mt {\n\
+  background-position: -128px -99px;\n\
+}\n\
+.flag.flag-mu {\n\
+  background-position: -144px -99px;\n\
+}\n\
+.flag.flag-mv {\n\
+  background-position: -160px -99px;\n\
+}\n\
+.flag.flag-mw {\n\
+  background-position: -176px -99px;\n\
+}\n\
+.flag.flag-mx {\n\
+  background-position: -192px -99px;\n\
+}\n\
+.flag.flag-my {\n\
+  background-position: -208px -99px;\n\
+}\n\
+.flag.flag-mz {\n\
+  background-position: -224px -99px;\n\
+}\n\
+.flag.flag-na {\n\
+  background-position: -240px -99px;\n\
+}\n\
+.flag.flag-nc {\n\
+  background-position: 0 -110px;\n\
+}\n\
+.flag.flag-ne {\n\
+  background-position: -16px -110px;\n\
+}\n\
+.flag.flag-nf {\n\
+  background-position: -32px -110px;\n\
+}\n\
+.flag.flag-ng {\n\
+  background-position: -48px -110px;\n\
+}\n\
+.flag.flag-ni {\n\
+  background-position: -64px -110px;\n\
+}\n\
+.flag.flag-nl {\n\
+  background-position: -80px -110px;\n\
+}\n\
+.flag.flag-no {\n\
+  background-position: -96px -110px;\n\
+}\n\
+.flag.flag-np {\n\
+  background-position: -112px -110px;\n\
+}\n\
+.flag.flag-nr {\n\
+  background-position: -128px -110px;\n\
+}\n\
+.flag.flag-nu {\n\
+  background-position: -144px -110px;\n\
+}\n\
+.flag.flag-nz {\n\
+  background-position: -160px -110px;\n\
+}\n\
+.flag.flag-om {\n\
+  background-position: -176px -110px;\n\
+}\n\
+.flag.flag-pa {\n\
+  background-position: -192px -110px;\n\
+}\n\
+.flag.flag-pe {\n\
+  background-position: -208px -110px;\n\
+}\n\
+.flag.flag-pf {\n\
+  background-position: -224px -110px;\n\
+}\n\
+.flag.flag-pg {\n\
+  background-position: -240px -110px;\n\
+}\n\
+.flag.flag-ph {\n\
+  background-position: 0 -121px;\n\
+}\n\
+.flag.flag-pk {\n\
+  background-position: -16px -121px;\n\
+}\n\
+.flag.flag-pl {\n\
+  background-position: -32px -121px;\n\
+}\n\
+.flag.flag-pm {\n\
+  background-position: -48px -121px;\n\
+}\n\
+.flag.flag-pn {\n\
+  background-position: -64px -121px;\n\
+}\n\
+.flag.flag-pr {\n\
+  background-position: -80px -121px;\n\
+}\n\
+.flag.flag-ps {\n\
+  background-position: -96px -121px;\n\
+}\n\
+.flag.flag-pt {\n\
+  background-position: -112px -121px;\n\
+}\n\
+.flag.flag-pw {\n\
+  background-position: -128px -121px;\n\
+}\n\
+.flag.flag-py {\n\
+  background-position: -144px -121px;\n\
+}\n\
+.flag.flag-qa {\n\
+  background-position: -160px -121px;\n\
+}\n\
+.flag.flag-re {\n\
+  background-position: -176px -121px;\n\
+}\n\
+.flag.flag-ro {\n\
+  background-position: -192px -121px;\n\
+}\n\
+.flag.flag-rs {\n\
+  background-position: -208px -121px;\n\
+}\n\
+.flag.flag-ru {\n\
+  background-position: -224px -121px;\n\
+}\n\
+.flag.flag-rw {\n\
+  background-position: -240px -121px;\n\
+}\n\
+.flag.flag-sa {\n\
+  background-position: 0 -132px;\n\
+}\n\
+.flag.flag-sb {\n\
+  background-position: -16px -132px;\n\
+}\n\
+.flag.flag-sc {\n\
+  background-position: -32px -132px;\n\
+}\n\
+.flag.flag-scotland {\n\
+  background-position: -48px -132px;\n\
+}\n\
+.flag.flag-sd {\n\
+  background-position: -64px -132px;\n\
+}\n\
+.flag.flag-se {\n\
+  background-position: -80px -132px;\n\
+}\n\
+.flag.flag-sg {\n\
+  background-position: -96px -132px;\n\
+}\n\
+.flag.flag-sh {\n\
+  background-position: -112px -132px;\n\
+}\n\
+.flag.flag-si {\n\
+  background-position: -128px -132px;\n\
+}\n\
+.flag.flag-sk {\n\
+  background-position: -144px -132px;\n\
+}\n\
+.flag.flag-sl {\n\
+  background-position: -160px -132px;\n\
+}\n\
+.flag.flag-sm {\n\
+  background-position: -176px -132px;\n\
+}\n\
+.flag.flag-sn {\n\
+  background-position: -192px -132px;\n\
+}\n\
+.flag.flag-so {\n\
+  background-position: -208px -132px;\n\
+}\n\
+.flag.flag-somaliland {\n\
+  background-position: -224px -132px;\n\
+}\n\
+.flag.flag-sr {\n\
+  background-position: -240px -132px;\n\
+}\n\
+.flag.flag-ss {\n\
+  background-position: 0 -143px;\n\
+}\n\
+.flag.flag-st {\n\
+  background-position: -16px -143px;\n\
+}\n\
+.flag.flag-sv {\n\
+  background-position: -32px -143px;\n\
+}\n\
+.flag.flag-sx {\n\
+  background-position: -48px -143px;\n\
+}\n\
+.flag.flag-sy {\n\
+  background-position: -64px -143px;\n\
+}\n\
+.flag.flag-sz {\n\
+  background-position: -80px -143px;\n\
+}\n\
+.flag.flag-tc {\n\
+  background-position: -96px -143px;\n\
+}\n\
+.flag.flag-td {\n\
+  background-position: -112px -143px;\n\
+}\n\
+.flag.flag-tf {\n\
+  background-position: -128px -143px;\n\
+}\n\
+.flag.flag-tg {\n\
+  background-position: -144px -143px;\n\
+}\n\
+.flag.flag-th {\n\
+  background-position: -160px -143px;\n\
+}\n\
+.flag.flag-tj {\n\
+  background-position: -176px -143px;\n\
+}\n\
+.flag.flag-tk {\n\
+  background-position: -192px -143px;\n\
+}\n\
+.flag.flag-tl {\n\
+  background-position: -208px -143px;\n\
+}\n\
+.flag.flag-tm {\n\
+  background-position: -224px -143px;\n\
+}\n\
+.flag.flag-tn {\n\
+  background-position: -240px -143px;\n\
+}\n\
+.flag.flag-to {\n\
+  background-position: 0 -154px;\n\
+}\n\
+.flag.flag-tr {\n\
+  background-position: -16px -154px;\n\
+}\n\
+.flag.flag-tt {\n\
+  background-position: -32px -154px;\n\
+}\n\
+.flag.flag-tv {\n\
+  background-position: -48px -154px;\n\
+}\n\
+.flag.flag-tw {\n\
+  background-position: -64px -154px;\n\
+}\n\
+.flag.flag-tz {\n\
+  background-position: -80px -154px;\n\
+}\n\
+.flag.flag-ua {\n\
+  background-position: -96px -154px;\n\
+}\n\
+.flag.flag-ug {\n\
+  background-position: -112px -154px;\n\
+}\n\
+.flag.flag-um {\n\
+  background-position: -128px -154px;\n\
+}\n\
+.flag.flag-us {\n\
+  background-position: -144px -154px;\n\
+}\n\
+.flag.flag-uy {\n\
+  background-position: -160px -154px;\n\
+}\n\
+.flag.flag-uz {\n\
+  background-position: -176px -154px;\n\
+}\n\
+.flag.flag-va {\n\
+  background-position: -192px -154px;\n\
+}\n\
+.flag.flag-vc {\n\
+  background-position: -208px -154px;\n\
+}\n\
+.flag.flag-ve {\n\
+  background-position: -224px -154px;\n\
+}\n\
+.flag.flag-vg {\n\
+  background-position: -240px -154px;\n\
+}\n\
+.flag.flag-vi {\n\
+  background-position: 0 -165px;\n\
+}\n\
+.flag.flag-vn {\n\
+  background-position: -16px -165px;\n\
+}\n\
+.flag.flag-vu {\n\
+  background-position: -32px -165px;\n\
+}\n\
+.flag.flag-wales {\n\
+  background-position: -48px -165px;\n\
+}\n\
+.flag.flag-wf {\n\
+  background-position: -64px -165px;\n\
+}\n\
+.flag.flag-ws {\n\
+  background-position: -80px -165px;\n\
+}\n\
+.flag.flag-ye {\n\
+  background-position: -96px -165px;\n\
+}\n\
+.flag.flag-yt {\n\
+  background-position: -112px -165px;\n\
+}\n\
+.flag.flag-za {\n\
+  background-position: -128px -165px;\n\
+}\n\
+.flag.flag-zanzibar {\n\
+  background-position: -144px -165px;\n\
+}\n\
+.flag.flag-zm {\n\
+  background-position: -160px -165px;\n\
+}\n\
+.flag.flag-zw {\n\
+  background-position: -176px -165px;\n\
+}\n\
+.localizationTool:hover {\n\
+  cursor: pointer;\n\
+  cursor: hand;\n\
+}\n\
+.localizationTool.ltool-is-visible ul {\n\
+  display: block;\n\
+  float: left;\n\
+  position: absolute;\n\
+  width: 100%;\n\
+  list-style-type: none;\n\
+}\n\
+.localizationTool.ltool-is-visible .ltool-dropdown-label-arrow {\n\
+  /* the arrow */\n\
+\n\
+  content: "";\n\
+  display: block;\n\
+  width: 0;\n\
+  height: 0;\n\
+  border-top: 10px solid transparent;\n\
+  border-left: 10px solid transparent;\n\
+  border-bottom: 10px solid #deedf7;\n\
+  border-right: 10px solid transparent;\n\
+  position: absolute;\n\
+  right: 8px;\n\
+  top: 7px;\n\
+}\n\
+.localizationTool {\n\
+  color: #333333;\n\
+  /* background: #8dc1e2; */\n\
+  background: #009688;\n\
+  position: relative;\n\
+}\n\
+.localizationTool .ltool-dropdown-label {\n\
+  display: block;\n\
+  padding: 12px 0 12px 12px;\n\
+  color: #FFF;\n\
+  border: 0;\n\
+  position: relative;\n\
+}\n\
+.localizationTool .ltool-dropdown-label img,\n\
+.localizationTool .ltool-dropdown-label .ltool-language-flag {\n\
+  margin-left: 0;\n\
+}\n\
+.localizationTool .ltool-dropdown-label .ltool-language-name {\n\
+  color: #deedf7;\n\
+}\n\
+.localizationTool .ltool-dropdown-label-arrow {\n\
+  /* the arrow */\n\
+\n\
+  content: "";\n\
+  display: block;\n\
+  width: 0;\n\
+  height: 0;\n\
+  border-top: 10px solid #deedf7;\n\
+  border-left: 10px solid transparent;\n\
+  border-bottom: 10px solid transparent;\n\
+  border-right: 10px solid transparent;\n\
+  position: absolute;\n\
+  right: 8px;\n\
+  top: 17px;\n\
+}\n\
+.localizationTool img,\n\
+.localizationTool div {\n\
+  display: inline;\n\
+}\n\
+.localizationTool li {\n\
+  display: block;\n\
+  /* background: #deedf7; */\n\
+  background: #009688;\n\
+  padding: 5px;\n\
+}\n\
+.localizationTool li.ltool-is-selected {\n\
+  /* background: #f5f1d6; */\n\
+  background: #148B7E;\n\
+}\n\
+.localizationTool li:hover {\n\
+  /* background: #f5f1d6; */\n\
+  background: #148B7E;\n\
+  outline: 0;\n\
+  -webkit-appearance: none;\n\
+  transition: all .3s;\n\
+  -webkit-transition: all .3s;\n\
+  box-sizing: border-box;\n\
+}\n\
+.localizationTool img {\n\
+  width: 16px;\n\
+  height: 11px;\n\
+}\n\
+.localizationTool .ltool-language-name {\n\
+  /* color: #8dc1e2; */\n\
+  color: #ebebeb;\n\
+}\n\
+.localizationTool .ltool-language-flag {\n\
+  display: block;\n\
+  float: left;\n\
+  margin-top: 3px;\n\
+}\n\
+.localizationTool .ltool-language-flag,\n\
+.localizationTool .ltool-language-countryname {\n\
+  margin-left: 8px;\n\
+}\n\
+.localizationTool ul {\n\
+  margin: 0;\n\
+  padding: 0;\n\
+  display: none;\n\
 }\n\
 ';
 
@@ -2922,7 +4477,7 @@ body {\n\
 var ExpandUI_QuickNavigationBar_html = '\
 /*拓展UI-快捷导航栏的html代码*/\n\
 <div style="position: fixed;top: 30%;right: 0;">\n\
-        <div class="layui-input-block" style="margin-left:0; text-align: center;min-height:0;padding: 2px 0px;background: #282B33;">快捷导航栏</div>\n\
+        <div class="localTool-1-1 layui-input-block" style="margin-left:0; text-align: center;min-height:0;padding: 2px 0px;background: #282B33;">快捷导航栏</div>\n\
         \n\
         <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="demo" style="margin-right: 10px;">\n\
                 <li class="layui-nav-item layui-nav-itemed">\n\
@@ -2973,10 +4528,10 @@ var ExpandUI_QuickNavigationBar_html = '\
 var groupUI_html = '\
 <div class="layui-tab layui-tab-brief" lay-filter="demo">\n\
         <ul class="layui-tab-title" style="color: #ebebeb;">\n\
-                <li class="layui-this">组留言</li>\n\
+                <li class="localTool-2-1 layui-this">留言</li>\n\
                 <li>留言设置</li>\n\
                 <li>数据分析</li>\n\
-                <li>动态助手</li>\n\
+                <li>点赞助手</li>\n\
                 <li>拓展功能(测试)</li>\n\
                 <li>设置</li>\n\
         </ul>\n\
@@ -2990,20 +4545,24 @@ var groupUI_html = '\
                         </div>\n\
                         \n\
                         <form class="layui-form" action="" lay-filter="example">\n\
-                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\n\
+                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">\n\
+                                        <span>当前字符字节数: </span>\n\
+                                        <span id="strInBytes_Text">0</span>\n\
+                                        <span>/999</span>\n\
+                                </div>\n\
                                 <div class="layui-inline">\n\
-                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\n\
+                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加)</label>\n\
                                         <div class="layui-input-inline">\n\
                                                 <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\n\
                                                         <option value="">直接选择或搜索选择</option>\n\
-                                                        <option value="1">[h1] 标题文字 [/h1]</option>\n\
-                                                        <option value="2">[b] 粗体文本 [/b]</option>\n\
-                                                        <option value="3">[u] 下划线文本 [/u]</option>\n\
-                                                        <option value="4">[i] 斜体文本 [/i]</option>\n\
-                                                        <option value="5">[strike] 删除文本 [/strike]</option>\n\
-                                                        <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\n\
-                                                        <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\n\
-                                                        <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\n\
+                                                        <option value="1">[h1]标题文字[/h1]</option>\n\
+                                                        <option value="2">[b]粗体文本[/b]</option>\n\
+                                                        <option value="3">[u]下划线文本[/u]</option>\n\
+                                                        <option value="4">[i]斜体文本[/i]</option>\n\
+                                                        <option value="5">[strike]删除文本[/strike]</option>\n\
+                                                        <option value="6">[spoiler]隐藏文本[/spoiler]</option>\n\
+                                                        <option value="7">[noparse]不解析[b]标签[/b][/noparse]</option>\n\
+                                                        <option value="8">[url=store.steampowered.com]网站链接[/url]</option>\n\
                                                 </select>\n\
                                         </div>\n\
                                         <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\n\
@@ -3014,7 +4573,7 @@ var groupUI_html = '\
                                 <legend>翻译模块(需要提前设置国籍):</legend>\n\
                         </fieldset>\n\
                         <div id="translationOptions" style="color:#fff;">\n\
-                                <span>当前语言: \n\
+                                <span><span>当前语言:</span> \n\
                                         <select id="origLanguageSelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\n\
                                                 <option name="auto" value="auto" style="color:#fff;background-color: #3E9AC6;">自动检测</option>\n\
                                                 <option name="zhc" value="zh-CN" style="color:#fff;background-color: #3E9AC6;">中文简体</option>\n\
@@ -3023,7 +4582,7 @@ var groupUI_html = '\
                                         </select>\n\
                                 </span>\n\
                                 \n\
-                                <span style="margin-left: 5px;">目标语言: \n\
+                                <span style="margin-left: 5px;"><span>目标语言: </span>\n\
                                         <select id="selectBoxID" class="selectBox" multiple="multiple">\n\
                                                 <option value="en">英语</option>\n\
                                                 <option value="ja">日语</option>\n\
@@ -3046,7 +4605,8 @@ var groupUI_html = '\
                         </fieldset>\n\
                         <div class="commentthread_entry_submitlink" style="">\n\
                                 <span class="isCustom" style="display: block;text-align: left;">\n\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式 (默认为{name}, 可以自行修改, 称呼为组名称<待完善>)</span>\n\
+                                        <!-- 默认为{name}，可以自行修改，好友没有备注则使用steam名称  -->\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式</span>\n\
                                         <input class="nameAddType" id="select_isCustom_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
                                         <span style="margin-left: 5px;vertical-align: middle;">\n\
                                                 <button id="addCustomName">在留言框添加自定义称呼标识符</button>\n\
@@ -3054,12 +4614,12 @@ var groupUI_html = '\
                                 </span>\n\
                                 \n\
                                 <span class="isName" style="display: block;text-align: left;">\n\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为留言添加称呼 (称呼为组名称<待完善>)</span>\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为组添加称呼(如果组没有备注则使用steam名称)</span>\n\
                                         <input class="nameAddType" id="select_islName_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
                                 </span>\n\
                                 \n\
                                 <span class="isSpecialName" style="display: block;text-align: left;">\n\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为留言添加称呼 (称呼为组名称<待完善>)</span>\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为组添加称呼(如果组设置有备注则使用，否则不添加称呼)</span>\n\
                                         <input class="nameAddType" id="select_isSpecialName_checkbox" name="nameAddType"  type="radio" style="vertical-align: middle;margin:2px;">\n\
                                 </span>\n\
                                 \n\
@@ -3108,10 +4668,10 @@ var groupUI_html = '\
                                         <option name="CN-MO" value="CN-MO" style="color:#fff;background-color: #3E9AC6;">繁體中文(澳门)[zh-mo]</option>\n\
                                         <option name="CN-TW" value="CN-TW" style="color:#fff;background-color: #3E9AC6;">繁體中文(台湾)[zh-tw]</option>\n\
                                 </select>\n\
-                                <button id="setNationality">为选择的组设置国籍标识</button>\n\
+                                <button id="setNationality">为选择的好友设置国籍标识</button>\n\
                         </span>\n\
                         <span style="margin-left: 5px;vertical-align: top;">\n\
-                                <button id="unsetNationality">为选择的组取消国籍标识</button>\n\
+                                <button id="unsetNationality">为选择的好友取消国籍标识</button>\n\
                         </span>\n\
                         <br />\n\
                          <fieldset class="layui-elem-field layui-field-title">\n\
@@ -3119,17 +4679,17 @@ var groupUI_html = '\
                          </fieldset>\n\
                         <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
                                 <span>\n\
-                                        <button id="setNoLeave">为选择的组设置不留言</button>\n\
+                                        <button id="setNoLeave">为选择的好友设置不留言</button>\n\
                                 </span>\n\
                                 <span>\n\
-                                        <button id="unsetNoLeave">为选择的组取消设置不留言</button>\n\
+                                        <button id="unsetNoLeave">为选择的好友取消设置不留言</button>\n\
                                 </span>\n\
                         </div>\n\
                         <fieldset class="layui-elem-field layui-field-title">\n\
                                 <legend>设置留言时间间隔:</legend>\n\
                         </fieldset>\n\
                         <div id="">只选择日期则过n天后再留言，只选择时间则过x时后再留言(严格模式)，日期和时间都选择了则过n天x时后再留言(严格模式)</div>\n\
-                        <div id="">这里其实是一个时间差，比如指定的组3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\n\
+                        <div id="">这里其实是一个时间差，比如指定的好友3天留言一次，今天是4月10日，你就选择4月13日就行了，这样做方便一点</div>\n\
                         <div class="layui-form">\n\
                           <div class="layui-form-item">\n\
                                 <div class="layui-inline" style="opacity:0;filter: alpha(opacity=0);position: absolute;z-index: 0;">\n\
@@ -3149,10 +4709,10 @@ var groupUI_html = '\
                         </div>\n\
                         <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
                                 <span>\n\
-                                        <button id="setTimeInterval">为选择的组设置留言时间间隔</button>\n\
+                                        <button id="setTimeInterval">为选择的好友设置留言时间间隔</button>\n\
                                 </span>\n\
                                 <span>\n\
-                                        <button id="unsetTimeInterval">为选择的组取消设置留言时间间隔</button>\n\
+                                        <button id="unsetTimeInterval">为选择的好友取消设置留言时间间隔</button>\n\
                                 </span>\n\
                         </div>\n\
                         \n\
@@ -3179,7 +4739,7 @@ var groupUI_html = '\
                         <table class="layui-hide" id="test" lay-filter="test"></table> <!-- 数据表格 -->\n\
                         \n\
                         <fieldset class="layui-elem-field layui-field-title">\n\
-                                <legend>设置组分组:</legend>\n\
+                                <legend>设置好友分组:</legend>\n\
                         </fieldset>\n\
                         <div style="margin-left: 5px;vertical-align: top;margin-top:5px;">\n\
                         \n\
@@ -3207,10 +4767,10 @@ var groupUI_html = '\
                         </form>\n\
                         \n\
                                 <span>\n\
-                                        <button id="addFriendToGroup">为选择的组添加分组</button>\n\
+                                        <button id="addFriendToGroup">为选择的好友添加分组</button>\n\
                                 </span>\n\
                                 <span>\n\
-                                        <button id="unaddFriendToGroup">为选择的组取消添加分组</button>\n\
+                                        <button id="unaddFriendToGroup">为选择的好友取消添加分组</button>\n\
                                 </span>\n\
                                 \n\
                                 <div class="layui-collapse" lay-filter="test">\n\
@@ -3225,16 +4785,16 @@ var groupUI_html = '\
                                   <div class="layui-colla-item">\n\
                                         <h2 class="layui-colla-title">分组名称</h2>\n\
                                         <div class="layui-colla-content">\n\
-                                          <p>用户<br>用户\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
                                           </p>\n\
                                         </div>\n\
                                   </div>\n\
                                   <div class="layui-colla-item">\n\
                                         <h2 class="layui-colla-title">分组名称</h2>\n\
                                         <div class="layui-colla-content">\n\
-                                          <p>用户\n\
-                                          <br><br>\n\
-                                          用户</p>\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
                                         </div>\n\
                                   </div>\n\
                                   <div class="layui-colla-item">\n\
@@ -3254,7 +4814,7 @@ var groupUI_html = '\
           </div>\n\
         </div>\n\
         \n\
-        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
           \n\
           <span style="margin-left: 5px;vertical-align: top;">\n\
                 <button id="NationalityGroup">按国籍进行高亮分组</button>\n\
@@ -3266,40 +4826,40 @@ var groupUI_html = '\
                 <button id="OfflineTimeGroup">按在线时间进行排序分组</button>\n\
           </span>\n\
           <span style="margin-left: 5px;vertical-align: top;">\n\
-                <button id="ShowFriendData">显示组详细数据(不可用)</button>\n\
+                <button id="ShowFriendData">显示好友详细数据-不可用</button>\n\
           </span>\n\
           <div class="layui-tab" lay-filter="test1">\n\
                 <ul class="layui-tab-title">\n\
-                  <li class="layui-this" lay-id="11" style="color:#ebebeb;">组数据统计</li>\n\
+                  <li class="layui-this" lay-id="11" style="color:#ebebeb;">好友数据统计</li>\n\
                   <li lay-id="22" style="color:#ebebeb;">留言数据统计</li>\n\
                   <li lay-id="33" style="color:#ebebeb;">关系网统计</li>\n\
                   <li lay-id="44" style="color:#ebebeb;">当前配置统计</li>\n\
-                  <li lay-id="55" style="color:#ebebeb;">查看组配置统计</li>\n\
+                  <li lay-id="55" style="color:#ebebeb;">查看好友配置统计</li>\n\
                 </ul>\n\
                 <div class="layui-tab-content">\n\
                         <div class="layui-tab-item layui-show">\n\
-                                分为:\n\
-                                数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\n\
+                                <span>数据表格(汇总所有的数据:id,名称,备注,国籍(语言),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)</span>\n\
                                 <table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\n\
                                 <div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                分为:\n\
-                                按国籍的饼图(总留言数量)\n\
-                                按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\n\
-                                数据表格(汇总所有的数据)\n\
+                                <span>分为:</span>\n\
+                                <span>按国籍的饼图(总留言数量)，</span>\n\
+                                <span>按每天留言数据的折线图(统计所有的留言数据，生成的折线图)，</span>\n\
+                                <span>按最多留言数据的柱状图(那些好友一天留言数量排行榜/那些好友总留言数量排行榜/累计连续每天留言数量最多)，</span>\n\
+                                <span>数据表格(汇总所有的数据)</span>\n\
                                 <div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                好友关系网(仅统计共同好友)\n\
+                                <span>好友关系网(仅统计共同好友)</span>\n\
                                 <div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                当前的配置数据和运行状态\n\
+                                <span>当前的配置数据和运行状态<span>\n\
                                 <div id="container_currConfStatistics"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\n\
+                                <span>对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)</span>\n\
                                 <div id="container_friConfStatistics"></div>\n\
                         </div>\n\
                   </div>\n\
@@ -3308,7 +4868,7 @@ var groupUI_html = '\
           <div id="pageDemo"></div>\n\
         </div>\n\
         \n\
-        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
           <fieldset class="layui-elem-field">\n\
                 <legend>动态点赞助手</legend>\n\
                          <form class="layui-form" action="" lay-filter="example">\n\
@@ -3388,11 +4948,11 @@ var groupUI_html = '\
                                 <div class="layui-timeline-content layui-text">\n\
                                   <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\n\
                                   <p style="color:#fff;">\n\
-                                        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\n\
-                                        <br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\n\
-                                        <br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\n\
-                                        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\n\
-                                        <br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\n\
+                                        <span>已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条</span>\n\
+                                        <br><span>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条</span>\n\
+                                        <br><span>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条</span>\n\
+                                        <br><span>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条</span>\n\
+                                        <br><span>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条</span>\n\
                                   </p>\n\
                                 </div>\n\
                           </li>\n\
@@ -3400,7 +4960,7 @@ var groupUI_html = '\
                                 <i class="layui-icon layui-timeline-axis"></i>\n\
                                 <div class="layui-timeline-content layui-text">\n\
                                   <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\n\
-                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\n\
+                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有"致君尧舜上，再使风俗淳"的宏伟抱负。个人最爱的名篇有：</p>\n\
                                   <ul style="color:#fff;">\n\
                                         <li>《登高》</li>\n\
                                         <li>《茅屋为秋风所破歌》</li>\n\
@@ -3412,11 +4972,11 @@ var groupUI_html = '\
                                 <div class="layui-timeline-content layui-text">\n\
                                   <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\n\
                                   <p style="color:#fff;">\n\
-                                        中国人民抗日战争胜利日\n\
-                                        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\n\
-                                        <br>铭记、感恩\n\
-                                        <br>所有为中华民族浴血奋战的英雄将士\n\
-                                        <br>永垂不朽\n\
+                                        <span>中国人民抗日战争胜利日</span>\n\
+                                        <br><span>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代</span>\n\
+                                        <br><span>铭记、感恩</span>\n\
+                                        <br><span>所有为中华民族浴血奋战的英雄将士</span>\n\
+                                        <br><span>永垂不朽</span>\n\
                                   </p>\n\
                                 </div>\n\
                           </li>\n\
@@ -3431,7 +4991,7 @@ var groupUI_html = '\
           </fieldset>\n\
         </div>\n\
         \n\
-        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
           <fieldset class="layui-elem-field">\n\
                 <legend>喜加一助手</legend>\n\
                 <div class="layui-field-box">\n\
@@ -3487,7 +5047,7 @@ var groupUI_html = '\
           </fieldset>\n\
         </div>\n\
         \n\
-        <div class="layui-tab-item"  style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
+        <div class="layui-tab-item" style="background-color: rgba(0,0,0,0.2); color: #ebebeb;">\n\
                 <fieldset class="layui-elem-field">\n\
                   <legend>功能设置</legend>\n\
                   <div class="layui-field-box">\n\
@@ -3523,6 +5083,7 @@ var groupUI_html = '\
                                 \n\
                                 <fieldset class="layui-elem-field layui-field-title">\n\
                                 <legend>语言配置</legend>\n\
+                                <div id="selectLanguageDropdown" class="localizationTool"></div>\n\
                                         <button type="button" class="layui-btn">自动检测(简体中文)</button>\n\
                                         <button type="button" class="layui-btn">简体中文</button>\n\
                                         <button type="button" class="layui-btn">繁体中文</button>\n\
@@ -3539,7 +5100,7 @@ var groupUI_html = '\
                                         <legend>UI设置</legend>\n\
                                         <div>预览:</div>\n\
                                         <div>\n\
-                                        主要字体颜色:\n\
+                                        <span>主要字体颜色:<span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all1"></div>\n\
@@ -3547,7 +5108,7 @@ var groupUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        主要背景颜色:\n\
+                                        <span>主要背景颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all2"></div>\n\
@@ -3555,7 +5116,7 @@ var groupUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        留言成功字体颜色:\n\
+                                        <span>留言成功字体颜色:<span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all3"></div>\n\
@@ -3563,7 +5124,7 @@ var groupUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        留言失败字体颜色:\n\
+                                        <span>留言失败字体颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all4"></div>\n\
@@ -3571,7 +5132,7 @@ var groupUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        留言发生错误字体颜色:\n\
+                                        <span>留言发生错误字体颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all5"></div>\n\
@@ -3585,21 +5146,21 @@ var groupUI_html = '\
                 </fieldset>\n\
                 \n\
                 <fieldset class="layui-elem-field">\n\
-                        <legend>关于 Steam assistant(Steam小助手)</legend>\n\
+                        <legend>关于SteamAssistant(Steam小助手)</legend>\n\
                                 <div class="layui-field-box">\n\
                                         <fieldset class="layui-elem-field layui-field-title">\n\
                                         <legend>程序信息:</legend>\n\
-                                        <div>当前版本: v0.2.3.0</div>\n\
-                                        <div>主程序框架更新时间: 2020年4月19日</div>\n\
-                                        <div>common 模块: 2020年4月19日</div>\n\
-                                        <div>databaseConf 模块: 2020年4月19日</div>\n\
-                                        <div>externalApis 模块: 2020年4月19日</div>\n\
-                                        <div>steamApis 模块: 2020年4月19日</div>\n\
-                                        <div>translateApis 模块: 2020年4月19日</div>\n\
-                                        <div>Utility 模块: 2020年4月19日</div>\n\
-                                        <div>UI 模块: 2020年4月19日</div>\n\
-                                        <div>Event 模块: 2020年4月19日</div>\n\
-                                        <div>CityList 模块: 2020年4月19日</div>\n\
+                                        <div>当前版本:v0.2.3.0</div>\n\
+                                        <div>主程序框架更新时间:2020年4月19日</div>\n\
+                                        <div>common模块:2020年4月19日</div>\n\
+                                        <div>databaseConf模块:2020年4月19日</div>\n\
+                                        <div>externalApis模块:2020年4月19日</div>\n\
+                                        <div>steamApis模块:2020年4月19日</div>\n\
+                                        <div>translateApis模块:2020年4月19日</div>\n\
+                                        <div>Utility模块:2020年4月19日</div>\n\
+                                        <div>UI模块:2020年4月19日</div>\n\
+                                        <div>Event模块:2020年4月19日</div>\n\
+                                        <div>CityList模块:2020年4月19日</div>\n\
                                         <fieldset class="layui-elem-field layui-field-title">\n\
                                         <legend>联系作者:</legend>\n\
                                         <button type="button" class="layui-btn">反馈错误</button>\n\
@@ -3619,31 +5180,38 @@ var loadUI_Html = '\
         <div class="text part1">\n\
                 <div>\n\
                         <span class="letter">\n\
-                                <div class="character">L</div> <span></span>\n\
+                                <div class="localTool-3-1 character">L</div>\n\
+                                <span></span>\n\
                         </span>\n\
                         \n\
                         <span class="letter">\n\
-                                <div class="character">o</div> <span></span>\n\
+                                <div class="character">o</div>\n\
+                                <span></span>\n\
                         </span>\n\
                         \n\
                         <span class="letter">\n\
-                                <div class="character">a</div> <span></span>\n\
+                                <div class="character">a</div>\n\
+                                <span></span>\n\
                         </span>\n\
                         \n\
                         <span class="letter">\n\
-                                <div class="character">d</div> <span></span>\n\
+                                <div class="character">d</div>\n\
+                                <span></span>\n\
                         </span>\n\
                         \n\
                         <span class="letter">\n\
-                                <div class="character">i</div> <span></span>\n\
+                                <div class="character">i</div>\n\
+                                <span></span>\n\
                         </span>\n\
                         \n\
                         <span class="letter">\n\
-                                <div class="character">n</div> <span></span>\n\
+                                <div class="character">n</div>\n\
+                                <span></span>\n\
                         </span>\n\
                         \n\
                         <span class="letter">\n\
-                                <div class="character">g</div> <span></span>\n\
+                                <div class="character">g</div>\n\
+                                <span></span>\n\
                         </span>\n\
                 </div>\n\
         </div>\n\
@@ -3654,7 +5222,7 @@ var loadUI_Html = '\
 var mainUI_html = '\
 <div class="layui-tab layui-tab-brief" lay-filter="demo">\n\
         <ul class="layui-tab-title" style="color: #ebebeb;">\n\
-                <li class="layui-this">留言</li>\n\
+                <li class="localTool-4-1 layui-this">留言</li>\n\
                 <li>留言设置</li>\n\
                 <li>数据分析</li>\n\
                 <li>点赞助手</li>\n\
@@ -3671,20 +5239,24 @@ var mainUI_html = '\
                         </div>\n\
                         \n\
                         <form class="layui-form" action="" lay-filter="example">\n\
-                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">当前字符字节数: <span id="strInBytes_Text">0</span>/999\</div>\n\
+                                <div id="strInBytes" style="color: #32CD32;display: inline-block;font-family: Consolas;font-size: 16px;">\n\
+                                        <span>当前字符字节数: </span>\n\
+                                        <span id="strInBytes_Text">0</span>\n\
+                                        <span>/999</span>\n\
+                                </div>\n\
                                 <div class="layui-inline">\n\
-                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加):</label>\n\
+                                        <label class="layui-form-label" style="width: auto;">文本格式(直接添加或选择文字添加)</label>\n\
                                         <div class="layui-input-inline">\n\
                                                 <select name="modules" lay-verify="required" lay-search="" id="steamTextStyle">\n\
                                                         <option value="">直接选择或搜索选择</option>\n\
-                                                        <option value="1">[h1] 标题文字 [/h1]</option>\n\
-                                                        <option value="2">[b] 粗体文本 [/b]</option>\n\
-                                                        <option value="3">[u] 下划线文本 [/u]</option>\n\
-                                                        <option value="4">[i] 斜体文本 [/i]</option>\n\
-                                                        <option value="5">[strike] 删除文本 [/strike]</option>\n\
-                                                        <option value="6">[spoiler] 隐藏文本 [/spoiler]</option>\n\
-                                                        <option value="7">[noparse] 不解析[b]标签[/b] [/noparse]</option>\n\
-                                                        <option value="8">[url=store.steampowered.com] 网站链接 [/url]</option>\n\
+                                                        <option value="1">[h1]标题文字[/h1]</option>\n\
+                                                        <option value="2">[b]粗体文本[/b]</option>\n\
+                                                        <option value="3">[u]下划线文本[/u]</option>\n\
+                                                        <option value="4">[i]斜体文本[/i]</option>\n\
+                                                        <option value="5">[strike]删除文本[/strike]</option>\n\
+                                                        <option value="6">[spoiler]隐藏文本[/spoiler]</option>\n\
+                                                        <option value="7">[noparse]不解析[b]标签[/b][/noparse]</option>\n\
+                                                        <option value="8">[url=store.steampowered.com]网站链接[/url]</option>\n\
                                                 </select>\n\
                                         </div>\n\
                                         <button type="button" class="layui-btn layui-btn-normal" id="LAY-component-form-getval">添加</button>\n\
@@ -3695,7 +5267,7 @@ var mainUI_html = '\
                                 <legend>翻译模块(需要提前设置国籍):</legend>\n\
                         </fieldset>\n\
                         <div id="translationOptions" style="color:#fff;">\n\
-                                <span>当前语言: \n\
+                                <span><span>当前语言:</span> \n\
                                         <select id="origLanguageSelectBox" style="padding: 4px 12px 4px 8px;font-size:12px;outline:0;border: 1px solid #34DEFF;background-color:transparent;color: #66ccff;">\n\
                                                 <option name="auto" value="auto" style="color:#fff;background-color: #3E9AC6;">自动检测</option>\n\
                                                 <option name="zhc" value="zh-CN" style="color:#fff;background-color: #3E9AC6;">中文简体</option>\n\
@@ -3704,7 +5276,7 @@ var mainUI_html = '\
                                         </select>\n\
                                 </span>\n\
                                 \n\
-                                <span style="margin-left: 5px;">目标语言: \n\
+                                <span style="margin-left: 5px;"><span>目标语言: </span>\n\
                                         <select id="selectBoxID" class="selectBox" multiple="multiple">\n\
                                                 <option value="en">英语</option>\n\
                                                 <option value="ja">日语</option>\n\
@@ -3727,7 +5299,8 @@ var mainUI_html = '\
                         </fieldset>\n\
                         <div class="commentthread_entry_submitlink" style="">\n\
                                 <span class="isCustom" style="display: block;text-align: left;">\n\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式 (默认为{name}, 可以自行修改, 好友没有备注则使用steam名称)</span>\n\
+                                        <!-- 默认为{name}，可以自行修改，好友没有备注则使用steam名称  -->\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">自定义称呼模式</span>\n\
                                         <input class="nameAddType" id="select_isCustom_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
                                         <span style="margin-left: 5px;vertical-align: middle;">\n\
                                                 <button id="addCustomName">在留言框添加自定义称呼标识符</button>\n\
@@ -3735,12 +5308,12 @@ var mainUI_html = '\
                                 </span>\n\
                                 \n\
                                 <span class="isName" style="display: block;text-align: left;">\n\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼 (如果好友没有备注则使用steam名称)</span>\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼(如果好友没有备注则使用steam名称)</span>\n\
                                         <input class="nameAddType" id="select_islName_checkbox" name="nameAddType" type="radio" style="vertical-align: middle;margin:2px;">\n\
                                 </span>\n\
                                 \n\
                                 <span class="isSpecialName" style="display: block;text-align: left;">\n\
-                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼 (如果好友设置有备注则使用,否则不添加称呼)</span>\n\
+                                        <span style="font-size:14px;line-height: 20px;color: #67c1f5 !important;">是否为好友添加称呼(如果好友设置有备注则使用，否则不添加称呼)</span>\n\
                                         <input class="nameAddType" id="select_isSpecialName_checkbox" name="nameAddType"  type="radio" style="vertical-align: middle;margin:2px;">\n\
                                 </span>\n\
                                 \n\
@@ -3906,16 +5479,16 @@ var mainUI_html = '\
                                   <div class="layui-colla-item">\n\
                                         <h2 class="layui-colla-title">分组名称</h2>\n\
                                         <div class="layui-colla-content">\n\
-                                          <p>用户<br>用户\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
                                           </p>\n\
                                         </div>\n\
                                   </div>\n\
                                   <div class="layui-colla-item">\n\
                                         <h2 class="layui-colla-title">分组名称</h2>\n\
                                         <div class="layui-colla-content">\n\
-                                          <p>用户\n\
-                                          <br><br>\n\
-                                          用户</p>\n\
+                                          <p>用户</p>\n\
+                                          <p>用户</p>\n\
                                         </div>\n\
                                   </div>\n\
                                   <div class="layui-colla-item">\n\
@@ -3947,7 +5520,7 @@ var mainUI_html = '\
                 <button id="OfflineTimeGroup">按在线时间进行排序分组</button>\n\
           </span>\n\
           <span style="margin-left: 5px;vertical-align: top;">\n\
-                <button id="ShowFriendData">显示好友详细数据(不可用)</button>\n\
+                <button id="ShowFriendData">显示好友详细数据-不可用</button>\n\
           </span>\n\
           <div class="layui-tab" lay-filter="test1">\n\
                 <ul class="layui-tab-title">\n\
@@ -3959,28 +5532,28 @@ var mainUI_html = '\
                 </ul>\n\
                 <div class="layui-tab-content">\n\
                         <div class="layui-tab-item layui-show">\n\
-                                分为:\n\
-                                数据表格(汇总所有的数据: id,名称,备注,国籍(城市),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)\n\
+                                <span>数据表格(汇总所有的数据:id,名称,备注,国籍(语言),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)</span>\n\
                                 <table class="layui-hide" id="friendStatistics" lay-filter="friendStatistics"></table> <!--数据表格-->\n\
                                 <div id="container_friendStatistics" style="width: 600px;height:400px;"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                分为:\n\
-                                按国籍的饼图(总留言数量)\n\
-                                按每天留言数据的折线图(统计所有的留言数据，生成的折线图)\n\
-                                数据表格(汇总所有的数据)\n\
+                                <span>分为:</span>\n\
+                                <span>按国籍的饼图(总留言数量)，</span>\n\
+                                <span>按每天留言数据的折线图(统计所有的留言数据，生成的折线图)，</span>\n\
+                                <span>按最多留言数据的柱状图(那些好友一天留言数量排行榜/那些好友总留言数量排行榜/累计连续每天留言数量最多)，</span>\n\
+                                <span>数据表格(汇总所有的数据)</span>\n\
                                 <div id="container_commentStatistics" style="min-width:400px;height:400px"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                好友关系网(仅统计共同好友)\n\
+                                <span>好友关系网(仅统计共同好友)</span>\n\
                                 <div id="container_relationshipStatistics" style="min-width: 320px;max-width: 800px;margin: 0 auto;"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                当前的配置数据和运行状态\n\
+                                <span>当前的配置数据和运行状态</span>\n\
                                 <div id="container_currConfStatistics"></div>\n\
                         </div>\n\
                         <div class="layui-tab-item">\n\
-                                对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)\n\
+                                <span>对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)</span>\n\
                                 <div id="container_friConfStatistics"></div>\n\
                         </div>\n\
                   </div>\n\
@@ -4069,11 +5642,11 @@ var mainUI_html = '\
                                 <div class="layui-timeline-content layui-text">\n\
                                   <h3 class="layui-timeline-title" style="color:#66ccff;">8月18日</h3>\n\
                                   <p style="color:#fff;">\n\
-                                        已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条\n\
-                                        <br>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条\n\
-                                        <br>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条\n\
-                                        <br>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条\n\
-                                        <br>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条\n\
+                                        <span>已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条</span>\n\
+                                        <br><span>已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条</span>\n\
+                                        <br><span>已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条</span>\n\
+                                        <br><span>已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条</span>\n\
+                                        <br><span>已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条</span>\n\
                                   </p>\n\
                                 </div>\n\
                           </li>\n\
@@ -4081,7 +5654,7 @@ var mainUI_html = '\
                                 <i class="layui-icon layui-timeline-axis"></i>\n\
                                 <div class="layui-timeline-content layui-text">\n\
                                   <h3 class="layui-timeline-title" style="color:#66ccff;">8月16日</h3>\n\
-                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>\n\
+                                  <p style="color:#fff;">杜甫的思想核心是儒家的仁政思想，他有"致君尧舜上，再使风俗淳"的宏伟抱负。个人最爱的名篇有：</p>\n\
                                   <ul style="color:#fff;">\n\
                                         <li>《登高》</li>\n\
                                         <li>《茅屋为秋风所破歌》</li>\n\
@@ -4093,11 +5666,11 @@ var mainUI_html = '\
                                 <div class="layui-timeline-content layui-text">\n\
                                   <h3 class="layui-timeline-title" style="color:#66ccff;">8月15日</h3>\n\
                                   <p style="color:#fff;">\n\
-                                        中国人民抗日战争胜利日\n\
-                                        <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代\n\
-                                        <br>铭记、感恩\n\
-                                        <br>所有为中华民族浴血奋战的英雄将士\n\
-                                        <br>永垂不朽\n\
+                                        <span>中国人民抗日战争胜利日</span>\n\
+                                        <br><span>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代</span>\n\
+                                        <br><span>铭记、感恩</span>\n\
+                                        <br><span>所有为中华民族浴血奋战的英雄将士</span>\n\
+                                        <br><span>永垂不朽</span>\n\
                                   </p>\n\
                                 </div>\n\
                           </li>\n\
@@ -4204,6 +5777,7 @@ var mainUI_html = '\
                                 \n\
                                 <fieldset class="layui-elem-field layui-field-title">\n\
                                 <legend>语言配置</legend>\n\
+                                <div id="selectLanguageDropdown" class="localizationTool"></div>\n\
                                         <button type="button" class="layui-btn">自动检测(简体中文)</button>\n\
                                         <button type="button" class="layui-btn">简体中文</button>\n\
                                         <button type="button" class="layui-btn">繁体中文</button>\n\
@@ -4220,7 +5794,7 @@ var mainUI_html = '\
                                         <legend>UI设置</legend>\n\
                                         <div>预览:</div>\n\
                                         <div>\n\
-                                        主要字体颜色:\n\
+                                        <span>主要字体颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all1"></div>\n\
@@ -4228,7 +5802,7 @@ var mainUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        主要背景颜色:\n\
+                                        <span>主要背景颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all2"></div>\n\
@@ -4236,7 +5810,7 @@ var mainUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        留言成功字体颜色:\n\
+                                        <span>留言成功字体颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all3"></div>\n\
@@ -4244,7 +5818,7 @@ var mainUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        留言失败字体颜色:\n\
+                                        <span>留言失败字体颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all4"></div>\n\
@@ -4252,7 +5826,7 @@ var mainUI_html = '\
                                         </div>\n\
                                         \n\
                                         <div>\n\
-                                        留言发生错误字体颜色:\n\
+                                        <span>留言发生错误字体颜色:</span>\n\
                                                 <span style="margin-left: 30px;">\n\
                                                         <input type="hidden" name="color" value="" id="test-all-input">\n\
                                                         <div id="test-all5"></div>\n\
@@ -4266,21 +5840,21 @@ var mainUI_html = '\
                 </fieldset>\n\
                 \n\
                 <fieldset class="layui-elem-field">\n\
-                        <legend>关于 Steam assistant(Steam小助手)</legend>\n\
+                        <legend>关于SteamAssistant(Steam小助手)</legend>\n\
                                 <div class="layui-field-box">\n\
                                         <fieldset class="layui-elem-field layui-field-title">\n\
                                         <legend>程序信息:</legend>\n\
-                                        <div>当前版本: v0.2.3.0</div>\n\
-                                        <div>主程序框架更新时间: 2020年4月19日</div>\n\
-                                        <div>common 模块: 2020年4月19日</div>\n\
-                                        <div>databaseConf 模块: 2020年4月19日</div>\n\
-                                        <div>externalApis 模块: 2020年4月19日</div>\n\
-                                        <div>steamApis 模块: 2020年4月19日</div>\n\
-                                        <div>translateApis 模块: 2020年4月19日</div>\n\
-                                        <div>Utility 模块: 2020年4月19日</div>\n\
-                                        <div>UI 模块: 2020年4月19日</div>\n\
-                                        <div>Event 模块: 2020年4月19日</div>\n\
-                                        <div>CityList 模块: 2020年4月19日</div>\n\
+                                        <div>当前版本:v0.2.3.0</div>\n\
+                                        <div>主程序框架更新时间:2020年4月19日</div>\n\
+                                        <div>common模块:2020年4月19日</div>\n\
+                                        <div>databaseConf模块:2020年4月19日</div>\n\
+                                        <div>externalApis模块:2020年4月19日</div>\n\
+                                        <div>steamApis模块:2020年4月19日</div>\n\
+                                        <div>translateApis模块:2020年4月19日</div>\n\
+                                        <div>Utility模块:2020年4月19日</div>\n\
+                                        <div>UI模块:2020年4月19日</div>\n\
+                                        <div>Event模块:2020年4月19日</div>\n\
+                                        <div>CityList模块:2020年4月19日</div>\n\
                                         <fieldset class="layui-elem-field layui-field-title">\n\
                                         <legend>联系作者:</legend>\n\
                                         <button type="button" class="layui-btn">反馈错误</button>\n\
@@ -4850,6 +6424,451 @@ function _ySelects($) {
 }
 
 
+const _RESMODE = {
+        res_Tampermonkey: "Tampermonkey-Res",
+        res_CDN: "CDN-CommonRequest",
+        res_LocalVariables: "JS-LocalVariables"
+};
+
+const _RESTYPE = {
+        res_css: "css",
+        res_js: "js",
+        res_json: "json"
+};
+
+/**
+ * @param {String} strResID 资源id
+ */
+function getResConfByID(strResID){
+        if(_resConf){
+                for (let i = 0; i < _resConf.length; i++) {
+                        if(_resConf[i].resID == strResID)
+                                return _resConf[i].resInfo;
+                }
+                return new Error("[sophie] not find strResID.");
+        }
+        else{
+                throw new Error("[sophie] _resConf is undefined.");
+        }
+}
+
+function patchJS_layui(resData){
+        //对 o.prototype.addcss 打补丁，使其直接return this, 而不是去加载css, css通过脚本欲加载的资源手动添加
+        var findStr = 'layui.link(n.dir+"css/"+e,t,o)';
+        var index = resData.indexOf(findStr); //查找代补丁代码的位置
+        var fixJS = resData.slice(0,index); //提取 代补丁代码前部分
+        fixJS += 'this'; //添加 补丁代码
+        fixJS += resData.slice(index+findStr.length); //提取 代补丁代码后部分
+        return fixJS;
+}
+
+const _resConf = [
+        {
+                resID: "BaseResources", //资源唯一id
+                resInfo: [     //资源相关信息
+                        {
+                                resName: "css_layui",        //资源名称
+                                resDescription: "layui库所需的css", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["css_layui"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://www.layuicdn.com/layui-v2.5.6/css/layui.css",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/layui/2.5.6/css/layui.css",
+                                                        "https://cdn.90so.net/layui/2.5.6/css/layui.css",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "css_laydate",        //资源名称
+                                resDescription: "layui库(laydate组件)所需的css", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["css_laydate"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://www.layuicdn.com/layui-v2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/layui/2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9",
+                                                        "https://cdn.90so.net/layui/2.5.6/css/modules/laydate/default/laydate.css?v=5.0.9",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "css_layer",        //资源名称
+                                resDescription: "layui库(layer组件)所需的css", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["css_layer"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://www.layuicdn.com/layui-v2.5.6/css/modules/layer/default/layer.css?v=3.1.1",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/layui/2.5.6/css/modules/layer/default/layer.css?v=3.1.1",
+                                                        "https://cdn.90so.net/layui/2.5.6/css/modules/layer/default/layer.css?v=3.1.1",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "css_layui_Modules",        //资源名称
+                                resDescription: "layui库(组件)所需的css", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["css_layui_Modules"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://www.layuicdn.com/layui-v2.5.6/css/modules/code.css",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/layui/2.5.6/css/modules/code.css",
+                                                        "https://cdn.90so.net/layui/2.5.6/css/modules/code.css",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "css_fontAwesome",        //资源名称
+                                resDescription: "fontAwesome库所需的css", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["css_fontAwesome"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css",
+                                                        "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "JS_highstock",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["JS_highstock"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://code.highcharts.com.cn/highstock/highstock.js",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/highcharts/8.1.0/highstock.min.js",
+                                                        "https://cdn.bootcdn.net/ajax/libs/highcharts/8.1.0/highstock.js",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "JS_highstock_exporting",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["JS_highstock_exporting"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://code.highcharts.com.cn/highcharts/modules/exporting.js",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/highcharts/8.1.0/modules/exporting.min.js",
+                                                        "https://cdn.bootcdn.net/ajax/libs/highcharts/8.1.0/modules/exporting.js",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "JS_highstock_oldie",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["JS_highstock_oldie"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://code.highcharts.com.cn/highcharts/modules/oldie.js",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/highcharts/8.1.0/modules/oldie.src.min.js",
+                                                        "https://cdn.bootcdn.net/ajax/libs/highcharts/8.1.0/modules/oldie.js",
+                                                ],
+                                                onSucceed: null ,//如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "JS_highstock_networkgraph",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["JS_highstock_networkgraph"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://code.highcharts.com.cn/highcharts/modules/networkgraph.js",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/highcharts/8.1.0/modules/networkgraph.min.js",
+                                                        "https://cdn.bootcdn.net/ajax/libs/highcharts/8.1.0/modules/networkgraph.js",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "JS_highstock_zh_CN",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["JS_highstock_zh_CN"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "JS_layui",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["JS_layui"],
+                                                onSucceed: patchJS_layui //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://www.layuicdn.com/layui-v2.5.6/layui.all.js",
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/layui/2.5.6/layui.all.min.js",
+                                                        "https://cdn.90so.net/layui/2.5.6/layui.all.js",
+                                                ],
+                                                onSucceed: patchJS_layui //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "JS_localforage",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["JS_localforage"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.min.js",
+                                                        "https://cdn.90so.net/localforage/1.7.3/localforage.min.js",
+                                                        "https://cdn.bootcdn.net/ajax/libs/localforage/1.7.3/localforage.min.js",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "css_jquery_localizationTool",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_LocalVariables,
+                                                resType: _RESTYPE.res_css,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["jquery_localizationTool_css"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "js_jquery_localizationTool",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resMode: _RESMODE.res_Tampermonkey,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: ["Jquery_localizationtool"],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resMode: _RESTYPE.res_CDN,
+                                                resType: _RESTYPE.res_js,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "https://greasyfork.org/scripts/403927-jquery-localizationtool-js/code/jquerylocalizationTooljs.js?version=808323",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        }
+                ]
+        },
+        {
+                resID: "ExpandResources", //资源唯一id
+                resInfo: [     //资源相关信息
+                        {
+                                resName: "",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resType: _RESTYPE.res_Tampermonkey,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: [
+                                                        "",
+                                                        "",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resType: _RESTYPE.res_CDN,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "",
+                                                        "",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resType: _RESTYPE.res_Tampermonkey,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: [
+                                                        "",
+                                                        "",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resType: _RESTYPE.res_CDN,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "",
+                                                        "",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        },
+                        {
+                                resName: "",        //资源名称
+                                resDescription: "", //资源描述
+                                res: [ //资源信息: 为了保证最大可用性, 资源可以从多种途径加载, 越前的资源加载优先级越高
+                                        {
+                                                resType: _RESTYPE.res_Tampermonkey,
+                                                isFight: false, // 同一个资源下，可以手动设置是否需要启动争抢模式，谁先加载完就使用谁的
+                                                sourceInfo: [
+                                                        "",
+                                                        "",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        },
+                                        {
+                                                resType: _RESTYPE.res_CDN,
+                                                isFight: false,
+                                                sourceInfo: [
+                                                        "",
+                                                        "",
+                                                ],
+                                                onSucceed: null //如果获取资源成功后的回调函数(立刻触发，可用于取消加载资源，资源检查等)
+                                        }
+                                ]
+                        }
+                ]
+        }
+];
+
+
 function injectJS(){
         var funcCode = "";
         funcCode += wordCount.toString() + "\n\n";
@@ -4869,6 +6888,3355 @@ function injectJS(){
         funcCode += _ySelects.toString() + "\n\n";
         addNewScript('Utility_Script',funcCode);
 }
+
+var languagesList_ExpandUI_QuickNavigationBar_html = {
+'defaultLanguage' : 'auto_detected', /* (optional) although must be defined if you don't want en_GB */
+'showFlag': false,            /* (optional) show/hide the flag 显示/隐藏旗帜 */
+'showCountry': false,         /* (optional) show/hide the country name 显示/隐藏国家名称 */
+'showLanguage': true,        /* (optional) show/hide the country language 显示/隐藏国家语言 */
+'labelTemplate': '{{language}}',
+'languages' : {              /* (optional) define **ADDITIONAL** custom languages 定义**额外的**自定义语言 */
+    'auto_detected' : {
+        'country': 'Auto Detected',
+        'language' : 'Auto Detected',
+        'countryTranslated': 'Auto Detected',
+        'languageTranslated': 'Auto Detected',
+        'flag' : {
+            'url' : 'https://upload.wikimedia.org/wikipedia/commons/2/22/Flag_of_Hokkaido_Prefecture.svg', /* url of flag image 标志图像url */
+            'class' : 'auto-flag' /* (optional) class to assign to the flag (e.g., for css styling) 类来分配给标志(例如，用于css样式) */
+        }
+    }
+},
+/* 
+ * Translate your strings below 翻译下面的字符串
+ */
+'strings' : {
+        'class:localTool_1_1' : { /*要翻译的字符串*/
+        'auto_detected' : '快捷导航栏', /*自动检测*/
+        'zh_CN' : '快捷导航栏', /*简体*/
+        'zh_TW' : '快捷導航欄', /*繁体*/
+        'en_GB' : 'Quick Navigation Bar', /*英语*/
+        'jp_JP' : 'クイックナビゲーションバー'  /*日语*/
+        },
+
+        'class:localTool_1_2' : { /*要翻译的字符串*/
+        'auto_detected' : '好友分组', /*自动检测*/
+        'zh_CN' : '好友分组', /*简体*/
+        'zh_TW' : '好友分組', /*繁体*/
+        'en_GB' : 'Friends group', /*英语*/
+        'jp_JP' : '友達グループ'  /*日语*/
+        },
+
+        'class:localTool_1_3' : { /*要翻译的字符串*/
+        'auto_detected' : '选项一', /*自动检测*/
+        'zh_CN' : '选项一', /*简体*/
+        'zh_TW' : '選項一', /*繁体*/
+        'en_GB' : 'Option 1', /*英语*/
+        'jp_JP' : 'オプション1'  /*日语*/
+        },
+
+        'class:localTool_1_4' : { /*要翻译的字符串*/
+        'auto_detected' : '选项二', /*自动检测*/
+        'zh_CN' : '选项二', /*简体*/
+        'zh_TW' : '選項二', /*繁体*/
+        'en_GB' : 'Option 2', /*英语*/
+        'jp_JP' : 'オプション2'  /*日语*/
+        },
+
+        'class:localTool_1_5' : { /*要翻译的字符串*/
+        'auto_detected' : '选项三', /*自动检测*/
+        'zh_CN' : '选项三', /*简体*/
+        'zh_TW' : '選項三', /*繁体*/
+        'en_GB' : 'Option 3', /*英语*/
+        'jp_JP' : 'オプション3'  /*日语*/
+        },
+
+        'class:localTool_1_6' : { /*要翻译的字符串*/
+        'auto_detected' : '跳转项', /*自动检测*/
+        'zh_CN' : '跳转项', /*简体*/
+        'zh_TW' : '跳轉項', /*繁体*/
+        'en_GB' : 'Jump items', /*英语*/
+        'jp_JP' : 'ジャンプのアイテム'  /*日语*/
+        },
+
+        'class:localTool_1_7' : { /*要翻译的字符串*/
+        'auto_detected' : '功能模块', /*自动检测*/
+        'zh_CN' : '功能模块', /*简体*/
+        'zh_TW' : '功能模塊', /*繁体*/
+        'en_GB' : 'functional module', /*英语*/
+        'jp_JP' : '機能モジュール'  /*日语*/
+        },
+
+        'class:localTool_1_8' : { /*要翻译的字符串*/
+        'auto_detected' : '选项一', /*自动检测*/
+        'zh_CN' : '选项一', /*简体*/
+        'zh_TW' : '選項一', /*繁体*/
+        'en_GB' : 'Option 1', /*英语*/
+        'jp_JP' : 'オプション1'  /*日语*/
+        },
+
+        'class:localTool_1_9' : { /*要翻译的字符串*/
+        'auto_detected' : '选项二', /*自动检测*/
+        'zh_CN' : '选项二', /*简体*/
+        'zh_TW' : '選項二', /*繁体*/
+        'en_GB' : 'Option 2', /*英语*/
+        'jp_JP' : 'オプション2'  /*日语*/
+        },
+
+        'class:localTool_1_10' : { /*要翻译的字符串*/
+        'auto_detected' : '选项三', /*自动检测*/
+        'zh_CN' : '选项三', /*简体*/
+        'zh_TW' : '選項三', /*繁体*/
+        'en_GB' : 'Option 3', /*英语*/
+        'jp_JP' : 'オプション3'  /*日语*/
+        },
+
+        'class:localTool_1_11' : { /*要翻译的字符串*/
+        'auto_detected' : '跳转项', /*自动检测*/
+        'zh_CN' : '跳转项', /*简体*/
+        'zh_TW' : '跳轉項', /*繁体*/
+        'en_GB' : 'Jump items', /*英语*/
+        'jp_JP' : 'ジャンプのアイテム'  /*日语*/
+        },
+
+        'class:localTool_1_12' : { /*要翻译的字符串*/
+        'auto_detected' : '其他', /*自动检测*/
+        'zh_CN' : '其他', /*简体*/
+        'zh_TW' : '其他', /*繁体*/
+        'en_GB' : 'other', /*英语*/
+        'jp_JP' : '他の'  /*日语*/
+        },
+
+        'class:localTool_1_13' : { /*要翻译的字符串*/
+        'auto_detected' : '返回顶部', /*自动检测*/
+        'zh_CN' : '返回顶部', /*简体*/
+        'zh_TW' : '返回頂部', /*繁体*/
+        'en_GB' : 'Back to top', /*英语*/
+        'jp_JP' : 'トップに戻る'  /*日语*/
+        },
+
+        'class:localTool_1_14' : { /*要翻译的字符串*/
+        'auto_detected' : '返回底部', /*自动检测*/
+        'zh_CN' : '返回底部', /*简体*/
+        'zh_TW' : '返回底部', /*繁体*/
+        'en_GB' : 'Returns to the bottom', /*英语*/
+        'jp_JP' : '下へ戻ります'  /*日语*/
+        },
+
+        'class:localTool_1_15' : { /*要翻译的字符串*/
+        'auto_detected' : '选项三', /*自动检测*/
+        'zh_CN' : '选项三', /*简体*/
+        'zh_TW' : '選項三', /*繁体*/
+        'en_GB' : 'Option 3', /*英语*/
+        'jp_JP' : 'オプション3'  /*日语*/
+        },
+
+        'class:localTool_1_16' : { /*要翻译的字符串*/
+        'auto_detected' : '跳转项', /*自动检测*/
+        'zh_CN' : '跳转项', /*简体*/
+        'zh_TW' : '跳轉項', /*繁体*/
+        'en_GB' : 'Jump items', /*英语*/
+        'jp_JP' : 'ジャンプのアイテム'  /*日语*/
+        },
+
+        'class:localTool_1_17' : { /*要翻译的字符串*/
+        'auto_detected' : '解决方案', /*自动检测*/
+        'zh_CN' : '解决方案', /*简体*/
+        'zh_TW' : '解決方案', /*繁体*/
+        'en_GB' : 'solution', /*英语*/
+        'jp_JP' : '解決'  /*日语*/
+        },
+
+        'class:localTool_1_18' : { /*要翻译的字符串*/
+        'auto_detected' : '移动模块', /*自动检测*/
+        'zh_CN' : '移动模块', /*简体*/
+        'zh_TW' : '移動模塊', /*繁体*/
+        'en_GB' : 'Mobile Module', /*英语*/
+        'jp_JP' : 'モバイルモジュール'  /*日语*/
+        },
+
+        'class:localTool_1_19' : { /*要翻译的字符串*/
+        'auto_detected' : '后台模版', /*自动检测*/
+        'zh_CN' : '后台模版', /*简体*/
+        'zh_TW' : '後台模板', /*繁体*/
+        'en_GB' : 'Background template', /*英语*/
+        'jp_JP' : '背景テンプレート'  /*日语*/
+        },
+
+        'class:localTool_1_20' : { /*要翻译的字符串*/
+        'auto_detected' : '电商平台', /*自动检测*/
+        'zh_CN' : '电商平台', /*简体*/
+        'zh_TW' : '電商平台', /*繁体*/
+        'en_GB' : 'Electronic business platform', /*英语*/
+        'jp_JP' : '電子ビジネスプラットフォーム'  /*日语*/
+        },
+
+        'class:localTool_1_21' : { /*要翻译的字符串*/
+        'auto_detected' : '云市场', /*自动检测*/
+        'zh_CN' : '云市场', /*简体*/
+        'zh_TW' : '雲市場', /*繁体*/
+        'en_GB' : 'Cloud Market', /*英语*/
+        'jp_JP' : 'クラウド市場'  /*日语*/
+        },
+
+
+}
+};
+
+var languagesList_groupUI_html = {
+'defaultLanguage' : 'auto_detected', /* (optional) although must be defined if you don't want en_GB */
+'showFlag': false,            /* (optional) show/hide the flag 显示/隐藏旗帜 */
+'showCountry': false,         /* (optional) show/hide the country name 显示/隐藏国家名称 */
+'showLanguage': true,        /* (optional) show/hide the country language 显示/隐藏国家语言 */
+'labelTemplate': '{{language}}',
+'languages' : {              /* (optional) define **ADDITIONAL** custom languages 定义**额外的**自定义语言 */
+    'auto_detected' : {
+        'country': 'Auto Detected',
+        'language' : 'Auto Detected',
+        'countryTranslated': 'Auto Detected',
+        'languageTranslated': 'Auto Detected',
+        'flag' : {
+            'url' : 'https://upload.wikimedia.org/wikipedia/commons/2/22/Flag_of_Hokkaido_Prefecture.svg', /* url of flag image 标志图像url */
+            'class' : 'auto-flag' /* (optional) class to assign to the flag (e.g., for css styling) 类来分配给标志(例如，用于css样式) */
+        }
+    }
+},
+/* 
+ * Translate your strings below 翻译下面的字符串
+ */
+'strings' : {
+        'class:localTool_2_1' : { /*要翻译的字符串*/
+        'auto_detected' : '留言', /*自动检测*/
+        'zh_CN' : '留言', /*简体*/
+        'zh_TW' : '留言1', /*繁体*/
+        'en_GB' : '留言2', /*英语*/
+        'jp_JP' : '留言3'  /*日语*/
+        },
+
+        'class:localTool_2_2' : { /*要翻译的字符串*/
+        'auto_detected' : '留言设置', /*自动检测*/
+        'zh_CN' : '留言设置', /*简体*/
+        'zh_TW' : '留言设置1', /*繁体*/
+        'en_GB' : '留言设置2', /*英语*/
+        'jp_JP' : '留言设置3'  /*日语*/
+        },
+
+        'class:localTool_2_3' : { /*要翻译的字符串*/
+        'auto_detected' : '数据分析', /*自动检测*/
+        'zh_CN' : '数据分析', /*简体*/
+        'zh_TW' : '数据分析1', /*繁体*/
+        'en_GB' : '数据分析2', /*英语*/
+        'jp_JP' : '数据分析3'  /*日语*/
+        },
+
+        'class:localTool_2_4' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞助手', /*自动检测*/
+        'zh_CN' : '点赞助手', /*简体*/
+        'zh_TW' : '点赞助手1', /*繁体*/
+        'en_GB' : '点赞助手2', /*英语*/
+        'jp_JP' : '点赞助手3'  /*日语*/
+        },
+
+        'class:localTool_2_5' : { /*要翻译的字符串*/
+        'auto_detected' : '拓展功能(测试)', /*自动检测*/
+        'zh_CN' : '拓展功能(测试)', /*简体*/
+        'zh_TW' : '拓展功能(测试)1', /*繁体*/
+        'en_GB' : '拓展功能(测试)2', /*英语*/
+        'jp_JP' : '拓展功能(测试)3'  /*日语*/
+        },
+
+        'class:localTool_2_6' : { /*要翻译的字符串*/
+        'auto_detected' : '设置', /*自动检测*/
+        'zh_CN' : '设置', /*简体*/
+        'zh_TW' : '设置1', /*繁体*/
+        'en_GB' : '设置2', /*英语*/
+        'jp_JP' : '设置3'  /*日语*/
+        },
+
+        'class:localTool_2_7' : { /*要翻译的字符串*/
+        'auto_detected' : '当前字符字节数:', /*自动检测*/
+        'zh_CN' : '当前字符字节数:', /*简体*/
+        'zh_TW' : '当前字符字节数:1', /*繁体*/
+        'en_GB' : '当前字符字节数:2', /*英语*/
+        'jp_JP' : '当前字符字节数:3'  /*日语*/
+        },
+
+        'class:localTool_2_8' : { /*要翻译的字符串*/
+        'auto_detected' : '0', /*自动检测*/
+        'zh_CN' : '0', /*简体*/
+        'zh_TW' : '01', /*繁体*/
+        'en_GB' : '02', /*英语*/
+        'jp_JP' : '03'  /*日语*/
+        },
+
+        'class:localTool_2_9' : { /*要翻译的字符串*/
+        'auto_detected' : '/999', /*自动检测*/
+        'zh_CN' : '/999', /*简体*/
+        'zh_TW' : '/9991', /*繁体*/
+        'en_GB' : '/9992', /*英语*/
+        'jp_JP' : '/9993'  /*日语*/
+        },
+
+        'class:localTool_2_10' : { /*要翻译的字符串*/
+        'auto_detected' : '文本格式(直接添加或选择文字添加)', /*自动检测*/
+        'zh_CN' : '文本格式(直接添加或选择文字添加)', /*简体*/
+        'zh_TW' : '文本格式(直接添加或选择文字添加)1', /*繁体*/
+        'en_GB' : '文本格式(直接添加或选择文字添加)2', /*英语*/
+        'jp_JP' : '文本格式(直接添加或选择文字添加)3'  /*日语*/
+        },
+
+        'class:localTool_2_11' : { /*要翻译的字符串*/
+        'auto_detected' : '直接选择或搜索选择', /*自动检测*/
+        'zh_CN' : '直接选择或搜索选择', /*简体*/
+        'zh_TW' : '直接选择或搜索选择1', /*繁体*/
+        'en_GB' : '直接选择或搜索选择2', /*英语*/
+        'jp_JP' : '直接选择或搜索选择3'  /*日语*/
+        },
+
+        'class:localTool_2_12' : { /*要翻译的字符串*/
+        'auto_detected' : '[h1]标题文字[/h1]', /*自动检测*/
+        'zh_CN' : '[h1]标题文字[/h1]', /*简体*/
+        'zh_TW' : '[h1]标题文字[/h1]1', /*繁体*/
+        'en_GB' : '[h1]标题文字[/h1]2', /*英语*/
+        'jp_JP' : '[h1]标题文字[/h1]3'  /*日语*/
+        },
+
+        'class:localTool_2_13' : { /*要翻译的字符串*/
+        'auto_detected' : '[b]粗体文本[/b]', /*自动检测*/
+        'zh_CN' : '[b]粗体文本[/b]', /*简体*/
+        'zh_TW' : '[b]粗体文本[/b]1', /*繁体*/
+        'en_GB' : '[b]粗体文本[/b]2', /*英语*/
+        'jp_JP' : '[b]粗体文本[/b]3'  /*日语*/
+        },
+
+        'class:localTool_2_14' : { /*要翻译的字符串*/
+        'auto_detected' : '[u]下划线文本[/u]', /*自动检测*/
+        'zh_CN' : '[u]下划线文本[/u]', /*简体*/
+        'zh_TW' : '[u]下划线文本[/u]1', /*繁体*/
+        'en_GB' : '[u]下划线文本[/u]2', /*英语*/
+        'jp_JP' : '[u]下划线文本[/u]3'  /*日语*/
+        },
+
+        'class:localTool_2_15' : { /*要翻译的字符串*/
+        'auto_detected' : '[i]斜体文本[/i]', /*自动检测*/
+        'zh_CN' : '[i]斜体文本[/i]', /*简体*/
+        'zh_TW' : '[i]斜体文本[/i]1', /*繁体*/
+        'en_GB' : '[i]斜体文本[/i]2', /*英语*/
+        'jp_JP' : '[i]斜体文本[/i]3'  /*日语*/
+        },
+
+        'class:localTool_2_16' : { /*要翻译的字符串*/
+        'auto_detected' : '[strike]删除文本[/strike]', /*自动检测*/
+        'zh_CN' : '[strike]删除文本[/strike]', /*简体*/
+        'zh_TW' : '[strike]删除文本[/strike]1', /*繁体*/
+        'en_GB' : '[strike]删除文本[/strike]2', /*英语*/
+        'jp_JP' : '[strike]删除文本[/strike]3'  /*日语*/
+        },
+
+        'class:localTool_2_17' : { /*要翻译的字符串*/
+        'auto_detected' : '[spoiler]隐藏文本[/spoiler]', /*自动检测*/
+        'zh_CN' : '[spoiler]隐藏文本[/spoiler]', /*简体*/
+        'zh_TW' : '[spoiler]隐藏文本[/spoiler]1', /*繁体*/
+        'en_GB' : '[spoiler]隐藏文本[/spoiler]2', /*英语*/
+        'jp_JP' : '[spoiler]隐藏文本[/spoiler]3'  /*日语*/
+        },
+
+        'class:localTool_2_18' : { /*要翻译的字符串*/
+        'auto_detected' : '[noparse]不解析[b]标签[/b][/noparse]', /*自动检测*/
+        'zh_CN' : '[noparse]不解析[b]标签[/b][/noparse]', /*简体*/
+        'zh_TW' : '[noparse]不解析[b]标签[/b][/noparse]1', /*繁体*/
+        'en_GB' : '[noparse]不解析[b]标签[/b][/noparse]2', /*英语*/
+        'jp_JP' : '[noparse]不解析[b]标签[/b][/noparse]3'  /*日语*/
+        },
+
+        'class:localTool_2_19' : { /*要翻译的字符串*/
+        'auto_detected' : '[url=store.steampowered.com]网站链接[/url]', /*自动检测*/
+        'zh_CN' : '[url=store.steampowered.com]网站链接[/url]', /*简体*/
+        'zh_TW' : '[url=store.steampowered.com]网站链接[/url]1', /*繁体*/
+        'en_GB' : '[url=store.steampowered.com]网站链接[/url]2', /*英语*/
+        'jp_JP' : '[url=store.steampowered.com]网站链接[/url]3'  /*日语*/
+        },
+
+        'class:localTool_2_20' : { /*要翻译的字符串*/
+        'auto_detected' : '添加', /*自动检测*/
+        'zh_CN' : '添加', /*简体*/
+        'zh_TW' : '添加1', /*繁体*/
+        'en_GB' : '添加2', /*英语*/
+        'jp_JP' : '添加3'  /*日语*/
+        },
+
+        'class:localTool_2_21' : { /*要翻译的字符串*/
+        'auto_detected' : '翻译模块(需要提前设置国籍):', /*自动检测*/
+        'zh_CN' : '翻译模块(需要提前设置国籍):', /*简体*/
+        'zh_TW' : '翻译模块(需要提前设置国籍):1', /*繁体*/
+        'en_GB' : '翻译模块(需要提前设置国籍):2', /*英语*/
+        'jp_JP' : '翻译模块(需要提前设置国籍):3'  /*日语*/
+        },
+
+        'class:localTool_2_22' : { /*要翻译的字符串*/
+        'auto_detected' : '当前语言:', /*自动检测*/
+        'zh_CN' : '当前语言:', /*简体*/
+        'zh_TW' : '当前语言:1', /*繁体*/
+        'en_GB' : '当前语言:2', /*英语*/
+        'jp_JP' : '当前语言:3'  /*日语*/
+        },
+
+        'class:localTool_2_23' : { /*要翻译的字符串*/
+        'auto_detected' : '自动检测', /*自动检测*/
+        'zh_CN' : '自动检测', /*简体*/
+        'zh_TW' : '自动检测1', /*繁体*/
+        'en_GB' : '自动检测2', /*英语*/
+        'jp_JP' : '自动检测3'  /*日语*/
+        },
+
+        'class:localTool_2_24' : { /*要翻译的字符串*/
+        'auto_detected' : '中文简体', /*自动检测*/
+        'zh_CN' : '中文简体', /*简体*/
+        'zh_TW' : '中文简体1', /*繁体*/
+        'en_GB' : '中文简体2', /*英语*/
+        'jp_JP' : '中文简体3'  /*日语*/
+        },
+
+        'class:localTool_2_25' : { /*要翻译的字符串*/
+        'auto_detected' : '英语', /*自动检测*/
+        'zh_CN' : '英语', /*简体*/
+        'zh_TW' : '英语1', /*繁体*/
+        'en_GB' : '英语2', /*英语*/
+        'jp_JP' : '英语3'  /*日语*/
+        },
+
+        'class:localTool_2_26' : { /*要翻译的字符串*/
+        'auto_detected' : '日语', /*自动检测*/
+        'zh_CN' : '日语', /*简体*/
+        'zh_TW' : '日语1', /*繁体*/
+        'en_GB' : '日语2', /*英语*/
+        'jp_JP' : '日语3'  /*日语*/
+        },
+
+        'class:localTool_2_27' : { /*要翻译的字符串*/
+        'auto_detected' : '目标语言:', /*自动检测*/
+        'zh_CN' : '目标语言:', /*简体*/
+        'zh_TW' : '目标语言:1', /*繁体*/
+        'en_GB' : '目标语言:2', /*英语*/
+        'jp_JP' : '目标语言:3'  /*日语*/
+        },
+
+        'class:localTool_2_28' : { /*要翻译的字符串*/
+        'auto_detected' : '英语', /*自动检测*/
+        'zh_CN' : '英语', /*简体*/
+        'zh_TW' : '英语1', /*繁体*/
+        'en_GB' : '英语2', /*英语*/
+        'jp_JP' : '英语3'  /*日语*/
+        },
+
+        'class:localTool_2_29' : { /*要翻译的字符串*/
+        'auto_detected' : '日语', /*自动检测*/
+        'zh_CN' : '日语', /*简体*/
+        'zh_TW' : '日语1', /*繁体*/
+        'en_GB' : '日语2', /*英语*/
+        'jp_JP' : '日语3'  /*日语*/
+        },
+
+        'class:localTool_2_30' : { /*要翻译的字符串*/
+        'auto_detected' : '中文简体', /*自动检测*/
+        'zh_CN' : '中文简体', /*简体*/
+        'zh_TW' : '中文简体1', /*繁体*/
+        'en_GB' : '中文简体2', /*英语*/
+        'jp_JP' : '中文简体3'  /*日语*/
+        },
+
+        'class:localTool_2_31' : { /*要翻译的字符串*/
+        'auto_detected' : '马新简体[zh-sg]', /*自动检测*/
+        'zh_CN' : '马新简体[zh-sg]', /*简体*/
+        'zh_TW' : '马新简体[zh-sg]1', /*繁体*/
+        'en_GB' : '马新简体[zh-sg]2', /*英语*/
+        'jp_JP' : '马新简体[zh-sg]3'  /*日语*/
+        },
+
+        'class:localTool_2_32' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文[zh-hant]', /*自动检测*/
+        'zh_CN' : '繁體中文[zh-hant]', /*简体*/
+        'zh_TW' : '繁體中文[zh-hant]1', /*繁体*/
+        'en_GB' : '繁體中文[zh-hant]2', /*英语*/
+        'jp_JP' : '繁體中文[zh-hant]3'  /*日语*/
+        },
+
+        'class:localTool_2_33' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(香港)[zh-hk]', /*自动检测*/
+        'zh_CN' : '繁體中文(香港)[zh-hk]', /*简体*/
+        'zh_TW' : '繁體中文(香港)[zh-hk]1', /*繁体*/
+        'en_GB' : '繁體中文(香港)[zh-hk]2', /*英语*/
+        'jp_JP' : '繁體中文(香港)[zh-hk]3'  /*日语*/
+        },
+
+        'class:localTool_2_34' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(澳门)[zh-mo]', /*自动检测*/
+        'zh_CN' : '繁體中文(澳门)[zh-mo]', /*简体*/
+        'zh_TW' : '繁體中文(澳门)[zh-mo]1', /*繁体*/
+        'en_GB' : '繁體中文(澳门)[zh-mo]2', /*英语*/
+        'jp_JP' : '繁體中文(澳门)[zh-mo]3'  /*日语*/
+        },
+
+        'class:localTool_2_35' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(台湾)[zh-tw]', /*自动检测*/
+        'zh_CN' : '繁體中文(台湾)[zh-tw]', /*简体*/
+        'zh_TW' : '繁體中文(台湾)[zh-tw]1', /*繁体*/
+        'en_GB' : '繁體中文(台湾)[zh-tw]2', /*英语*/
+        'jp_JP' : '繁體中文(台湾)[zh-tw]3'  /*日语*/
+        },
+
+        'class:localTool_2_36' : { /*要翻译的字符串*/
+        'auto_detected' : '翻译', /*自动检测*/
+        'zh_CN' : '翻译', /*简体*/
+        'zh_TW' : '翻译1', /*繁体*/
+        'en_GB' : '翻译2', /*英语*/
+        'jp_JP' : '翻译3'  /*日语*/
+        },
+
+        'class:localTool_2_37' : { /*要翻译的字符串*/
+        'auto_detected' : '添加称呼模块(需要提前设置备注):', /*自动检测*/
+        'zh_CN' : '添加称呼模块(需要提前设置备注):', /*简体*/
+        'zh_TW' : '添加称呼模块(需要提前设置备注):1', /*繁体*/
+        'en_GB' : '添加称呼模块(需要提前设置备注):2', /*英语*/
+        'jp_JP' : '添加称呼模块(需要提前设置备注):3'  /*日语*/
+        },
+
+        'class:localTool_2_38' : { /*要翻译的字符串*/
+        'auto_detected' : '自定义称呼模式', /*自动检测*/
+        'zh_CN' : '自定义称呼模式', /*简体*/
+        'zh_TW' : '自定义称呼模式1', /*繁体*/
+        'en_GB' : '自定义称呼模式2', /*英语*/
+        'jp_JP' : '自定义称呼模式3'  /*日语*/
+        },
+
+        'class:localTool_2_39' : { /*要翻译的字符串*/
+        'auto_detected' : '在留言框添加自定义称呼标识符', /*自动检测*/
+        'zh_CN' : '在留言框添加自定义称呼标识符', /*简体*/
+        'zh_TW' : '在留言框添加自定义称呼标识符1', /*繁体*/
+        'en_GB' : '在留言框添加自定义称呼标识符2', /*英语*/
+        'jp_JP' : '在留言框添加自定义称呼标识符3'  /*日语*/
+        },
+
+        'class:localTool_2_40' : { /*要翻译的字符串*/
+        'auto_detected' : '是否为组添加称呼(如果组没有备注则使用steam名称)', /*自动检测*/
+        'zh_CN' : '是否为组添加称呼(如果组没有备注则使用steam名称)', /*简体*/
+        'zh_TW' : '是否为组添加称呼(如果组没有备注则使用steam名称)1', /*繁体*/
+        'en_GB' : '是否为组添加称呼(如果组没有备注则使用steam名称)2', /*英语*/
+        'jp_JP' : '是否为组添加称呼(如果组没有备注则使用steam名称)3'  /*日语*/
+        },
+
+        'class:localTool_2_41' : { /*要翻译的字符串*/
+        'auto_detected' : '是否为组添加称呼(如果组设置有备注则使用，否则不添加称呼)', /*自动检测*/
+        'zh_TW' : '是否为组添加称呼(如果组设置有备注则使用，否则不添加称呼)1', /*繁体*/
+        'en_GB' : '是否为组添加称呼(如果组设置有备注则使用，否则不添加称呼)2', /*英语*/
+        'jp_JP' : '是否为组添加称呼(如果组设置有备注则使用，否则不添加称呼)3'  /*日语*/
+        },
+
+        'class:localTool_2_42' : { /*要翻译的字符串*/
+        'auto_detected' : '格式化帮助', /*自动检测*/
+        'zh_CN' : '格式化帮助', /*简体*/
+        'zh_TW' : '格式化帮助1', /*繁体*/
+        'en_GB' : '格式化帮助2', /*英语*/
+        'jp_JP' : '格式化帮助3'  /*日语*/
+        },
+
+        'class:localTool_2_43' : { /*要翻译的字符串*/
+        'auto_detected' : '发送评论给选择的组', /*自动检测*/
+        'zh_CN' : '发送评论给选择的组', /*简体*/
+        'zh_TW' : '发送评论给选择的组1', /*繁体*/
+        'en_GB' : '发送评论给选择的组2', /*英语*/
+        'jp_JP' : '发送评论给选择的组3'  /*日语*/
+        },
+
+        'class:localTool_2_44' : { /*要翻译的字符串*/
+        'auto_detected' : '根据国籍发送评论给选择的组', /*自动检测*/
+        'zh_CN' : '根据国籍发送评论给选择的组', /*简体*/
+        'zh_TW' : '根据国籍发送评论给选择的组1', /*繁体*/
+        'en_GB' : '根据国籍发送评论给选择的组2', /*英语*/
+        'jp_JP' : '根据国籍发送评论给选择的组3'  /*日语*/
+        },
+
+        'class:localTool_2_45' : { /*要翻译的字符串*/
+        'auto_detected' : '设置国籍:', /*自动检测*/
+        'zh_CN' : '设置国籍:', /*简体*/
+        'zh_TW' : '设置国籍:1', /*繁体*/
+        'en_GB' : '设置国籍:2', /*英语*/
+        'jp_JP' : '设置国籍:3'  /*日语*/
+        },
+
+        'class:localTool_2_46' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择要设置的国籍:', /*自动检测*/
+        'zh_CN' : '请选择要设置的国籍:', /*简体*/
+        'zh_TW' : '请选择要设置的国籍:1', /*繁体*/
+        'en_GB' : '请选择要设置的国籍:2', /*英语*/
+        'jp_JP' : '请选择要设置的国籍:3'  /*日语*/
+        },
+
+        'class:localTool_2_47' : { /*要翻译的字符串*/
+        'auto_detected' : '简体中文', /*自动检测*/
+        'zh_CN' : '简体中文', /*简体*/
+        'zh_TW' : '简体中文1', /*繁体*/
+        'en_GB' : '简体中文2', /*英语*/
+        'jp_JP' : '简体中文3'  /*日语*/
+        },
+
+        'class:localTool_2_48' : { /*要翻译的字符串*/
+        'auto_detected' : '英语', /*自动检测*/
+        'zh_CN' : '英语', /*简体*/
+        'zh_TW' : '英语1', /*繁体*/
+        'en_GB' : '英语2', /*英语*/
+        'jp_JP' : '英语3'  /*日语*/
+        },
+
+        'class:localTool_2_49' : { /*要翻译的字符串*/
+        'auto_detected' : '日语', /*自动检测*/
+        'zh_CN' : '日语', /*简体*/
+        'zh_TW' : '日语1', /*繁体*/
+        'en_GB' : '日语2', /*英语*/
+        'jp_JP' : '日语3'  /*日语*/
+        },
+
+        'class:localTool_2_50' : { /*要翻译的字符串*/
+        'auto_detected' : '马新简体(马来西亚,新加坡)[zh-sg]', /*自动检测*/
+        'zh_CN' : '马新简体(马来西亚,新加坡)[zh-sg]', /*简体*/
+        'zh_TW' : '马新简体(马来西亚,新加坡)[zh-sg]1', /*繁体*/
+        'en_GB' : '马新简体(马来西亚,新加坡)[zh-sg]2', /*英语*/
+        'jp_JP' : '马新简体(马来西亚,新加坡)[zh-sg]3'  /*日语*/
+        },
+
+        'class:localTool_2_51' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文[zh-hant]', /*自动检测*/
+        'zh_CN' : '繁體中文[zh-hant]', /*简体*/
+        'zh_TW' : '繁體中文[zh-hant]1', /*繁体*/
+        'en_GB' : '繁體中文[zh-hant]2', /*英语*/
+        'jp_JP' : '繁體中文[zh-hant]3'  /*日语*/
+        },
+
+        'class:localTool_2_52' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(香港)[zh-hk]', /*自动检测*/
+        'zh_CN' : '繁體中文(香港)[zh-hk]', /*简体*/
+        'zh_TW' : '繁體中文(香港)[zh-hk]1', /*繁体*/
+        'en_GB' : '繁體中文(香港)[zh-hk]2', /*英语*/
+        'jp_JP' : '繁體中文(香港)[zh-hk]3'  /*日语*/
+        },
+
+        'class:localTool_2_53' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(澳门)[zh-mo]', /*自动检测*/
+        'zh_CN' : '繁體中文(澳门)[zh-mo]', /*简体*/
+        'zh_TW' : '繁體中文(澳门)[zh-mo]1', /*繁体*/
+        'en_GB' : '繁體中文(澳门)[zh-mo]2', /*英语*/
+        'jp_JP' : '繁體中文(澳门)[zh-mo]3'  /*日语*/
+        },
+
+        'class:localTool_2_54' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(台湾)[zh-tw]', /*自动检测*/
+        'zh_CN' : '繁體中文(台湾)[zh-tw]', /*简体*/
+        'zh_TW' : '繁體中文(台湾)[zh-tw]1', /*繁体*/
+        'en_GB' : '繁體中文(台湾)[zh-tw]2', /*英语*/
+        'jp_JP' : '繁體中文(台湾)[zh-tw]3'  /*日语*/
+        },
+
+        'class:localTool_2_55' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友设置国籍标识', /*自动检测*/
+        'zh_CN' : '为选择的好友设置国籍标识', /*简体*/
+        'zh_TW' : '为选择的好友设置国籍标识1', /*繁体*/
+        'en_GB' : '为选择的好友设置国籍标识2', /*英语*/
+        'jp_JP' : '为选择的好友设置国籍标识3'  /*日语*/
+        },
+
+        'class:localTool_2_56' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消国籍标识', /*自动检测*/
+        'zh_CN' : '为选择的好友取消国籍标识', /*简体*/
+        'zh_TW' : '为选择的好友取消国籍标识1', /*繁体*/
+        'en_GB' : '为选择的好友取消国籍标识2', /*英语*/
+        'jp_JP' : '为选择的好友取消国籍标识3'  /*日语*/
+        },
+
+        'class:localTool_2_57' : { /*要翻译的字符串*/
+        'auto_detected' : '设置不留言:', /*自动检测*/
+        'zh_CN' : '设置不留言:', /*简体*/
+        'zh_TW' : '设置不留言:1', /*繁体*/
+        'en_GB' : '设置不留言:2', /*英语*/
+        'jp_JP' : '设置不留言:3'  /*日语*/
+        },
+
+        'class:localTool_2_58' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友设置不留言', /*自动检测*/
+        'zh_CN' : '为选择的好友设置不留言', /*简体*/
+        'zh_TW' : '为选择的好友设置不留言1', /*繁体*/
+        'en_GB' : '为选择的好友设置不留言2', /*英语*/
+        'jp_JP' : '为选择的好友设置不留言3'  /*日语*/
+        },
+
+        'class:localTool_2_59' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消设置不留言', /*自动检测*/
+        'zh_CN' : '为选择的好友取消设置不留言', /*简体*/
+        'zh_TW' : '为选择的好友取消设置不留言1', /*繁体*/
+        'en_GB' : '为选择的好友取消设置不留言2', /*英语*/
+        'jp_JP' : '为选择的好友取消设置不留言3'  /*日语*/
+        },
+
+        'class:localTool_2_60' : { /*要翻译的字符串*/
+        'auto_detected' : '设置留言时间间隔:', /*自动检测*/
+        'zh_CN' : '设置留言时间间隔:', /*简体*/
+        'zh_TW' : '设置留言时间间隔:1', /*繁体*/
+        'en_GB' : '设置留言时间间隔:2', /*英语*/
+        'jp_JP' : '设置留言时间间隔:3'  /*日语*/
+        },
+
+        'class:localTool_2_61' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_2_62' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_2_63' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择留言', /*自动检测*/
+        'zh_CN' : '请选择留言', /*简体*/
+        'zh_TW' : '请选择留言1', /*繁体*/
+        'en_GB' : '请选择留言2', /*英语*/
+        'jp_JP' : '请选择留言3'  /*日语*/
+        },
+
+        'class:localTool_2_64' : { /*要翻译的字符串*/
+        'auto_detected' : '留言日期差', /*自动检测*/
+        'zh_CN' : '留言日期差', /*简体*/
+        'zh_TW' : '留言日期差1', /*繁体*/
+        'en_GB' : '留言日期差2', /*英语*/
+        'jp_JP' : '留言日期差3'  /*日语*/
+        },
+
+        'class:localTool_2_65' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友设置留言时间间隔', /*自动检测*/
+        'zh_CN' : '为选择的好友设置留言时间间隔', /*简体*/
+        'zh_TW' : '为选择的好友设置留言时间间隔1', /*繁体*/
+        'en_GB' : '为选择的好友设置留言时间间隔2', /*英语*/
+        'jp_JP' : '为选择的好友设置留言时间间隔3'  /*日语*/
+        },
+
+        'class:localTool_2_66' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消设置留言时间间隔', /*自动检测*/
+        'zh_CN' : '为选择的好友取消设置留言时间间隔', /*简体*/
+        'zh_TW' : '为选择的好友取消设置留言时间间隔1', /*繁体*/
+        'en_GB' : '为选择的好友取消设置留言时间间隔2', /*英语*/
+        'jp_JP' : '为选择的好友取消设置留言时间间隔3'  /*日语*/
+        },
+
+        'class:localTool_2_67' : { /*要翻译的字符串*/
+        'auto_detected' : '设置自动留言计划:', /*自动检测*/
+        'zh_CN' : '设置自动留言计划:', /*简体*/
+        'zh_TW' : '设置自动留言计划:1', /*繁体*/
+        'en_GB' : '设置自动留言计划:2', /*英语*/
+        'jp_JP' : '设置自动留言计划:3'  /*日语*/
+        },
+
+        'class:localTool_2_68' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择时间', /*自动检测*/
+        'zh_CN' : '请选择时间', /*简体*/
+        'zh_TW' : '请选择时间1', /*繁体*/
+        'en_GB' : '请选择时间2', /*英语*/
+        'jp_JP' : '请选择时间3'  /*日语*/
+        },
+
+        'class:localTool_2_69' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择时间', /*自动检测*/
+        'zh_CN' : '请选择时间', /*简体*/
+        'zh_TW' : '请选择时间1', /*繁体*/
+        'en_GB' : '请选择时间2', /*英语*/
+        'jp_JP' : '请选择时间3'  /*日语*/
+        },
+
+        'class:localTool_2_70' : { /*要翻译的字符串*/
+        'auto_detected' : '设置好友分组:', /*自动检测*/
+        'zh_CN' : '设置好友分组:', /*简体*/
+        'zh_TW' : '设置好友分组:1', /*繁体*/
+        'en_GB' : '设置好友分组:2', /*英语*/
+        'jp_JP' : '设置好友分组:3'  /*日语*/
+        },
+
+        'class:localTool_2_71' : { /*要翻译的字符串*/
+        'auto_detected' : '分组列表', /*自动检测*/
+        'zh_CN' : '分组列表', /*简体*/
+        'zh_TW' : '分组列表1', /*繁体*/
+        'en_GB' : '分组列表2', /*英语*/
+        'jp_JP' : '分组列表3'  /*日语*/
+        },
+
+        'class:localTool_2_72' : { /*要翻译的字符串*/
+        'auto_detected' : '直接选择或搜索选择', /*自动检测*/
+        'zh_CN' : '直接选择或搜索选择', /*简体*/
+        'zh_TW' : '直接选择或搜索选择1', /*繁体*/
+        'en_GB' : '直接选择或搜索选择2', /*英语*/
+        'jp_JP' : '直接选择或搜索选择3'  /*日语*/
+        },
+
+        'class:localTool_2_73' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_74' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_75' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_76' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_77' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_78' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_79' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_80' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_81' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_82' : { /*要翻译的字符串*/
+        'auto_detected' : '编辑列表', /*自动检测*/
+        'zh_CN' : '编辑列表', /*简体*/
+        'zh_TW' : '编辑列表1', /*繁体*/
+        'en_GB' : '编辑列表2', /*英语*/
+        'jp_JP' : '编辑列表3'  /*日语*/
+        },
+
+        'class:localTool_2_83' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友添加分组', /*自动检测*/
+        'zh_CN' : '为选择的好友添加分组', /*简体*/
+        'zh_TW' : '为选择的好友添加分组1', /*繁体*/
+        'en_GB' : '为选择的好友添加分组2', /*英语*/
+        'jp_JP' : '为选择的好友添加分组3'  /*日语*/
+        },
+
+        'class:localTool_2_84' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消添加分组', /*自动检测*/
+        'zh_CN' : '为选择的好友取消添加分组', /*简体*/
+        'zh_TW' : '为选择的好友取消添加分组1', /*繁体*/
+        'en_GB' : '为选择的好友取消添加分组2', /*英语*/
+        'jp_JP' : '为选择的好友取消添加分组3'  /*日语*/
+        },
+
+        'class:localTool_2_85' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_86' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_87' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_88' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_89' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_90' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_91' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_92' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_93' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_94' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_95' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_2_96' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_2_97' : { /*要翻译的字符串*/
+        'auto_detected' : '按国籍进行高亮分组', /*自动检测*/
+        'zh_CN' : '按国籍进行高亮分组', /*简体*/
+        'zh_TW' : '按国籍进行高亮分组1', /*繁体*/
+        'en_GB' : '按国籍进行高亮分组2', /*英语*/
+        'jp_JP' : '按国籍进行高亮分组3'  /*日语*/
+        },
+
+        'class:localTool_2_98' : { /*要翻译的字符串*/
+        'auto_detected' : '按国籍进行排序分组(慢)', /*自动检测*/
+        'zh_CN' : '按国籍进行排序分组(慢)', /*简体*/
+        'zh_TW' : '按国籍进行排序分组(慢)1', /*繁体*/
+        'en_GB' : '按国籍进行排序分组(慢)2', /*英语*/
+        'jp_JP' : '按国籍进行排序分组(慢)3'  /*日语*/
+        },
+
+        'class:localTool_2_99' : { /*要翻译的字符串*/
+        'auto_detected' : '按在线时间进行排序分组', /*自动检测*/
+        'zh_CN' : '按在线时间进行排序分组', /*简体*/
+        'zh_TW' : '按在线时间进行排序分组1', /*繁体*/
+        'en_GB' : '按在线时间进行排序分组2', /*英语*/
+        'jp_JP' : '按在线时间进行排序分组3'  /*日语*/
+        },
+
+        'class:localTool_2_100' : { /*要翻译的字符串*/
+        'auto_detected' : '显示好友详细数据-不可用', /*自动检测*/
+        'zh_CN' : '显示好友详细数据-不可用', /*简体*/
+        'zh_TW' : '显示好友详细数据-不可用1', /*繁体*/
+        'en_GB' : '显示好友详细数据-不可用2', /*英语*/
+        'jp_JP' : '显示好友详细数据-不可用3'  /*日语*/
+        },
+
+        'class:localTool_2_101' : { /*要翻译的字符串*/
+        'auto_detected' : '好友数据统计', /*自动检测*/
+        'zh_CN' : '好友数据统计', /*简体*/
+        'zh_TW' : '好友数据统计1', /*繁体*/
+        'en_GB' : '好友数据统计2', /*英语*/
+        'jp_JP' : '好友数据统计3'  /*日语*/
+        },
+
+        'class:localTool_2_102' : { /*要翻译的字符串*/
+        'auto_detected' : '留言数据统计', /*自动检测*/
+        'zh_CN' : '留言数据统计', /*简体*/
+        'zh_TW' : '留言数据统计1', /*繁体*/
+        'en_GB' : '留言数据统计2', /*英语*/
+        'jp_JP' : '留言数据统计3'  /*日语*/
+        },
+
+        'class:localTool_2_103' : { /*要翻译的字符串*/
+        'auto_detected' : '关系网统计', /*自动检测*/
+        'zh_CN' : '关系网统计', /*简体*/
+        'zh_TW' : '关系网统计1', /*繁体*/
+        'en_GB' : '关系网统计2', /*英语*/
+        'jp_JP' : '关系网统计3'  /*日语*/
+        },
+
+        'class:localTool_2_104' : { /*要翻译的字符串*/
+        'auto_detected' : '当前配置统计', /*自动检测*/
+        'zh_CN' : '当前配置统计', /*简体*/
+        'zh_TW' : '当前配置统计1', /*繁体*/
+        'en_GB' : '当前配置统计2', /*英语*/
+        'jp_JP' : '当前配置统计3'  /*日语*/
+        },
+
+        'class:localTool_2_105' : { /*要翻译的字符串*/
+        'auto_detected' : '查看好友配置统计', /*自动检测*/
+        'zh_CN' : '查看好友配置统计', /*简体*/
+        'zh_TW' : '查看好友配置统计1', /*繁体*/
+        'en_GB' : '查看好友配置统计2', /*英语*/
+        'jp_JP' : '查看好友配置统计3'  /*日语*/
+        },
+
+        'class:localTool_2_106' : { /*要翻译的字符串*/
+        'auto_detected' : '数据表格(汇总所有的数据:id,名称,备注,国籍(语言),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)', /*自动检测*/
+        },
+
+        'class:localTool_2_107' : { /*要翻译的字符串*/
+        'auto_detected' : '分为:', /*自动检测*/
+        'zh_CN' : '分为:', /*简体*/
+        'zh_TW' : '分为:1', /*繁体*/
+        'en_GB' : '分为:2', /*英语*/
+        'jp_JP' : '分为:3'  /*日语*/
+        },
+
+        'class:localTool_2_108' : { /*要翻译的字符串*/
+        'auto_detected' : '按国籍的饼图(总留言数量)，', /*自动检测*/
+        'zh_CN' : '按国籍的饼图(总留言数量)，', /*简体*/
+        'zh_TW' : '按国籍的饼图(总留言数量)，1', /*繁体*/
+        'en_GB' : '按国籍的饼图(总留言数量)，2', /*英语*/
+        'jp_JP' : '按国籍的饼图(总留言数量)，3'  /*日语*/
+        },
+
+        'class:localTool_2_109' : { /*要翻译的字符串*/
+        'auto_detected' : '按每天留言数据的折线图(统计所有的留言数据，生成的折线图)，', /*自动检测*/
+        },
+
+        'class:localTool_2_110' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_2_111' : { /*要翻译的字符串*/
+        'auto_detected' : '数据表格(汇总所有的数据)', /*自动检测*/
+        'zh_CN' : '数据表格(汇总所有的数据)', /*简体*/
+        'zh_TW' : '数据表格(汇总所有的数据)1', /*繁体*/
+        'en_GB' : '数据表格(汇总所有的数据)2', /*英语*/
+        'jp_JP' : '数据表格(汇总所有的数据)3'  /*日语*/
+        },
+
+        'class:localTool_2_112' : { /*要翻译的字符串*/
+        'auto_detected' : '好友关系网(仅统计共同好友)', /*自动检测*/
+        'zh_CN' : '好友关系网(仅统计共同好友)', /*简体*/
+        'zh_TW' : '好友关系网(仅统计共同好友)1', /*繁体*/
+        'en_GB' : '好友关系网(仅统计共同好友)2', /*英语*/
+        'jp_JP' : '好友关系网(仅统计共同好友)3'  /*日语*/
+        },
+
+        'class:localTool_2_113' : { /*要翻译的字符串*/
+        'auto_detected' : '当前的配置数据和运行状态', /*自动检测*/
+        'zh_CN' : '当前的配置数据和运行状态', /*简体*/
+        'zh_TW' : '当前的配置数据和运行状态1', /*繁体*/
+        'en_GB' : '当前的配置数据和运行状态2', /*英语*/
+        'jp_JP' : '当前的配置数据和运行状态3'  /*日语*/
+        },
+
+        'class:localTool_2_114' : { /*要翻译的字符串*/
+        'auto_detected' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)', /*自动检测*/
+        'zh_CN' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)', /*简体*/
+        'zh_TW' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)1', /*繁体*/
+        'en_GB' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)2', /*英语*/
+        'jp_JP' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)3'  /*日语*/
+        },
+
+        'class:localTool_2_115' : { /*要翻译的字符串*/
+        'auto_detected' : '动态点赞助手', /*自动检测*/
+        'zh_CN' : '动态点赞助手', /*简体*/
+        'zh_TW' : '动态点赞助手1', /*繁体*/
+        'en_GB' : '动态点赞助手2', /*英语*/
+        'jp_JP' : '动态点赞助手3'  /*日语*/
+        },
+
+        'class:localTool_2_116' : { /*要翻译的字符串*/
+        'auto_detected' : '总开关', /*自动检测*/
+        'zh_CN' : '总开关', /*简体*/
+        'zh_TW' : '总开关1', /*繁体*/
+        'en_GB' : '总开关2', /*英语*/
+        'jp_JP' : '总开关3'  /*日语*/
+        },
+
+        'class:localTool_2_117' : { /*要翻译的字符串*/
+        'auto_detected' : '设置点赞内容:', /*自动检测*/
+        'zh_CN' : '设置点赞内容:', /*简体*/
+        'zh_TW' : '设置点赞内容:1', /*繁体*/
+        'en_GB' : '设置点赞内容:2', /*英语*/
+        'jp_JP' : '设置点赞内容:3'  /*日语*/
+        },
+
+        'class:localTool_2_118' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞内容:', /*自动检测*/
+        'zh_CN' : '点赞内容:', /*简体*/
+        'zh_TW' : '点赞内容:1', /*繁体*/
+        'en_GB' : '点赞内容:2', /*英语*/
+        'jp_JP' : '点赞内容:3'  /*日语*/
+        },
+
+        'class:localTool_2_119' : { /*要翻译的字符串*/
+        'auto_detected' : '设置自动点赞模式:', /*自动检测*/
+        'zh_CN' : '设置自动点赞模式:', /*简体*/
+        'zh_TW' : '设置自动点赞模式:1', /*繁体*/
+        'en_GB' : '设置自动点赞模式:2', /*英语*/
+        'jp_JP' : '设置自动点赞模式:3'  /*日语*/
+        },
+
+        'class:localTool_2_120' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞模式:', /*自动检测*/
+        'zh_CN' : '点赞模式:', /*简体*/
+        'zh_TW' : '点赞模式:1', /*繁体*/
+        'en_GB' : '点赞模式:2', /*英语*/
+        'jp_JP' : '点赞模式:3'  /*日语*/
+        },
+
+        'class:localTool_2_121' : { /*要翻译的字符串*/
+        'auto_detected' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)', /*自动检测*/
+        'zh_CN' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)', /*简体*/
+        'zh_TW' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)1', /*繁体*/
+        'en_GB' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)2', /*英语*/
+        'jp_JP' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)3'  /*日语*/
+        },
+
+        'class:localTool_2_122' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择范围', /*自动检测*/
+        'zh_CN' : '请选择范围', /*简体*/
+        'zh_TW' : '请选择范围1', /*繁体*/
+        'en_GB' : '请选择范围2', /*英语*/
+        'jp_JP' : '请选择范围3'  /*日语*/
+        },
+
+        'class:localTool_2_123' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞进度时间线', /*自动检测*/
+        'zh_CN' : '点赞进度时间线', /*简体*/
+        'zh_TW' : '点赞进度时间线1', /*繁体*/
+        'en_GB' : '点赞进度时间线2', /*英语*/
+        'jp_JP' : '点赞进度时间线3'  /*日语*/
+        },
+
+        'class:localTool_2_124' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_2_125' : { /*要翻译的字符串*/
+        'auto_detected' : '8月18日', /*自动检测*/
+        'zh_CN' : '8月18日', /*简体*/
+        'zh_TW' : '8月18日1', /*繁体*/
+        'en_GB' : '8月18日2', /*英语*/
+        'jp_JP' : '8月18日3'  /*日语*/
+        },
+
+        'class:localTool_2_126' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条', /*自动检测*/
+        'zh_CN' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条', /*简体*/
+        'zh_TW' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条1', /*繁体*/
+        'en_GB' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条2', /*英语*/
+        'jp_JP' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条3'  /*日语*/
+        },
+
+        'class:localTool_2_127' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条', /*自动检测*/
+        'zh_CN' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条', /*简体*/
+        'zh_TW' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条1', /*繁体*/
+        'en_GB' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条2', /*英语*/
+        'jp_JP' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条3'  /*日语*/
+        },
+
+        'class:localTool_2_128' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条', /*自动检测*/
+        'zh_CN' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条', /*简体*/
+        'zh_TW' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条1', /*繁体*/
+        'en_GB' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条2', /*英语*/
+        'jp_JP' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条3'  /*日语*/
+        },
+
+        'class:localTool_2_129' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条', /*自动检测*/
+        'zh_CN' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条', /*简体*/
+        'zh_TW' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条1', /*繁体*/
+        'en_GB' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条2', /*英语*/
+        'jp_JP' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条3'  /*日语*/
+        },
+
+        'class:localTool_2_130' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条', /*自动检测*/
+        'zh_CN' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条', /*简体*/
+        'zh_TW' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条1', /*繁体*/
+        'en_GB' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条2', /*英语*/
+        'jp_JP' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条3'  /*日语*/
+        },
+
+        'class:localTool_2_131' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_2_132' : { /*要翻译的字符串*/
+        'auto_detected' : '8月16日', /*自动检测*/
+        'zh_CN' : '8月16日', /*简体*/
+        'zh_TW' : '8月16日1', /*繁体*/
+        'en_GB' : '8月16日2', /*英语*/
+        'jp_JP' : '8月16日3'  /*日语*/
+        },
+
+        'class:localTool_2_133' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_2_134' : { /*要翻译的字符串*/
+        'auto_detected' : '《登高》', /*自动检测*/
+        'zh_CN' : '《登高》', /*简体*/
+        'zh_TW' : '《登高》1', /*繁体*/
+        'en_GB' : '《登高》2', /*英语*/
+        'jp_JP' : '《登高》3'  /*日语*/
+        },
+
+        'class:localTool_2_135' : { /*要翻译的字符串*/
+        'auto_detected' : '《茅屋为秋风所破歌》', /*自动检测*/
+        'zh_CN' : '《茅屋为秋风所破歌》', /*简体*/
+        'zh_TW' : '《茅屋为秋风所破歌》1', /*繁体*/
+        'en_GB' : '《茅屋为秋风所破歌》2', /*英语*/
+        'jp_JP' : '《茅屋为秋风所破歌》3'  /*日语*/
+        },
+
+        'class:localTool_2_136' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_2_137' : { /*要翻译的字符串*/
+        'auto_detected' : '8月15日', /*自动检测*/
+        'zh_CN' : '8月15日', /*简体*/
+        'zh_TW' : '8月15日1', /*繁体*/
+        'en_GB' : '8月15日2', /*英语*/
+        'jp_JP' : '8月15日3'  /*日语*/
+        },
+
+        'class:localTool_2_138' : { /*要翻译的字符串*/
+        'auto_detected' : '中国人民抗日战争胜利日', /*自动检测*/
+        'zh_CN' : '中国人民抗日战争胜利日', /*简体*/
+        'zh_TW' : '中国人民抗日战争胜利日1', /*繁体*/
+        'en_GB' : '中国人民抗日战争胜利日2', /*英语*/
+        'jp_JP' : '中国人民抗日战争胜利日3'  /*日语*/
+        },
+
+        'class:localTool_2_139' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_2_140' : { /*要翻译的字符串*/
+        'auto_detected' : '铭记、感恩', /*自动检测*/
+        'zh_CN' : '铭记、感恩', /*简体*/
+        'zh_TW' : '铭记、感恩1', /*繁体*/
+        'en_GB' : '铭记、感恩2', /*英语*/
+        'jp_JP' : '铭记、感恩3'  /*日语*/
+        },
+
+        'class:localTool_2_141' : { /*要翻译的字符串*/
+        'auto_detected' : '所有为中华民族浴血奋战的英雄将士', /*自动检测*/
+        'zh_CN' : '所有为中华民族浴血奋战的英雄将士', /*简体*/
+        'zh_TW' : '所有为中华民族浴血奋战的英雄将士1', /*繁体*/
+        'en_GB' : '所有为中华民族浴血奋战的英雄将士2', /*英语*/
+        'jp_JP' : '所有为中华民族浴血奋战的英雄将士3'  /*日语*/
+        },
+
+        'class:localTool_2_142' : { /*要翻译的字符串*/
+        'auto_detected' : '永垂不朽', /*自动检测*/
+        'zh_CN' : '永垂不朽', /*简体*/
+        'zh_TW' : '永垂不朽1', /*繁体*/
+        'en_GB' : '永垂不朽2', /*英语*/
+        'jp_JP' : '永垂不朽3'  /*日语*/
+        },
+
+        'class:localTool_2_143' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_2_144' : { /*要翻译的字符串*/
+        'auto_detected' : '过去', /*自动检测*/
+        'zh_CN' : '过去', /*简体*/
+        'zh_TW' : '过去1', /*繁体*/
+        'en_GB' : '过去2', /*英语*/
+        'jp_JP' : '过去3'  /*日语*/
+        },
+
+        'class:localTool_2_145' : { /*要翻译的字符串*/
+        'auto_detected' : '喜加一助手', /*自动检测*/
+        'zh_CN' : '喜加一助手', /*简体*/
+        'zh_TW' : '喜加一助手1', /*繁体*/
+        'en_GB' : '喜加一助手2', /*英语*/
+        'jp_JP' : '喜加一助手3'  /*日语*/
+        },
+
+        'class:localTool_2_146' : { /*要翻译的字符串*/
+        'auto_detected' : '总开关', /*自动检测*/
+        'zh_CN' : '总开关', /*简体*/
+        'zh_TW' : '总开关1', /*繁体*/
+        'en_GB' : '总开关2', /*英语*/
+        'jp_JP' : '总开关3'  /*日语*/
+        },
+
+        'class:localTool_2_147' : { /*要翻译的字符串*/
+        'auto_detected' : '设置:', /*自动检测*/
+        'zh_CN' : '设置:', /*简体*/
+        'zh_TW' : '设置:1', /*繁体*/
+        'en_GB' : '设置:2', /*英语*/
+        'jp_JP' : '设置:3'  /*日语*/
+        },
+
+        'class:localTool_2_148' : { /*要翻译的字符串*/
+        'auto_detected' : '设置喜加一数据来源', /*自动检测*/
+        'zh_CN' : '设置喜加一数据来源', /*简体*/
+        'zh_TW' : '设置喜加一数据来源1', /*繁体*/
+        'en_GB' : '设置喜加一数据来源2', /*英语*/
+        'jp_JP' : '设置喜加一数据来源3'  /*日语*/
+        },
+
+        'class:localTool_2_149' : { /*要翻译的字符串*/
+        'auto_detected' : '设置:', /*自动检测*/
+        'zh_CN' : '设置:', /*简体*/
+        'zh_TW' : '设置:1', /*繁体*/
+        'en_GB' : '设置:2', /*英语*/
+        'jp_JP' : '设置:3'  /*日语*/
+        },
+
+        'class:localTool_2_150' : { /*要翻译的字符串*/
+        'auto_detected' : '功能设置', /*自动检测*/
+        'zh_CN' : '功能设置', /*简体*/
+        'zh_TW' : '功能设置1', /*繁体*/
+        'en_GB' : '功能设置2', /*英语*/
+        'jp_JP' : '功能设置3'  /*日语*/
+        },
+
+        'class:localTool_2_151' : { /*要翻译的字符串*/
+        'auto_detected' : 'Debug模式', /*自动检测*/
+        'zh_CN' : 'Debug模式', /*简体*/
+        'zh_TW' : 'Debug模式1', /*繁体*/
+        'en_GB' : 'Debug模式2', /*英语*/
+        'jp_JP' : 'Debug模式3'  /*日语*/
+        },
+
+        'class:localTool_2_152' : { /*要翻译的字符串*/
+        'auto_detected' : '弹出层', /*自动检测*/
+        'zh_CN' : '弹出层', /*简体*/
+        'zh_TW' : '弹出层1', /*繁体*/
+        'en_GB' : '弹出层2', /*英语*/
+        'jp_JP' : '弹出层3'  /*日语*/
+        },
+
+        'class:localTool_2_153' : { /*要翻译的字符串*/
+        'auto_detected' : '滑块', /*自动检测*/
+        'zh_CN' : '滑块', /*简体*/
+        'zh_TW' : '滑块1', /*繁体*/
+        'en_GB' : '滑块2', /*英语*/
+        'jp_JP' : '滑块3'  /*日语*/
+        },
+
+        'class:localTool_2_154' : { /*要翻译的字符串*/
+        'auto_detected' : '导入导出重置当前设置', /*自动检测*/
+        'zh_CN' : '导入导出重置当前设置', /*简体*/
+        'zh_TW' : '导入导出重置当前设置1', /*繁体*/
+        'en_GB' : '导入导出重置当前设置2', /*英语*/
+        'jp_JP' : '导入导出重置当前设置3'  /*日语*/
+        },
+
+        'class:localTool_2_155' : { /*要翻译的字符串*/
+        'auto_detected' : '弹出层', /*自动检测*/
+        'zh_CN' : '弹出层', /*简体*/
+        'zh_TW' : '弹出层1', /*繁体*/
+        'en_GB' : '弹出层2', /*英语*/
+        'jp_JP' : '弹出层3'  /*日语*/
+        },
+
+        'class:localTool_2_156' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_2_157' : { /*要翻译的字符串*/
+        'auto_detected' : '点击上传，或将文件拖拽到此处', /*自动检测*/
+        'zh_CN' : '点击上传，或将文件拖拽到此处', /*简体*/
+        'zh_TW' : '点击上传，或将文件拖拽到此处1', /*繁体*/
+        'en_GB' : '点击上传，或将文件拖拽到此处2', /*英语*/
+        'jp_JP' : '点击上传，或将文件拖拽到此处3'  /*日语*/
+        },
+
+        'class:localTool_2_158' : { /*要翻译的字符串*/
+        'auto_detected' : '界面设置', /*自动检测*/
+        'zh_CN' : '界面设置', /*简体*/
+        'zh_TW' : '界面设置1', /*繁体*/
+        'en_GB' : '界面设置2', /*英语*/
+        'jp_JP' : '界面设置3'  /*日语*/
+        },
+
+        'class:localTool_2_159' : { /*要翻译的字符串*/
+        'auto_detected' : '语言配置', /*自动检测*/
+        'zh_CN' : '语言配置', /*简体*/
+        'zh_TW' : '语言配置1', /*繁体*/
+        'en_GB' : '语言配置2', /*英语*/
+        'jp_JP' : '语言配置3'  /*日语*/
+        },
+
+        'class:localTool_2_160' : { /*要翻译的字符串*/
+        'auto_detected' : '自动检测(简体中文)', /*自动检测*/
+        'zh_CN' : '自动检测(简体中文)', /*简体*/
+        'zh_TW' : '自动检测(简体中文)1', /*繁体*/
+        'en_GB' : '自动检测(简体中文)2', /*英语*/
+        'jp_JP' : '自动检测(简体中文)3'  /*日语*/
+        },
+
+        'class:localTool_2_161' : { /*要翻译的字符串*/
+        'auto_detected' : '简体中文', /*自动检测*/
+        'zh_CN' : '简体中文', /*简体*/
+        'zh_TW' : '简体中文1', /*繁体*/
+        'en_GB' : '简体中文2', /*英语*/
+        'jp_JP' : '简体中文3'  /*日语*/
+        },
+
+        'class:localTool_2_162' : { /*要翻译的字符串*/
+        'auto_detected' : '繁体中文', /*自动检测*/
+        'zh_CN' : '繁体中文', /*简体*/
+        'zh_TW' : '繁体中文1', /*繁体*/
+        'en_GB' : '繁体中文2', /*英语*/
+        'jp_JP' : '繁体中文3'  /*日语*/
+        },
+
+        'class:localTool_2_163' : { /*要翻译的字符串*/
+        'auto_detected' : 'English', /*自动检测*/
+        'zh_CN' : 'English', /*简体*/
+        'zh_TW' : 'English1', /*繁体*/
+        'en_GB' : 'English2', /*英语*/
+        'jp_JP' : 'English3'  /*日语*/
+        },
+
+        'class:localTool_2_164' : { /*要翻译的字符串*/
+        'auto_detected' : '主题切换', /*自动检测*/
+        'zh_CN' : '主题切换', /*简体*/
+        'zh_TW' : '主题切换1', /*繁体*/
+        'en_GB' : '主题切换2', /*英语*/
+        'jp_JP' : '主题切换3'  /*日语*/
+        },
+
+        'class:localTool_2_165' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择一个主题，然后点击应用', /*自动检测*/
+        'zh_CN' : '请选择一个主题，然后点击应用', /*简体*/
+        'zh_TW' : '请选择一个主题，然后点击应用1', /*繁体*/
+        'en_GB' : '请选择一个主题，然后点击应用2', /*英语*/
+        'jp_JP' : '请选择一个主题，然后点击应用3'  /*日语*/
+        },
+
+        'class:localTool_2_166' : { /*要翻译的字符串*/
+        'auto_detected' : '应用主题', /*自动检测*/
+        'zh_CN' : '应用主题', /*简体*/
+        'zh_TW' : '应用主题1', /*繁体*/
+        'en_GB' : '应用主题2', /*英语*/
+        'jp_JP' : '应用主题3'  /*日语*/
+        },
+
+        'class:localTool_2_167' : { /*要翻译的字符串*/
+        'auto_detected' : 'UI设置', /*自动检测*/
+        'zh_CN' : 'UI设置', /*简体*/
+        'zh_TW' : 'UI设置1', /*繁体*/
+        'en_GB' : 'UI设置2', /*英语*/
+        'jp_JP' : 'UI设置3'  /*日语*/
+        },
+
+        'class:localTool_2_168' : { /*要翻译的字符串*/
+        'auto_detected' : '预览:', /*自动检测*/
+        'zh_CN' : '预览:', /*简体*/
+        'zh_TW' : '预览:1', /*繁体*/
+        'en_GB' : '预览:2', /*英语*/
+        'jp_JP' : '预览:3'  /*日语*/
+        },
+
+        'class:localTool_2_169' : { /*要翻译的字符串*/
+        'auto_detected' : '主要字体颜色:', /*自动检测*/
+        'zh_CN' : '主要字体颜色:', /*简体*/
+        'zh_TW' : '主要字体颜色:1', /*繁体*/
+        'en_GB' : '主要字体颜色:2', /*英语*/
+        'jp_JP' : '主要字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_2_170' : { /*要翻译的字符串*/
+        'auto_detected' : '主要背景颜色:', /*自动检测*/
+        'zh_CN' : '主要背景颜色:', /*简体*/
+        'zh_TW' : '主要背景颜色:1', /*繁体*/
+        'en_GB' : '主要背景颜色:2', /*英语*/
+        'jp_JP' : '主要背景颜色:3'  /*日语*/
+        },
+
+        'class:localTool_2_171' : { /*要翻译的字符串*/
+        'auto_detected' : '留言成功字体颜色:', /*自动检测*/
+        'zh_CN' : '留言成功字体颜色:', /*简体*/
+        'zh_TW' : '留言成功字体颜色:1', /*繁体*/
+        'en_GB' : '留言成功字体颜色:2', /*英语*/
+        'jp_JP' : '留言成功字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_2_172' : { /*要翻译的字符串*/
+        'auto_detected' : '留言失败字体颜色:', /*自动检测*/
+        'zh_CN' : '留言失败字体颜色:', /*简体*/
+        'zh_TW' : '留言失败字体颜色:1', /*繁体*/
+        'en_GB' : '留言失败字体颜色:2', /*英语*/
+        'jp_JP' : '留言失败字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_2_173' : { /*要翻译的字符串*/
+        'auto_detected' : '留言发生错误字体颜色:', /*自动检测*/
+        'zh_CN' : '留言发生错误字体颜色:', /*简体*/
+        'zh_TW' : '留言发生错误字体颜色:1', /*繁体*/
+        'en_GB' : '留言发生错误字体颜色:2', /*英语*/
+        'jp_JP' : '留言发生错误字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_2_174' : { /*要翻译的字符串*/
+        'auto_detected' : '保存为主题', /*自动检测*/
+        'zh_CN' : '保存为主题', /*简体*/
+        'zh_TW' : '保存为主题1', /*繁体*/
+        'en_GB' : '保存为主题2', /*英语*/
+        'jp_JP' : '保存为主题3'  /*日语*/
+        },
+
+        'class:localTool_2_175' : { /*要翻译的字符串*/
+        'auto_detected' : '关于SteamAssistant(Steam小助手)', /*自动检测*/
+        'zh_CN' : '关于SteamAssistant(Steam小助手)', /*简体*/
+        'zh_TW' : '关于SteamAssistant(Steam小助手)1', /*繁体*/
+        'en_GB' : '关于SteamAssistant(Steam小助手)2', /*英语*/
+        'jp_JP' : '关于SteamAssistant(Steam小助手)3'  /*日语*/
+        },
+
+        'class:localTool_2_176' : { /*要翻译的字符串*/
+        'auto_detected' : '程序信息:', /*自动检测*/
+        'zh_CN' : '程序信息:', /*简体*/
+        'zh_TW' : '程序信息:1', /*繁体*/
+        'en_GB' : '程序信息:2', /*英语*/
+        'jp_JP' : '程序信息:3'  /*日语*/
+        },
+
+        'class:localTool_2_177' : { /*要翻译的字符串*/
+        'auto_detected' : '当前版本:v0.2.3.0', /*自动检测*/
+        'zh_CN' : '当前版本:v0.2.3.0', /*简体*/
+        'zh_TW' : '当前版本:v0.2.3.01', /*繁体*/
+        'en_GB' : '当前版本:v0.2.3.02', /*英语*/
+        'jp_JP' : '当前版本:v0.2.3.03'  /*日语*/
+        },
+
+        'class:localTool_2_178' : { /*要翻译的字符串*/
+        'auto_detected' : '主程序框架更新时间:2020年4月19日', /*自动检测*/
+        'zh_CN' : '主程序框架更新时间:2020年4月19日', /*简体*/
+        'zh_TW' : '主程序框架更新时间:2020年4月19日1', /*繁体*/
+        'en_GB' : '主程序框架更新时间:2020年4月19日2', /*英语*/
+        'jp_JP' : '主程序框架更新时间:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_179' : { /*要翻译的字符串*/
+        'auto_detected' : 'common模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'common模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'common模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'common模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'common模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_180' : { /*要翻译的字符串*/
+        'auto_detected' : 'databaseConf模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'databaseConf模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'databaseConf模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'databaseConf模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'databaseConf模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_181' : { /*要翻译的字符串*/
+        'auto_detected' : 'externalApis模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'externalApis模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'externalApis模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'externalApis模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'externalApis模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_182' : { /*要翻译的字符串*/
+        'auto_detected' : 'steamApis模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'steamApis模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'steamApis模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'steamApis模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'steamApis模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_183' : { /*要翻译的字符串*/
+        'auto_detected' : 'translateApis模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'translateApis模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'translateApis模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'translateApis模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'translateApis模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_184' : { /*要翻译的字符串*/
+        'auto_detected' : 'Utility模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'Utility模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'Utility模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'Utility模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'Utility模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_185' : { /*要翻译的字符串*/
+        'auto_detected' : 'UI模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'UI模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'UI模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'UI模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'UI模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_186' : { /*要翻译的字符串*/
+        'auto_detected' : 'Event模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'Event模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'Event模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'Event模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'Event模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_187' : { /*要翻译的字符串*/
+        'auto_detected' : 'CityList模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'CityList模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'CityList模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'CityList模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'CityList模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_2_188' : { /*要翻译的字符串*/
+        'auto_detected' : '联系作者:', /*自动检测*/
+        'zh_CN' : '联系作者:', /*简体*/
+        'zh_TW' : '联系作者:1', /*繁体*/
+        'en_GB' : '联系作者:2', /*英语*/
+        'jp_JP' : '联系作者:3'  /*日语*/
+        },
+
+        'class:localTool_2_189' : { /*要翻译的字符串*/
+        'auto_detected' : '反馈错误', /*自动检测*/
+        'zh_CN' : '反馈错误', /*简体*/
+        'zh_TW' : '反馈错误1', /*繁体*/
+        'en_GB' : '反馈错误2', /*英语*/
+        'jp_JP' : '反馈错误3'  /*日语*/
+        },
+
+
+}
+};
+
+var languagesList_loadUI_Html = {
+'defaultLanguage' : 'auto_detected', /* (optional) although must be defined if you don't want en_GB */
+'showFlag': false,            /* (optional) show/hide the flag 显示/隐藏旗帜 */
+'showCountry': false,         /* (optional) show/hide the country name 显示/隐藏国家名称 */
+'showLanguage': true,        /* (optional) show/hide the country language 显示/隐藏国家语言 */
+'labelTemplate': '{{language}}',
+'languages' : {              /* (optional) define **ADDITIONAL** custom languages 定义**额外的**自定义语言 */
+    'auto_detected' : {
+        'country': 'Auto Detected',
+        'language' : 'Auto Detected',
+        'countryTranslated': 'Auto Detected',
+        'languageTranslated': 'Auto Detected',
+        'flag' : {
+            'url' : 'https://upload.wikimedia.org/wikipedia/commons/2/22/Flag_of_Hokkaido_Prefecture.svg', /* url of flag image 标志图像url */
+            'class' : 'auto-flag' /* (optional) class to assign to the flag (e.g., for css styling) 类来分配给标志(例如，用于css样式) */
+        }
+    }
+},
+/* 
+ * Translate your strings below 翻译下面的字符串
+ */
+'strings' : {
+        'class:localTool_3_1' : { /*要翻译的字符串*/
+        'auto_detected' : 'L', /*自动检测*/
+        'zh_CN' : 'L', /*简体*/
+        'zh_TW' : 'L1', /*繁体*/
+        'en_GB' : 'L2', /*英语*/
+        'jp_JP' : 'L3'  /*日语*/
+        },
+
+        'class:localTool_3_2' : { /*要翻译的字符串*/
+        'auto_detected' : 'o', /*自动检测*/
+        'zh_CN' : 'o', /*简体*/
+        'zh_TW' : 'o1', /*繁体*/
+        'en_GB' : 'o2', /*英语*/
+        'jp_JP' : 'o3'  /*日语*/
+        },
+
+        'class:localTool_3_3' : { /*要翻译的字符串*/
+        'auto_detected' : 'a', /*自动检测*/
+        'zh_CN' : 'a', /*简体*/
+        'zh_TW' : 'a1', /*繁体*/
+        'en_GB' : 'a2', /*英语*/
+        'jp_JP' : 'a3'  /*日语*/
+        },
+
+        'class:localTool_3_4' : { /*要翻译的字符串*/
+        'auto_detected' : 'd', /*自动检测*/
+        'zh_CN' : 'd', /*简体*/
+        'zh_TW' : 'd1', /*繁体*/
+        'en_GB' : 'd2', /*英语*/
+        'jp_JP' : 'd3'  /*日语*/
+        },
+
+        'class:localTool_3_5' : { /*要翻译的字符串*/
+        'auto_detected' : 'i', /*自动检测*/
+        'zh_CN' : 'i', /*简体*/
+        'zh_TW' : 'i1', /*繁体*/
+        'en_GB' : 'i2', /*英语*/
+        'jp_JP' : 'i3'  /*日语*/
+        },
+
+        'class:localTool_3_6' : { /*要翻译的字符串*/
+        'auto_detected' : 'n', /*自动检测*/
+        'zh_CN' : 'n', /*简体*/
+        'zh_TW' : 'n1', /*繁体*/
+        'en_GB' : 'n2', /*英语*/
+        'jp_JP' : 'n3'  /*日语*/
+        },
+
+        'class:localTool_3_7' : { /*要翻译的字符串*/
+        'auto_detected' : 'g', /*自动检测*/
+        'zh_CN' : 'g', /*简体*/
+        'zh_TW' : 'g1', /*繁体*/
+        'en_GB' : 'g2', /*英语*/
+        'jp_JP' : 'g3'  /*日语*/
+        },
+
+
+}
+};
+
+var languagesList_mainUI_html = {
+'defaultLanguage' : 'auto_detected', /* (optional) although must be defined if you don't want en_GB */
+'showFlag': false,            /* (optional) show/hide the flag 显示/隐藏旗帜 */
+'showCountry': false,         /* (optional) show/hide the country name 显示/隐藏国家名称 */
+'showLanguage': true,        /* (optional) show/hide the country language 显示/隐藏国家语言 */
+'labelTemplate': '{{language}}',
+'languages' : {              /* (optional) define **ADDITIONAL** custom languages 定义**额外的**自定义语言 */
+    'auto_detected' : {
+        'country': 'Auto Detected',
+        'language' : 'Auto Detected',
+        'countryTranslated': 'Auto Detected',
+        'languageTranslated': 'Auto Detected',
+        'flag' : {
+            'url' : 'https://upload.wikimedia.org/wikipedia/commons/2/22/Flag_of_Hokkaido_Prefecture.svg', /* url of flag image 标志图像url */
+            'class' : 'auto-flag' /* (optional) class to assign to the flag (e.g., for css styling) 类来分配给标志(例如，用于css样式) */
+        }
+    }
+},
+/* 
+ * Translate your strings below 翻译下面的字符串
+ */
+'strings' : {
+        'class:localTool_4_1' : { /*要翻译的字符串*/
+        'auto_detected' : '留言', /*自动检测*/
+        'zh_CN' : '留言', /*简体*/
+        'zh_TW' : '留言1', /*繁体*/
+        'en_GB' : '留言2', /*英语*/
+        'jp_JP' : '留言3'  /*日语*/
+        },
+
+        'class:localTool_4_2' : { /*要翻译的字符串*/
+        'auto_detected' : '留言设置', /*自动检测*/
+        'zh_CN' : '留言设置', /*简体*/
+        'zh_TW' : '留言设置1', /*繁体*/
+        'en_GB' : '留言设置2', /*英语*/
+        'jp_JP' : '留言设置3'  /*日语*/
+        },
+
+        'class:localTool_4_3' : { /*要翻译的字符串*/
+        'auto_detected' : '数据分析', /*自动检测*/
+        'zh_CN' : '数据分析', /*简体*/
+        'zh_TW' : '数据分析1', /*繁体*/
+        'en_GB' : '数据分析2', /*英语*/
+        'jp_JP' : '数据分析3'  /*日语*/
+        },
+
+        'class:localTool_4_4' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞助手', /*自动检测*/
+        'zh_CN' : '点赞助手', /*简体*/
+        'zh_TW' : '点赞助手1', /*繁体*/
+        'en_GB' : '点赞助手2', /*英语*/
+        'jp_JP' : '点赞助手3'  /*日语*/
+        },
+
+        'class:localTool_4_5' : { /*要翻译的字符串*/
+        'auto_detected' : '拓展功能(测试)', /*自动检测*/
+        'zh_CN' : '拓展功能(测试)', /*简体*/
+        'zh_TW' : '拓展功能(测试)1', /*繁体*/
+        'en_GB' : '拓展功能(测试)2', /*英语*/
+        'jp_JP' : '拓展功能(测试)3'  /*日语*/
+        },
+
+        'class:localTool_4_6' : { /*要翻译的字符串*/
+        'auto_detected' : '设置', /*自动检测*/
+        'zh_CN' : '设置', /*简体*/
+        'zh_TW' : '设置1', /*繁体*/
+        'en_GB' : '设置2', /*英语*/
+        'jp_JP' : '设置3'  /*日语*/
+        },
+
+        'class:localTool_4_7' : { /*要翻译的字符串*/
+        'auto_detected' : '当前字符字节数:', /*自动检测*/
+        'zh_CN' : '当前字符字节数:', /*简体*/
+        'zh_TW' : '当前字符字节数:1', /*繁体*/
+        'en_GB' : '当前字符字节数:2', /*英语*/
+        'jp_JP' : '当前字符字节数:3'  /*日语*/
+        },
+
+        'class:localTool_4_8' : { /*要翻译的字符串*/
+        'auto_detected' : '0', /*自动检测*/
+        'zh_CN' : '0', /*简体*/
+        'zh_TW' : '01', /*繁体*/
+        'en_GB' : '02', /*英语*/
+        'jp_JP' : '03'  /*日语*/
+        },
+
+        'class:localTool_4_9' : { /*要翻译的字符串*/
+        'auto_detected' : '/999', /*自动检测*/
+        'zh_CN' : '/999', /*简体*/
+        'zh_TW' : '/9991', /*繁体*/
+        'en_GB' : '/9992', /*英语*/
+        'jp_JP' : '/9993'  /*日语*/
+        },
+
+        'class:localTool_4_10' : { /*要翻译的字符串*/
+        'auto_detected' : '文本格式(直接添加或选择文字添加)', /*自动检测*/
+        'zh_CN' : '文本格式(直接添加或选择文字添加)', /*简体*/
+        'zh_TW' : '文本格式(直接添加或选择文字添加)1', /*繁体*/
+        'en_GB' : '文本格式(直接添加或选择文字添加)2', /*英语*/
+        'jp_JP' : '文本格式(直接添加或选择文字添加)3'  /*日语*/
+        },
+
+        'class:localTool_4_11' : { /*要翻译的字符串*/
+        'auto_detected' : '直接选择或搜索选择', /*自动检测*/
+        'zh_CN' : '直接选择或搜索选择', /*简体*/
+        'zh_TW' : '直接选择或搜索选择1', /*繁体*/
+        'en_GB' : '直接选择或搜索选择2', /*英语*/
+        'jp_JP' : '直接选择或搜索选择3'  /*日语*/
+        },
+
+        'class:localTool_4_12' : { /*要翻译的字符串*/
+        'auto_detected' : '[h1]标题文字[/h1]', /*自动检测*/
+        'zh_CN' : '[h1]标题文字[/h1]', /*简体*/
+        'zh_TW' : '[h1]标题文字[/h1]1', /*繁体*/
+        'en_GB' : '[h1]标题文字[/h1]2', /*英语*/
+        'jp_JP' : '[h1]标题文字[/h1]3'  /*日语*/
+        },
+
+        'class:localTool_4_13' : { /*要翻译的字符串*/
+        'auto_detected' : '[b]粗体文本[/b]', /*自动检测*/
+        'zh_CN' : '[b]粗体文本[/b]', /*简体*/
+        'zh_TW' : '[b]粗体文本[/b]1', /*繁体*/
+        'en_GB' : '[b]粗体文本[/b]2', /*英语*/
+        'jp_JP' : '[b]粗体文本[/b]3'  /*日语*/
+        },
+
+        'class:localTool_4_14' : { /*要翻译的字符串*/
+        'auto_detected' : '[u]下划线文本[/u]', /*自动检测*/
+        'zh_CN' : '[u]下划线文本[/u]', /*简体*/
+        'zh_TW' : '[u]下划线文本[/u]1', /*繁体*/
+        'en_GB' : '[u]下划线文本[/u]2', /*英语*/
+        'jp_JP' : '[u]下划线文本[/u]3'  /*日语*/
+        },
+
+        'class:localTool_4_15' : { /*要翻译的字符串*/
+        'auto_detected' : '[i]斜体文本[/i]', /*自动检测*/
+        'zh_CN' : '[i]斜体文本[/i]', /*简体*/
+        'zh_TW' : '[i]斜体文本[/i]1', /*繁体*/
+        'en_GB' : '[i]斜体文本[/i]2', /*英语*/
+        'jp_JP' : '[i]斜体文本[/i]3'  /*日语*/
+        },
+
+        'class:localTool_4_16' : { /*要翻译的字符串*/
+        'auto_detected' : '[strike]删除文本[/strike]', /*自动检测*/
+        'zh_CN' : '[strike]删除文本[/strike]', /*简体*/
+        'zh_TW' : '[strike]删除文本[/strike]1', /*繁体*/
+        'en_GB' : '[strike]删除文本[/strike]2', /*英语*/
+        'jp_JP' : '[strike]删除文本[/strike]3'  /*日语*/
+        },
+
+        'class:localTool_4_17' : { /*要翻译的字符串*/
+        'auto_detected' : '[spoiler]隐藏文本[/spoiler]', /*自动检测*/
+        'zh_CN' : '[spoiler]隐藏文本[/spoiler]', /*简体*/
+        'zh_TW' : '[spoiler]隐藏文本[/spoiler]1', /*繁体*/
+        'en_GB' : '[spoiler]隐藏文本[/spoiler]2', /*英语*/
+        'jp_JP' : '[spoiler]隐藏文本[/spoiler]3'  /*日语*/
+        },
+
+        'class:localTool_4_18' : { /*要翻译的字符串*/
+        'auto_detected' : '[noparse]不解析[b]标签[/b][/noparse]', /*自动检测*/
+        'zh_CN' : '[noparse]不解析[b]标签[/b][/noparse]', /*简体*/
+        'zh_TW' : '[noparse]不解析[b]标签[/b][/noparse]1', /*繁体*/
+        'en_GB' : '[noparse]不解析[b]标签[/b][/noparse]2', /*英语*/
+        'jp_JP' : '[noparse]不解析[b]标签[/b][/noparse]3'  /*日语*/
+        },
+
+        'class:localTool_4_19' : { /*要翻译的字符串*/
+        'auto_detected' : '[url=store.steampowered.com]网站链接[/url]', /*自动检测*/
+        'zh_CN' : '[url=store.steampowered.com]网站链接[/url]', /*简体*/
+        'zh_TW' : '[url=store.steampowered.com]网站链接[/url]1', /*繁体*/
+        'en_GB' : '[url=store.steampowered.com]网站链接[/url]2', /*英语*/
+        'jp_JP' : '[url=store.steampowered.com]网站链接[/url]3'  /*日语*/
+        },
+
+        'class:localTool_4_20' : { /*要翻译的字符串*/
+        'auto_detected' : '添加', /*自动检测*/
+        'zh_CN' : '添加', /*简体*/
+        'zh_TW' : '添加1', /*繁体*/
+        'en_GB' : '添加2', /*英语*/
+        'jp_JP' : '添加3'  /*日语*/
+        },
+
+        'class:localTool_4_21' : { /*要翻译的字符串*/
+        'auto_detected' : '翻译模块(需要提前设置国籍):', /*自动检测*/
+        'zh_CN' : '翻译模块(需要提前设置国籍):', /*简体*/
+        'zh_TW' : '翻译模块(需要提前设置国籍):1', /*繁体*/
+        'en_GB' : '翻译模块(需要提前设置国籍):2', /*英语*/
+        'jp_JP' : '翻译模块(需要提前设置国籍):3'  /*日语*/
+        },
+
+        'class:localTool_4_22' : { /*要翻译的字符串*/
+        'auto_detected' : '当前语言:', /*自动检测*/
+        'zh_CN' : '当前语言:', /*简体*/
+        'zh_TW' : '当前语言:1', /*繁体*/
+        'en_GB' : '当前语言:2', /*英语*/
+        'jp_JP' : '当前语言:3'  /*日语*/
+        },
+
+        'class:localTool_4_23' : { /*要翻译的字符串*/
+        'auto_detected' : '自动检测', /*自动检测*/
+        'zh_CN' : '自动检测', /*简体*/
+        'zh_TW' : '自动检测1', /*繁体*/
+        'en_GB' : '自动检测2', /*英语*/
+        'jp_JP' : '自动检测3'  /*日语*/
+        },
+
+        'class:localTool_4_24' : { /*要翻译的字符串*/
+        'auto_detected' : '中文简体', /*自动检测*/
+        'zh_CN' : '中文简体', /*简体*/
+        'zh_TW' : '中文简体1', /*繁体*/
+        'en_GB' : '中文简体2', /*英语*/
+        'jp_JP' : '中文简体3'  /*日语*/
+        },
+
+        'class:localTool_4_25' : { /*要翻译的字符串*/
+        'auto_detected' : '英语', /*自动检测*/
+        'zh_CN' : '英语', /*简体*/
+        'zh_TW' : '英语1', /*繁体*/
+        'en_GB' : '英语2', /*英语*/
+        'jp_JP' : '英语3'  /*日语*/
+        },
+
+        'class:localTool_4_26' : { /*要翻译的字符串*/
+        'auto_detected' : '日语', /*自动检测*/
+        'zh_CN' : '日语', /*简体*/
+        'zh_TW' : '日语1', /*繁体*/
+        'en_GB' : '日语2', /*英语*/
+        'jp_JP' : '日语3'  /*日语*/
+        },
+
+        'class:localTool_4_27' : { /*要翻译的字符串*/
+        'auto_detected' : '目标语言:', /*自动检测*/
+        'zh_CN' : '目标语言:', /*简体*/
+        'zh_TW' : '目标语言:1', /*繁体*/
+        'en_GB' : '目标语言:2', /*英语*/
+        'jp_JP' : '目标语言:3'  /*日语*/
+        },
+
+        'class:localTool_4_28' : { /*要翻译的字符串*/
+        'auto_detected' : '英语', /*自动检测*/
+        'zh_CN' : '英语', /*简体*/
+        'zh_TW' : '英语1', /*繁体*/
+        'en_GB' : '英语2', /*英语*/
+        'jp_JP' : '英语3'  /*日语*/
+        },
+
+        'class:localTool_4_29' : { /*要翻译的字符串*/
+        'auto_detected' : '日语', /*自动检测*/
+        'zh_CN' : '日语', /*简体*/
+        'zh_TW' : '日语1', /*繁体*/
+        'en_GB' : '日语2', /*英语*/
+        'jp_JP' : '日语3'  /*日语*/
+        },
+
+        'class:localTool_4_30' : { /*要翻译的字符串*/
+        'auto_detected' : '中文简体', /*自动检测*/
+        'zh_CN' : '中文简体', /*简体*/
+        'zh_TW' : '中文简体1', /*繁体*/
+        'en_GB' : '中文简体2', /*英语*/
+        'jp_JP' : '中文简体3'  /*日语*/
+        },
+
+        'class:localTool_4_31' : { /*要翻译的字符串*/
+        'auto_detected' : '马新简体[zh-sg]', /*自动检测*/
+        'zh_CN' : '马新简体[zh-sg]', /*简体*/
+        'zh_TW' : '马新简体[zh-sg]1', /*繁体*/
+        'en_GB' : '马新简体[zh-sg]2', /*英语*/
+        'jp_JP' : '马新简体[zh-sg]3'  /*日语*/
+        },
+
+        'class:localTool_4_32' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文[zh-hant]', /*自动检测*/
+        'zh_CN' : '繁體中文[zh-hant]', /*简体*/
+        'zh_TW' : '繁體中文[zh-hant]1', /*繁体*/
+        'en_GB' : '繁體中文[zh-hant]2', /*英语*/
+        'jp_JP' : '繁體中文[zh-hant]3'  /*日语*/
+        },
+
+        'class:localTool_4_33' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(香港)[zh-hk]', /*自动检测*/
+        'zh_CN' : '繁體中文(香港)[zh-hk]', /*简体*/
+        'zh_TW' : '繁體中文(香港)[zh-hk]1', /*繁体*/
+        'en_GB' : '繁體中文(香港)[zh-hk]2', /*英语*/
+        'jp_JP' : '繁體中文(香港)[zh-hk]3'  /*日语*/
+        },
+
+        'class:localTool_4_34' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(澳门)[zh-mo]', /*自动检测*/
+        'zh_CN' : '繁體中文(澳门)[zh-mo]', /*简体*/
+        'zh_TW' : '繁體中文(澳门)[zh-mo]1', /*繁体*/
+        'en_GB' : '繁體中文(澳门)[zh-mo]2', /*英语*/
+        'jp_JP' : '繁體中文(澳门)[zh-mo]3'  /*日语*/
+        },
+
+        'class:localTool_4_35' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(台湾)[zh-tw]', /*自动检测*/
+        'zh_CN' : '繁體中文(台湾)[zh-tw]', /*简体*/
+        'zh_TW' : '繁體中文(台湾)[zh-tw]1', /*繁体*/
+        'en_GB' : '繁體中文(台湾)[zh-tw]2', /*英语*/
+        'jp_JP' : '繁體中文(台湾)[zh-tw]3'  /*日语*/
+        },
+
+        'class:localTool_4_36' : { /*要翻译的字符串*/
+        'auto_detected' : '翻译', /*自动检测*/
+        'zh_CN' : '翻译', /*简体*/
+        'zh_TW' : '翻译1', /*繁体*/
+        'en_GB' : '翻译2', /*英语*/
+        'jp_JP' : '翻译3'  /*日语*/
+        },
+
+        'class:localTool_4_37' : { /*要翻译的字符串*/
+        'auto_detected' : '添加称呼模块(需要提前设置备注):', /*自动检测*/
+        'zh_CN' : '添加称呼模块(需要提前设置备注):', /*简体*/
+        'zh_TW' : '添加称呼模块(需要提前设置备注):1', /*繁体*/
+        'en_GB' : '添加称呼模块(需要提前设置备注):2', /*英语*/
+        'jp_JP' : '添加称呼模块(需要提前设置备注):3'  /*日语*/
+        },
+
+        'class:localTool_4_38' : { /*要翻译的字符串*/
+        'auto_detected' : '自定义称呼模式', /*自动检测*/
+        'zh_CN' : '自定义称呼模式', /*简体*/
+        'zh_TW' : '自定义称呼模式1', /*繁体*/
+        'en_GB' : '自定义称呼模式2', /*英语*/
+        'jp_JP' : '自定义称呼模式3'  /*日语*/
+        },
+
+        'class:localTool_4_39' : { /*要翻译的字符串*/
+        'auto_detected' : '在留言框添加自定义称呼标识符', /*自动检测*/
+        'zh_CN' : '在留言框添加自定义称呼标识符', /*简体*/
+        'zh_TW' : '在留言框添加自定义称呼标识符1', /*繁体*/
+        'en_GB' : '在留言框添加自定义称呼标识符2', /*英语*/
+        'jp_JP' : '在留言框添加自定义称呼标识符3'  /*日语*/
+        },
+
+        'class:localTool_4_40' : { /*要翻译的字符串*/
+        'auto_detected' : '是否为好友添加称呼(如果好友没有备注则使用steam名称)', /*自动检测*/
+        'zh_CN' : '是否为好友添加称呼(如果好友没有备注则使用steam名称)', /*简体*/
+        'zh_TW' : '是否为好友添加称呼(如果好友没有备注则使用steam名称)1', /*繁体*/
+        'en_GB' : '是否为好友添加称呼(如果好友没有备注则使用steam名称)2', /*英语*/
+        'jp_JP' : '是否为好友添加称呼(如果好友没有备注则使用steam名称)3'  /*日语*/
+        },
+
+        'class:localTool_4_41' : { /*要翻译的字符串*/
+        'auto_detected' : '是否为好友添加称呼(如果好友设置有备注则使用，否则不添加称呼)', /*自动检测*/
+        },
+
+        'class:localTool_4_42' : { /*要翻译的字符串*/
+        'auto_detected' : '格式化帮助', /*自动检测*/
+        'zh_CN' : '格式化帮助', /*简体*/
+        'zh_TW' : '格式化帮助1', /*繁体*/
+        'en_GB' : '格式化帮助2', /*英语*/
+        'jp_JP' : '格式化帮助3'  /*日语*/
+        },
+
+        'class:localTool_4_43' : { /*要翻译的字符串*/
+        'auto_detected' : '发送评论给选择的好友', /*自动检测*/
+        'zh_CN' : '发送评论给选择的好友', /*简体*/
+        'zh_TW' : '发送评论给选择的好友1', /*繁体*/
+        'en_GB' : '发送评论给选择的好友2', /*英语*/
+        'jp_JP' : '发送评论给选择的好友3'  /*日语*/
+        },
+
+        'class:localTool_4_44' : { /*要翻译的字符串*/
+        'auto_detected' : '根据国籍发送评论给选择的好友', /*自动检测*/
+        'zh_CN' : '根据国籍发送评论给选择的好友', /*简体*/
+        'zh_TW' : '根据国籍发送评论给选择的好友1', /*繁体*/
+        'en_GB' : '根据国籍发送评论给选择的好友2', /*英语*/
+        'jp_JP' : '根据国籍发送评论给选择的好友3'  /*日语*/
+        },
+
+        'class:localTool_4_45' : { /*要翻译的字符串*/
+        'auto_detected' : '设置国籍:', /*自动检测*/
+        'zh_CN' : '设置国籍:', /*简体*/
+        'zh_TW' : '设置国籍:1', /*繁体*/
+        'en_GB' : '设置国籍:2', /*英语*/
+        'jp_JP' : '设置国籍:3'  /*日语*/
+        },
+
+        'class:localTool_4_46' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择要设置的国籍:', /*自动检测*/
+        'zh_CN' : '请选择要设置的国籍:', /*简体*/
+        'zh_TW' : '请选择要设置的国籍:1', /*繁体*/
+        'en_GB' : '请选择要设置的国籍:2', /*英语*/
+        'jp_JP' : '请选择要设置的国籍:3'  /*日语*/
+        },
+
+        'class:localTool_4_47' : { /*要翻译的字符串*/
+        'auto_detected' : '简体中文', /*自动检测*/
+        'zh_CN' : '简体中文', /*简体*/
+        'zh_TW' : '简体中文1', /*繁体*/
+        'en_GB' : '简体中文2', /*英语*/
+        'jp_JP' : '简体中文3'  /*日语*/
+        },
+
+        'class:localTool_4_48' : { /*要翻译的字符串*/
+        'auto_detected' : '英语', /*自动检测*/
+        'zh_CN' : '英语', /*简体*/
+        'zh_TW' : '英语1', /*繁体*/
+        'en_GB' : '英语2', /*英语*/
+        'jp_JP' : '英语3'  /*日语*/
+        },
+
+        'class:localTool_4_49' : { /*要翻译的字符串*/
+        'auto_detected' : '日语', /*自动检测*/
+        'zh_CN' : '日语', /*简体*/
+        'zh_TW' : '日语1', /*繁体*/
+        'en_GB' : '日语2', /*英语*/
+        'jp_JP' : '日语3'  /*日语*/
+        },
+
+        'class:localTool_4_50' : { /*要翻译的字符串*/
+        'auto_detected' : '马新简体(马来西亚,新加坡)[zh-sg]', /*自动检测*/
+        'zh_CN' : '马新简体(马来西亚,新加坡)[zh-sg]', /*简体*/
+        'zh_TW' : '马新简体(马来西亚,新加坡)[zh-sg]1', /*繁体*/
+        'en_GB' : '马新简体(马来西亚,新加坡)[zh-sg]2', /*英语*/
+        'jp_JP' : '马新简体(马来西亚,新加坡)[zh-sg]3'  /*日语*/
+        },
+
+        'class:localTool_4_51' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文[zh-hant]', /*自动检测*/
+        'zh_CN' : '繁體中文[zh-hant]', /*简体*/
+        'zh_TW' : '繁體中文[zh-hant]1', /*繁体*/
+        'en_GB' : '繁體中文[zh-hant]2', /*英语*/
+        'jp_JP' : '繁體中文[zh-hant]3'  /*日语*/
+        },
+
+        'class:localTool_4_52' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(香港)[zh-hk]', /*自动检测*/
+        'zh_CN' : '繁體中文(香港)[zh-hk]', /*简体*/
+        'zh_TW' : '繁體中文(香港)[zh-hk]1', /*繁体*/
+        'en_GB' : '繁體中文(香港)[zh-hk]2', /*英语*/
+        'jp_JP' : '繁體中文(香港)[zh-hk]3'  /*日语*/
+        },
+
+        'class:localTool_4_53' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(澳门)[zh-mo]', /*自动检测*/
+        'zh_CN' : '繁體中文(澳门)[zh-mo]', /*简体*/
+        'zh_TW' : '繁體中文(澳门)[zh-mo]1', /*繁体*/
+        'en_GB' : '繁體中文(澳门)[zh-mo]2', /*英语*/
+        'jp_JP' : '繁體中文(澳门)[zh-mo]3'  /*日语*/
+        },
+
+        'class:localTool_4_54' : { /*要翻译的字符串*/
+        'auto_detected' : '繁體中文(台湾)[zh-tw]', /*自动检测*/
+        'zh_CN' : '繁體中文(台湾)[zh-tw]', /*简体*/
+        'zh_TW' : '繁體中文(台湾)[zh-tw]1', /*繁体*/
+        'en_GB' : '繁體中文(台湾)[zh-tw]2', /*英语*/
+        'jp_JP' : '繁體中文(台湾)[zh-tw]3'  /*日语*/
+        },
+
+        'class:localTool_4_55' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友设置国籍标识', /*自动检测*/
+        'zh_CN' : '为选择的好友设置国籍标识', /*简体*/
+        'zh_TW' : '为选择的好友设置国籍标识1', /*繁体*/
+        'en_GB' : '为选择的好友设置国籍标识2', /*英语*/
+        'jp_JP' : '为选择的好友设置国籍标识3'  /*日语*/
+        },
+
+        'class:localTool_4_56' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消国籍标识', /*自动检测*/
+        'zh_CN' : '为选择的好友取消国籍标识', /*简体*/
+        'zh_TW' : '为选择的好友取消国籍标识1', /*繁体*/
+        'en_GB' : '为选择的好友取消国籍标识2', /*英语*/
+        'jp_JP' : '为选择的好友取消国籍标识3'  /*日语*/
+        },
+
+        'class:localTool_4_57' : { /*要翻译的字符串*/
+        'auto_detected' : '设置不留言:', /*自动检测*/
+        'zh_CN' : '设置不留言:', /*简体*/
+        'zh_TW' : '设置不留言:1', /*繁体*/
+        'en_GB' : '设置不留言:2', /*英语*/
+        'jp_JP' : '设置不留言:3'  /*日语*/
+        },
+
+        'class:localTool_4_58' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友设置不留言', /*自动检测*/
+        'zh_CN' : '为选择的好友设置不留言', /*简体*/
+        'zh_TW' : '为选择的好友设置不留言1', /*繁体*/
+        'en_GB' : '为选择的好友设置不留言2', /*英语*/
+        'jp_JP' : '为选择的好友设置不留言3'  /*日语*/
+        },
+
+        'class:localTool_4_59' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消设置不留言', /*自动检测*/
+        'zh_CN' : '为选择的好友取消设置不留言', /*简体*/
+        'zh_TW' : '为选择的好友取消设置不留言1', /*繁体*/
+        'en_GB' : '为选择的好友取消设置不留言2', /*英语*/
+        'jp_JP' : '为选择的好友取消设置不留言3'  /*日语*/
+        },
+
+        'class:localTool_4_60' : { /*要翻译的字符串*/
+        'auto_detected' : '设置留言时间间隔:', /*自动检测*/
+        'zh_CN' : '设置留言时间间隔:', /*简体*/
+        'zh_TW' : '设置留言时间间隔:1', /*繁体*/
+        'en_GB' : '设置留言时间间隔:2', /*英语*/
+        'jp_JP' : '设置留言时间间隔:3'  /*日语*/
+        },
+
+        'class:localTool_4_61' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_4_62' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_4_63' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择留言', /*自动检测*/
+        'zh_CN' : '请选择留言', /*简体*/
+        'zh_TW' : '请选择留言1', /*繁体*/
+        'en_GB' : '请选择留言2', /*英语*/
+        'jp_JP' : '请选择留言3'  /*日语*/
+        },
+
+        'class:localTool_4_64' : { /*要翻译的字符串*/
+        'auto_detected' : '留言日期差', /*自动检测*/
+        'zh_CN' : '留言日期差', /*简体*/
+        'zh_TW' : '留言日期差1', /*繁体*/
+        'en_GB' : '留言日期差2', /*英语*/
+        'jp_JP' : '留言日期差3'  /*日语*/
+        },
+
+        'class:localTool_4_65' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友设置留言时间间隔', /*自动检测*/
+        'zh_CN' : '为选择的好友设置留言时间间隔', /*简体*/
+        'zh_TW' : '为选择的好友设置留言时间间隔1', /*繁体*/
+        'en_GB' : '为选择的好友设置留言时间间隔2', /*英语*/
+        'jp_JP' : '为选择的好友设置留言时间间隔3'  /*日语*/
+        },
+
+        'class:localTool_4_66' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消设置留言时间间隔', /*自动检测*/
+        'zh_CN' : '为选择的好友取消设置留言时间间隔', /*简体*/
+        'zh_TW' : '为选择的好友取消设置留言时间间隔1', /*繁体*/
+        'en_GB' : '为选择的好友取消设置留言时间间隔2', /*英语*/
+        'jp_JP' : '为选择的好友取消设置留言时间间隔3'  /*日语*/
+        },
+
+        'class:localTool_4_67' : { /*要翻译的字符串*/
+        'auto_detected' : '设置自动留言计划:', /*自动检测*/
+        'zh_CN' : '设置自动留言计划:', /*简体*/
+        'zh_TW' : '设置自动留言计划:1', /*繁体*/
+        'en_GB' : '设置自动留言计划:2', /*英语*/
+        'jp_JP' : '设置自动留言计划:3'  /*日语*/
+        },
+
+        'class:localTool_4_68' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择时间', /*自动检测*/
+        'zh_CN' : '请选择时间', /*简体*/
+        'zh_TW' : '请选择时间1', /*繁体*/
+        'en_GB' : '请选择时间2', /*英语*/
+        'jp_JP' : '请选择时间3'  /*日语*/
+        },
+
+        'class:localTool_4_69' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择时间', /*自动检测*/
+        'zh_CN' : '请选择时间', /*简体*/
+        'zh_TW' : '请选择时间1', /*繁体*/
+        'en_GB' : '请选择时间2', /*英语*/
+        'jp_JP' : '请选择时间3'  /*日语*/
+        },
+
+        'class:localTool_4_70' : { /*要翻译的字符串*/
+        'auto_detected' : '设置好友分组:', /*自动检测*/
+        'zh_CN' : '设置好友分组:', /*简体*/
+        'zh_TW' : '设置好友分组:1', /*繁体*/
+        'en_GB' : '设置好友分组:2', /*英语*/
+        'jp_JP' : '设置好友分组:3'  /*日语*/
+        },
+
+        'class:localTool_4_71' : { /*要翻译的字符串*/
+        'auto_detected' : '分组列表', /*自动检测*/
+        'zh_CN' : '分组列表', /*简体*/
+        'zh_TW' : '分组列表1', /*繁体*/
+        'en_GB' : '分组列表2', /*英语*/
+        'jp_JP' : '分组列表3'  /*日语*/
+        },
+
+        'class:localTool_4_72' : { /*要翻译的字符串*/
+        'auto_detected' : '直接选择或搜索选择', /*自动检测*/
+        'zh_CN' : '直接选择或搜索选择', /*简体*/
+        'zh_TW' : '直接选择或搜索选择1', /*繁体*/
+        'en_GB' : '直接选择或搜索选择2', /*英语*/
+        'jp_JP' : '直接选择或搜索选择3'  /*日语*/
+        },
+
+        'class:localTool_4_73' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_74' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_75' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_76' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_77' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_78' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_79' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_80' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_81' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_82' : { /*要翻译的字符串*/
+        'auto_detected' : '编辑列表', /*自动检测*/
+        'zh_CN' : '编辑列表', /*简体*/
+        'zh_TW' : '编辑列表1', /*繁体*/
+        'en_GB' : '编辑列表2', /*英语*/
+        'jp_JP' : '编辑列表3'  /*日语*/
+        },
+
+        'class:localTool_4_83' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友添加分组', /*自动检测*/
+        'zh_CN' : '为选择的好友添加分组', /*简体*/
+        'zh_TW' : '为选择的好友添加分组1', /*繁体*/
+        'en_GB' : '为选择的好友添加分组2', /*英语*/
+        'jp_JP' : '为选择的好友添加分组3'  /*日语*/
+        },
+
+        'class:localTool_4_84' : { /*要翻译的字符串*/
+        'auto_detected' : '为选择的好友取消添加分组', /*自动检测*/
+        'zh_CN' : '为选择的好友取消添加分组', /*简体*/
+        'zh_TW' : '为选择的好友取消添加分组1', /*繁体*/
+        'en_GB' : '为选择的好友取消添加分组2', /*英语*/
+        'jp_JP' : '为选择的好友取消添加分组3'  /*日语*/
+        },
+
+        'class:localTool_4_85' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_86' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_87' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_88' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_89' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_90' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_91' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_92' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_93' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_94' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_95' : { /*要翻译的字符串*/
+        'auto_detected' : '分组名称', /*自动检测*/
+        'zh_CN' : '分组名称', /*简体*/
+        'zh_TW' : '分组名称1', /*繁体*/
+        'en_GB' : '分组名称2', /*英语*/
+        'jp_JP' : '分组名称3'  /*日语*/
+        },
+
+        'class:localTool_4_96' : { /*要翻译的字符串*/
+        'auto_detected' : '用户', /*自动检测*/
+        'zh_CN' : '用户', /*简体*/
+        'zh_TW' : '用户1', /*繁体*/
+        'en_GB' : '用户2', /*英语*/
+        'jp_JP' : '用户3'  /*日语*/
+        },
+
+        'class:localTool_4_97' : { /*要翻译的字符串*/
+        'auto_detected' : '按国籍进行高亮分组', /*自动检测*/
+        'zh_CN' : '按国籍进行高亮分组', /*简体*/
+        'zh_TW' : '按国籍进行高亮分组1', /*繁体*/
+        'en_GB' : '按国籍进行高亮分组2', /*英语*/
+        'jp_JP' : '按国籍进行高亮分组3'  /*日语*/
+        },
+
+        'class:localTool_4_98' : { /*要翻译的字符串*/
+        'auto_detected' : '按国籍进行排序分组(慢)', /*自动检测*/
+        'zh_CN' : '按国籍进行排序分组(慢)', /*简体*/
+        'zh_TW' : '按国籍进行排序分组(慢)1', /*繁体*/
+        'en_GB' : '按国籍进行排序分组(慢)2', /*英语*/
+        'jp_JP' : '按国籍进行排序分组(慢)3'  /*日语*/
+        },
+
+        'class:localTool_4_99' : { /*要翻译的字符串*/
+        'auto_detected' : '按在线时间进行排序分组', /*自动检测*/
+        'zh_CN' : '按在线时间进行排序分组', /*简体*/
+        'zh_TW' : '按在线时间进行排序分组1', /*繁体*/
+        'en_GB' : '按在线时间进行排序分组2', /*英语*/
+        'jp_JP' : '按在线时间进行排序分组3'  /*日语*/
+        },
+
+        'class:localTool_4_100' : { /*要翻译的字符串*/
+        'auto_detected' : '显示好友详细数据-不可用', /*自动检测*/
+        'zh_CN' : '显示好友详细数据-不可用', /*简体*/
+        'zh_TW' : '显示好友详细数据-不可用1', /*繁体*/
+        'en_GB' : '显示好友详细数据-不可用2', /*英语*/
+        'jp_JP' : '显示好友详细数据-不可用3'  /*日语*/
+        },
+
+        'class:localTool_4_101' : { /*要翻译的字符串*/
+        'auto_detected' : '好友数据统计', /*自动检测*/
+        'zh_CN' : '好友数据统计', /*简体*/
+        'zh_TW' : '好友数据统计1', /*繁体*/
+        'en_GB' : '好友数据统计2', /*英语*/
+        'jp_JP' : '好友数据统计3'  /*日语*/
+        },
+
+        'class:localTool_4_102' : { /*要翻译的字符串*/
+        'auto_detected' : '留言数据统计', /*自动检测*/
+        'zh_CN' : '留言数据统计', /*简体*/
+        'zh_TW' : '留言数据统计1', /*繁体*/
+        'en_GB' : '留言数据统计2', /*英语*/
+        'jp_JP' : '留言数据统计3'  /*日语*/
+        },
+
+        'class:localTool_4_103' : { /*要翻译的字符串*/
+        'auto_detected' : '关系网统计', /*自动检测*/
+        'zh_CN' : '关系网统计', /*简体*/
+        'zh_TW' : '关系网统计1', /*繁体*/
+        'en_GB' : '关系网统计2', /*英语*/
+        'jp_JP' : '关系网统计3'  /*日语*/
+        },
+
+        'class:localTool_4_104' : { /*要翻译的字符串*/
+        'auto_detected' : '当前配置统计', /*自动检测*/
+        'zh_CN' : '当前配置统计', /*简体*/
+        'zh_TW' : '当前配置统计1', /*繁体*/
+        'en_GB' : '当前配置统计2', /*英语*/
+        'jp_JP' : '当前配置统计3'  /*日语*/
+        },
+
+        'class:localTool_4_105' : { /*要翻译的字符串*/
+        'auto_detected' : '查看好友配置统计', /*自动检测*/
+        'zh_CN' : '查看好友配置统计', /*简体*/
+        'zh_TW' : '查看好友配置统计1', /*繁体*/
+        'en_GB' : '查看好友配置统计2', /*英语*/
+        'jp_JP' : '查看好友配置统计3'  /*日语*/
+        },
+
+        'class:localTool_4_106' : { /*要翻译的字符串*/
+        'auto_detected' : '数据表格(汇总所有的数据:id,名称,备注,国籍(语言),等级,好友数量,游戏数量,dlc数量,创意工坊数量,艺术作品数量,动态数量)', /*自动检测*/
+        },
+
+        'class:localTool_4_107' : { /*要翻译的字符串*/
+        'auto_detected' : '分为:', /*自动检测*/
+        'zh_CN' : '分为:', /*简体*/
+        'zh_TW' : '分为:1', /*繁体*/
+        'en_GB' : '分为:2', /*英语*/
+        'jp_JP' : '分为:3'  /*日语*/
+        },
+
+        'class:localTool_4_108' : { /*要翻译的字符串*/
+        'auto_detected' : '按国籍的饼图(总留言数量)，', /*自动检测*/
+        'zh_CN' : '按国籍的饼图(总留言数量)，', /*简体*/
+        'zh_TW' : '按国籍的饼图(总留言数量)，1', /*繁体*/
+        'en_GB' : '按国籍的饼图(总留言数量)，2', /*英语*/
+        'jp_JP' : '按国籍的饼图(总留言数量)，3'  /*日语*/
+        },
+
+        'class:localTool_4_109' : { /*要翻译的字符串*/
+        'auto_detected' : '按每天留言数据的折线图(统计所有的留言数据，生成的折线图)，', /*自动检测*/
+        },
+
+        'class:localTool_4_110' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_4_111' : { /*要翻译的字符串*/
+        'auto_detected' : '数据表格(汇总所有的数据)', /*自动检测*/
+        'zh_CN' : '数据表格(汇总所有的数据)', /*简体*/
+        'zh_TW' : '数据表格(汇总所有的数据)1', /*繁体*/
+        'en_GB' : '数据表格(汇总所有的数据)2', /*英语*/
+        'jp_JP' : '数据表格(汇总所有的数据)3'  /*日语*/
+        },
+
+        'class:localTool_4_112' : { /*要翻译的字符串*/
+        'auto_detected' : '好友关系网(仅统计共同好友)', /*自动检测*/
+        'zh_CN' : '好友关系网(仅统计共同好友)', /*简体*/
+        'zh_TW' : '好友关系网(仅统计共同好友)1', /*繁体*/
+        'en_GB' : '好友关系网(仅统计共同好友)2', /*英语*/
+        'jp_JP' : '好友关系网(仅统计共同好友)3'  /*日语*/
+        },
+
+        'class:localTool_4_113' : { /*要翻译的字符串*/
+        'auto_detected' : '当前的配置数据和运行状态', /*自动检测*/
+        'zh_CN' : '当前的配置数据和运行状态', /*简体*/
+        'zh_TW' : '当前的配置数据和运行状态1', /*繁体*/
+        'en_GB' : '当前的配置数据和运行状态2', /*英语*/
+        'jp_JP' : '当前的配置数据和运行状态3'  /*日语*/
+        },
+
+        'class:localTool_4_114' : { /*要翻译的字符串*/
+        'auto_detected' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)', /*自动检测*/
+        'zh_CN' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)', /*简体*/
+        'zh_TW' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)1', /*繁体*/
+        'en_GB' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)2', /*英语*/
+        'jp_JP' : '对好友设置的配置数据(比如国籍,不留言,留言时间间隔等)3'  /*日语*/
+        },
+
+        'class:localTool_4_115' : { /*要翻译的字符串*/
+        'auto_detected' : '动态点赞助手', /*自动检测*/
+        'zh_CN' : '动态点赞助手', /*简体*/
+        'zh_TW' : '动态点赞助手1', /*繁体*/
+        'en_GB' : '动态点赞助手2', /*英语*/
+        'jp_JP' : '动态点赞助手3'  /*日语*/
+        },
+
+        'class:localTool_4_116' : { /*要翻译的字符串*/
+        'auto_detected' : '总开关', /*自动检测*/
+        'zh_CN' : '总开关', /*简体*/
+        'zh_TW' : '总开关1', /*繁体*/
+        'en_GB' : '总开关2', /*英语*/
+        'jp_JP' : '总开关3'  /*日语*/
+        },
+
+        'class:localTool_4_117' : { /*要翻译的字符串*/
+        'auto_detected' : '设置点赞内容:', /*自动检测*/
+        'zh_CN' : '设置点赞内容:', /*简体*/
+        'zh_TW' : '设置点赞内容:1', /*繁体*/
+        'en_GB' : '设置点赞内容:2', /*英语*/
+        'jp_JP' : '设置点赞内容:3'  /*日语*/
+        },
+
+        'class:localTool_4_118' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞内容:', /*自动检测*/
+        'zh_CN' : '点赞内容:', /*简体*/
+        'zh_TW' : '点赞内容:1', /*繁体*/
+        'en_GB' : '点赞内容:2', /*英语*/
+        'jp_JP' : '点赞内容:3'  /*日语*/
+        },
+
+        'class:localTool_4_119' : { /*要翻译的字符串*/
+        'auto_detected' : '设置自动点赞模式:', /*自动检测*/
+        'zh_CN' : '设置自动点赞模式:', /*简体*/
+        'zh_TW' : '设置自动点赞模式:1', /*繁体*/
+        'en_GB' : '设置自动点赞模式:2', /*英语*/
+        'jp_JP' : '设置自动点赞模式:3'  /*日语*/
+        },
+
+        'class:localTool_4_120' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞模式:', /*自动检测*/
+        'zh_CN' : '点赞模式:', /*简体*/
+        'zh_TW' : '点赞模式:1', /*繁体*/
+        'en_GB' : '点赞模式:2', /*英语*/
+        'jp_JP' : '点赞模式:3'  /*日语*/
+        },
+
+        'class:localTool_4_121' : { /*要翻译的字符串*/
+        'auto_detected' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)', /*自动检测*/
+        'zh_CN' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)', /*简体*/
+        'zh_TW' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)1', /*繁体*/
+        'en_GB' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)2', /*英语*/
+        'jp_JP' : '设置自动点赞时间区间(默认今天~之前所有的动态内容)3'  /*日语*/
+        },
+
+        'class:localTool_4_122' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择范围', /*自动检测*/
+        'zh_CN' : '请选择范围', /*简体*/
+        'zh_TW' : '请选择范围1', /*繁体*/
+        'en_GB' : '请选择范围2', /*英语*/
+        'jp_JP' : '请选择范围3'  /*日语*/
+        },
+
+        'class:localTool_4_123' : { /*要翻译的字符串*/
+        'auto_detected' : '点赞进度时间线', /*自动检测*/
+        'zh_CN' : '点赞进度时间线', /*简体*/
+        'zh_TW' : '点赞进度时间线1', /*繁体*/
+        'en_GB' : '点赞进度时间线2', /*英语*/
+        'jp_JP' : '点赞进度时间线3'  /*日语*/
+        },
+
+        'class:localTool_4_124' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_4_125' : { /*要翻译的字符串*/
+        'auto_detected' : '8月18日', /*自动检测*/
+        'zh_CN' : '8月18日', /*简体*/
+        'zh_TW' : '8月18日1', /*繁体*/
+        'en_GB' : '8月18日2', /*英语*/
+        'jp_JP' : '8月18日3'  /*日语*/
+        },
+
+        'class:localTool_4_126' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条', /*自动检测*/
+        'zh_CN' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条', /*简体*/
+        'zh_TW' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条1', /*繁体*/
+        'en_GB' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条2', /*英语*/
+        'jp_JP' : '已点赞状态x条，点赞发布艺术作品x条，点赞收藏艺术作品x条3'  /*日语*/
+        },
+
+        'class:localTool_4_127' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条', /*自动检测*/
+        'zh_CN' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条', /*简体*/
+        'zh_TW' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条1', /*繁体*/
+        'en_GB' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条2', /*英语*/
+        'jp_JP' : '已点赞评测x条，点赞发布创意工坊x条，点赞收藏创意工坊x条3'  /*日语*/
+        },
+
+        'class:localTool_4_128' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条', /*自动检测*/
+        'zh_CN' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条', /*简体*/
+        'zh_TW' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条1', /*繁体*/
+        'en_GB' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条2', /*英语*/
+        'jp_JP' : '已点赞购买状态x条，点赞发布指南x条，点赞收藏指南x条3'  /*日语*/
+        },
+
+        'class:localTool_4_129' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条', /*自动检测*/
+        'zh_CN' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条', /*简体*/
+        'zh_TW' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条1', /*繁体*/
+        'en_GB' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条2', /*英语*/
+        'jp_JP' : '已点赞组通知x条，点赞上次载图x条，点赞收藏载图x条3'  /*日语*/
+        },
+
+        'class:localTool_4_130' : { /*要翻译的字符串*/
+        'auto_detected' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条', /*自动检测*/
+        'zh_CN' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条', /*简体*/
+        'zh_TW' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条1', /*繁体*/
+        'en_GB' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条2', /*英语*/
+        'jp_JP' : '已点赞组活动x条，点赞上传视频x条，点赞收藏视频x条3'  /*日语*/
+        },
+
+        'class:localTool_4_131' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_4_132' : { /*要翻译的字符串*/
+        'auto_detected' : '8月16日', /*自动检测*/
+        'zh_CN' : '8月16日', /*简体*/
+        'zh_TW' : '8月16日1', /*繁体*/
+        'en_GB' : '8月16日2', /*英语*/
+        'jp_JP' : '8月16日3'  /*日语*/
+        },
+
+        'class:localTool_4_133' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_4_134' : { /*要翻译的字符串*/
+        'auto_detected' : '《登高》', /*自动检测*/
+        'zh_CN' : '《登高》', /*简体*/
+        'zh_TW' : '《登高》1', /*繁体*/
+        'en_GB' : '《登高》2', /*英语*/
+        'jp_JP' : '《登高》3'  /*日语*/
+        },
+
+        'class:localTool_4_135' : { /*要翻译的字符串*/
+        'auto_detected' : '《茅屋为秋风所破歌》', /*自动检测*/
+        'zh_CN' : '《茅屋为秋风所破歌》', /*简体*/
+        'zh_TW' : '《茅屋为秋风所破歌》1', /*繁体*/
+        'en_GB' : '《茅屋为秋风所破歌》2', /*英语*/
+        'jp_JP' : '《茅屋为秋风所破歌》3'  /*日语*/
+        },
+
+        'class:localTool_4_136' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_4_137' : { /*要翻译的字符串*/
+        'auto_detected' : '8月15日', /*自动检测*/
+        'zh_CN' : '8月15日', /*简体*/
+        'zh_TW' : '8月15日1', /*繁体*/
+        'en_GB' : '8月15日2', /*英语*/
+        'jp_JP' : '8月15日3'  /*日语*/
+        },
+
+        'class:localTool_4_138' : { /*要翻译的字符串*/
+        'auto_detected' : '中国人民抗日战争胜利日', /*自动检测*/
+        'zh_CN' : '中国人民抗日战争胜利日', /*简体*/
+        'zh_TW' : '中国人民抗日战争胜利日1', /*繁体*/
+        'en_GB' : '中国人民抗日战争胜利日2', /*英语*/
+        'jp_JP' : '中国人民抗日战争胜利日3'  /*日语*/
+        },
+
+        'class:localTool_4_139' : { /*要翻译的字符串*/
+        },
+
+        'class:localTool_4_140' : { /*要翻译的字符串*/
+        'auto_detected' : '铭记、感恩', /*自动检测*/
+        'zh_CN' : '铭记、感恩', /*简体*/
+        'zh_TW' : '铭记、感恩1', /*繁体*/
+        'en_GB' : '铭记、感恩2', /*英语*/
+        'jp_JP' : '铭记、感恩3'  /*日语*/
+        },
+
+        'class:localTool_4_141' : { /*要翻译的字符串*/
+        'auto_detected' : '所有为中华民族浴血奋战的英雄将士', /*自动检测*/
+        'zh_CN' : '所有为中华民族浴血奋战的英雄将士', /*简体*/
+        'zh_TW' : '所有为中华民族浴血奋战的英雄将士1', /*繁体*/
+        'en_GB' : '所有为中华民族浴血奋战的英雄将士2', /*英语*/
+        'jp_JP' : '所有为中华民族浴血奋战的英雄将士3'  /*日语*/
+        },
+
+        'class:localTool_4_142' : { /*要翻译的字符串*/
+        'auto_detected' : '永垂不朽', /*自动检测*/
+        'zh_CN' : '永垂不朽', /*简体*/
+        'zh_TW' : '永垂不朽1', /*繁体*/
+        'en_GB' : '永垂不朽2', /*英语*/
+        'jp_JP' : '永垂不朽3'  /*日语*/
+        },
+
+        'class:localTool_4_143' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_4_144' : { /*要翻译的字符串*/
+        'auto_detected' : '过去', /*自动检测*/
+        'zh_CN' : '过去', /*简体*/
+        'zh_TW' : '过去1', /*繁体*/
+        'en_GB' : '过去2', /*英语*/
+        'jp_JP' : '过去3'  /*日语*/
+        },
+
+        'class:localTool_4_145' : { /*要翻译的字符串*/
+        'auto_detected' : '喜加一助手', /*自动检测*/
+        'zh_CN' : '喜加一助手', /*简体*/
+        'zh_TW' : '喜加一助手1', /*繁体*/
+        'en_GB' : '喜加一助手2', /*英语*/
+        'jp_JP' : '喜加一助手3'  /*日语*/
+        },
+
+        'class:localTool_4_146' : { /*要翻译的字符串*/
+        'auto_detected' : '总开关', /*自动检测*/
+        'zh_CN' : '总开关', /*简体*/
+        'zh_TW' : '总开关1', /*繁体*/
+        'en_GB' : '总开关2', /*英语*/
+        'jp_JP' : '总开关3'  /*日语*/
+        },
+
+        'class:localTool_4_147' : { /*要翻译的字符串*/
+        'auto_detected' : '设置:', /*自动检测*/
+        'zh_CN' : '设置:', /*简体*/
+        'zh_TW' : '设置:1', /*繁体*/
+        'en_GB' : '设置:2', /*英语*/
+        'jp_JP' : '设置:3'  /*日语*/
+        },
+
+        'class:localTool_4_148' : { /*要翻译的字符串*/
+        'auto_detected' : '设置喜加一数据来源', /*自动检测*/
+        'zh_CN' : '设置喜加一数据来源', /*简体*/
+        'zh_TW' : '设置喜加一数据来源1', /*繁体*/
+        'en_GB' : '设置喜加一数据来源2', /*英语*/
+        'jp_JP' : '设置喜加一数据来源3'  /*日语*/
+        },
+
+        'class:localTool_4_149' : { /*要翻译的字符串*/
+        'auto_detected' : '设置:', /*自动检测*/
+        'zh_CN' : '设置:', /*简体*/
+        'zh_TW' : '设置:1', /*繁体*/
+        'en_GB' : '设置:2', /*英语*/
+        'jp_JP' : '设置:3'  /*日语*/
+        },
+
+        'class:localTool_4_150' : { /*要翻译的字符串*/
+        'auto_detected' : '功能设置', /*自动检测*/
+        'zh_CN' : '功能设置', /*简体*/
+        'zh_TW' : '功能设置1', /*繁体*/
+        'en_GB' : '功能设置2', /*英语*/
+        'jp_JP' : '功能设置3'  /*日语*/
+        },
+
+        'class:localTool_4_151' : { /*要翻译的字符串*/
+        'auto_detected' : 'Debug模式', /*自动检测*/
+        'zh_CN' : 'Debug模式', /*简体*/
+        'zh_TW' : 'Debug模式1', /*繁体*/
+        'en_GB' : 'Debug模式2', /*英语*/
+        'jp_JP' : 'Debug模式3'  /*日语*/
+        },
+
+        'class:localTool_4_152' : { /*要翻译的字符串*/
+        'auto_detected' : '弹出层', /*自动检测*/
+        'zh_CN' : '弹出层', /*简体*/
+        'zh_TW' : '弹出层1', /*繁体*/
+        'en_GB' : '弹出层2', /*英语*/
+        'jp_JP' : '弹出层3'  /*日语*/
+        },
+
+        'class:localTool_4_153' : { /*要翻译的字符串*/
+        'auto_detected' : '滑块', /*自动检测*/
+        'zh_CN' : '滑块', /*简体*/
+        'zh_TW' : '滑块1', /*繁体*/
+        'en_GB' : '滑块2', /*英语*/
+        'jp_JP' : '滑块3'  /*日语*/
+        },
+
+        'class:localTool_4_154' : { /*要翻译的字符串*/
+        'auto_detected' : '导入导出重置当前设置', /*自动检测*/
+        'zh_CN' : '导入导出重置当前设置', /*简体*/
+        'zh_TW' : '导入导出重置当前设置1', /*繁体*/
+        'en_GB' : '导入导出重置当前设置2', /*英语*/
+        'jp_JP' : '导入导出重置当前设置3'  /*日语*/
+        },
+
+        'class:localTool_4_155' : { /*要翻译的字符串*/
+        'auto_detected' : '弹出层', /*自动检测*/
+        'zh_CN' : '弹出层', /*简体*/
+        'zh_TW' : '弹出层1', /*繁体*/
+        'en_GB' : '弹出层2', /*英语*/
+        'jp_JP' : '弹出层3'  /*日语*/
+        },
+
+        'class:localTool_4_156' : { /*要翻译的字符串*/
+        'auto_detected' : '', /*自动检测*/
+        'zh_CN' : '', /*简体*/
+        'zh_TW' : '1', /*繁体*/
+        'en_GB' : '2', /*英语*/
+        'jp_JP' : '3'  /*日语*/
+        },
+
+        'class:localTool_4_157' : { /*要翻译的字符串*/
+        'auto_detected' : '点击上传，或将文件拖拽到此处', /*自动检测*/
+        'zh_CN' : '点击上传，或将文件拖拽到此处', /*简体*/
+        'zh_TW' : '点击上传，或将文件拖拽到此处1', /*繁体*/
+        'en_GB' : '点击上传，或将文件拖拽到此处2', /*英语*/
+        'jp_JP' : '点击上传，或将文件拖拽到此处3'  /*日语*/
+        },
+
+        'class:localTool_4_158' : { /*要翻译的字符串*/
+        'auto_detected' : '界面设置', /*自动检测*/
+        'zh_CN' : '界面设置', /*简体*/
+        'zh_TW' : '界面设置1', /*繁体*/
+        'en_GB' : '界面设置2', /*英语*/
+        'jp_JP' : '界面设置3'  /*日语*/
+        },
+
+        'class:localTool_4_159' : { /*要翻译的字符串*/
+        'auto_detected' : '语言配置', /*自动检测*/
+        'zh_CN' : '语言配置', /*简体*/
+        'zh_TW' : '语言配置1', /*繁体*/
+        'en_GB' : '语言配置2', /*英语*/
+        'jp_JP' : '语言配置3'  /*日语*/
+        },
+
+        'class:localTool_4_160' : { /*要翻译的字符串*/
+        'auto_detected' : '自动检测(简体中文)', /*自动检测*/
+        'zh_CN' : '自动检测(简体中文)', /*简体*/
+        'zh_TW' : '自动检测(简体中文)1', /*繁体*/
+        'en_GB' : '自动检测(简体中文)2', /*英语*/
+        'jp_JP' : '自动检测(简体中文)3'  /*日语*/
+        },
+
+        'class:localTool_4_161' : { /*要翻译的字符串*/
+        'auto_detected' : '简体中文', /*自动检测*/
+        'zh_CN' : '简体中文', /*简体*/
+        'zh_TW' : '简体中文1', /*繁体*/
+        'en_GB' : '简体中文2', /*英语*/
+        'jp_JP' : '简体中文3'  /*日语*/
+        },
+
+        'class:localTool_4_162' : { /*要翻译的字符串*/
+        'auto_detected' : '繁体中文', /*自动检测*/
+        'zh_CN' : '繁体中文', /*简体*/
+        'zh_TW' : '繁体中文1', /*繁体*/
+        'en_GB' : '繁体中文2', /*英语*/
+        'jp_JP' : '繁体中文3'  /*日语*/
+        },
+
+        'class:localTool_4_163' : { /*要翻译的字符串*/
+        'auto_detected' : 'English', /*自动检测*/
+        'zh_CN' : 'English', /*简体*/
+        'zh_TW' : 'English1', /*繁体*/
+        'en_GB' : 'English2', /*英语*/
+        'jp_JP' : 'English3'  /*日语*/
+        },
+
+        'class:localTool_4_164' : { /*要翻译的字符串*/
+        'auto_detected' : '主题切换', /*自动检测*/
+        'zh_CN' : '主题切换', /*简体*/
+        'zh_TW' : '主题切换1', /*繁体*/
+        'en_GB' : '主题切换2', /*英语*/
+        'jp_JP' : '主题切换3'  /*日语*/
+        },
+
+        'class:localTool_4_165' : { /*要翻译的字符串*/
+        'auto_detected' : '请选择一个主题，然后点击应用', /*自动检测*/
+        'zh_CN' : '请选择一个主题，然后点击应用', /*简体*/
+        'zh_TW' : '请选择一个主题，然后点击应用1', /*繁体*/
+        'en_GB' : '请选择一个主题，然后点击应用2', /*英语*/
+        'jp_JP' : '请选择一个主题，然后点击应用3'  /*日语*/
+        },
+
+        'class:localTool_4_166' : { /*要翻译的字符串*/
+        'auto_detected' : '应用主题', /*自动检测*/
+        'zh_CN' : '应用主题', /*简体*/
+        'zh_TW' : '应用主题1', /*繁体*/
+        'en_GB' : '应用主题2', /*英语*/
+        'jp_JP' : '应用主题3'  /*日语*/
+        },
+
+        'class:localTool_4_167' : { /*要翻译的字符串*/
+        'auto_detected' : 'UI设置', /*自动检测*/
+        'zh_CN' : 'UI设置', /*简体*/
+        'zh_TW' : 'UI设置1', /*繁体*/
+        'en_GB' : 'UI设置2', /*英语*/
+        'jp_JP' : 'UI设置3'  /*日语*/
+        },
+
+        'class:localTool_4_168' : { /*要翻译的字符串*/
+        'auto_detected' : '预览:', /*自动检测*/
+        'zh_CN' : '预览:', /*简体*/
+        'zh_TW' : '预览:1', /*繁体*/
+        'en_GB' : '预览:2', /*英语*/
+        'jp_JP' : '预览:3'  /*日语*/
+        },
+
+        'class:localTool_4_169' : { /*要翻译的字符串*/
+        'auto_detected' : '主要字体颜色:', /*自动检测*/
+        'zh_CN' : '主要字体颜色:', /*简体*/
+        'zh_TW' : '主要字体颜色:1', /*繁体*/
+        'en_GB' : '主要字体颜色:2', /*英语*/
+        'jp_JP' : '主要字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_4_170' : { /*要翻译的字符串*/
+        'auto_detected' : '主要背景颜色:', /*自动检测*/
+        'zh_CN' : '主要背景颜色:', /*简体*/
+        'zh_TW' : '主要背景颜色:1', /*繁体*/
+        'en_GB' : '主要背景颜色:2', /*英语*/
+        'jp_JP' : '主要背景颜色:3'  /*日语*/
+        },
+
+        'class:localTool_4_171' : { /*要翻译的字符串*/
+        'auto_detected' : '留言成功字体颜色:', /*自动检测*/
+        'zh_CN' : '留言成功字体颜色:', /*简体*/
+        'zh_TW' : '留言成功字体颜色:1', /*繁体*/
+        'en_GB' : '留言成功字体颜色:2', /*英语*/
+        'jp_JP' : '留言成功字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_4_172' : { /*要翻译的字符串*/
+        'auto_detected' : '留言失败字体颜色:', /*自动检测*/
+        'zh_CN' : '留言失败字体颜色:', /*简体*/
+        'zh_TW' : '留言失败字体颜色:1', /*繁体*/
+        'en_GB' : '留言失败字体颜色:2', /*英语*/
+        'jp_JP' : '留言失败字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_4_173' : { /*要翻译的字符串*/
+        'auto_detected' : '留言发生错误字体颜色:', /*自动检测*/
+        'zh_CN' : '留言发生错误字体颜色:', /*简体*/
+        'zh_TW' : '留言发生错误字体颜色:1', /*繁体*/
+        'en_GB' : '留言发生错误字体颜色:2', /*英语*/
+        'jp_JP' : '留言发生错误字体颜色:3'  /*日语*/
+        },
+
+        'class:localTool_4_174' : { /*要翻译的字符串*/
+        'auto_detected' : '保存为主题', /*自动检测*/
+        'zh_CN' : '保存为主题', /*简体*/
+        'zh_TW' : '保存为主题1', /*繁体*/
+        'en_GB' : '保存为主题2', /*英语*/
+        'jp_JP' : '保存为主题3'  /*日语*/
+        },
+
+        'class:localTool_4_175' : { /*要翻译的字符串*/
+        'auto_detected' : '关于SteamAssistant(Steam小助手)', /*自动检测*/
+        'zh_CN' : '关于SteamAssistant(Steam小助手)', /*简体*/
+        'zh_TW' : '关于SteamAssistant(Steam小助手)1', /*繁体*/
+        'en_GB' : '关于SteamAssistant(Steam小助手)2', /*英语*/
+        'jp_JP' : '关于SteamAssistant(Steam小助手)3'  /*日语*/
+        },
+
+        'class:localTool_4_176' : { /*要翻译的字符串*/
+        'auto_detected' : '程序信息:', /*自动检测*/
+        'zh_CN' : '程序信息:', /*简体*/
+        'zh_TW' : '程序信息:1', /*繁体*/
+        'en_GB' : '程序信息:2', /*英语*/
+        'jp_JP' : '程序信息:3'  /*日语*/
+        },
+
+        'class:localTool_4_177' : { /*要翻译的字符串*/
+        'auto_detected' : '当前版本:v0.2.3.0', /*自动检测*/
+        'zh_CN' : '当前版本:v0.2.3.0', /*简体*/
+        'zh_TW' : '当前版本:v0.2.3.01', /*繁体*/
+        'en_GB' : '当前版本:v0.2.3.02', /*英语*/
+        'jp_JP' : '当前版本:v0.2.3.03'  /*日语*/
+        },
+
+        'class:localTool_4_178' : { /*要翻译的字符串*/
+        'auto_detected' : '主程序框架更新时间:2020年4月19日', /*自动检测*/
+        'zh_CN' : '主程序框架更新时间:2020年4月19日', /*简体*/
+        'zh_TW' : '主程序框架更新时间:2020年4月19日1', /*繁体*/
+        'en_GB' : '主程序框架更新时间:2020年4月19日2', /*英语*/
+        'jp_JP' : '主程序框架更新时间:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_179' : { /*要翻译的字符串*/
+        'auto_detected' : 'common模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'common模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'common模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'common模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'common模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_180' : { /*要翻译的字符串*/
+        'auto_detected' : 'databaseConf模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'databaseConf模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'databaseConf模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'databaseConf模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'databaseConf模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_181' : { /*要翻译的字符串*/
+        'auto_detected' : 'externalApis模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'externalApis模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'externalApis模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'externalApis模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'externalApis模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_182' : { /*要翻译的字符串*/
+        'auto_detected' : 'steamApis模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'steamApis模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'steamApis模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'steamApis模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'steamApis模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_183' : { /*要翻译的字符串*/
+        'auto_detected' : 'translateApis模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'translateApis模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'translateApis模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'translateApis模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'translateApis模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_184' : { /*要翻译的字符串*/
+        'auto_detected' : 'Utility模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'Utility模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'Utility模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'Utility模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'Utility模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_185' : { /*要翻译的字符串*/
+        'auto_detected' : 'UI模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'UI模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'UI模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'UI模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'UI模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_186' : { /*要翻译的字符串*/
+        'auto_detected' : 'Event模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'Event模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'Event模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'Event模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'Event模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_187' : { /*要翻译的字符串*/
+        'auto_detected' : 'CityList模块:2020年4月19日', /*自动检测*/
+        'zh_CN' : 'CityList模块:2020年4月19日', /*简体*/
+        'zh_TW' : 'CityList模块:2020年4月19日1', /*繁体*/
+        'en_GB' : 'CityList模块:2020年4月19日2', /*英语*/
+        'jp_JP' : 'CityList模块:2020年4月19日3'  /*日语*/
+        },
+
+        'class:localTool_4_188' : { /*要翻译的字符串*/
+        'auto_detected' : '联系作者:', /*自动检测*/
+        'zh_CN' : '联系作者:', /*简体*/
+        'zh_TW' : '联系作者:1', /*繁体*/
+        'en_GB' : '联系作者:2', /*英语*/
+        'jp_JP' : '联系作者:3'  /*日语*/
+        },
+
+        'class:localTool_4_189' : { /*要翻译的字符串*/
+        'auto_detected' : '反馈错误', /*自动检测*/
+        'zh_CN' : '反馈错误', /*简体*/
+        'zh_TW' : '反馈错误1', /*繁体*/
+        'en_GB' : '反馈错误2', /*英语*/
+        'jp_JP' : '反馈错误3'  /*日语*/
+        },
+
+
+}
+};
+
+var languagesList_mainUI_template = {
+'defaultLanguage' : 'zh_CN', /* (optional) although must be defined if you don't want en_GB */
+'showFlag': true,            /* (optional) show/hide the flag ��ʾ/�������� */
+'showCountry': true,         /* (optional) show/hide the country name ��ʾ/���ع������� */
+'showLanguage': true,        /* (optional) show/hide the country language ��ʾ/���ع������� */
+'languages' : {              /* (optional) define **ADDITIONAL** custom languages ����**�����**�Զ������� */
+    'italian' : {
+        'country': 'Italy',
+        'language' : 'Italian',
+        'countryTranslated': 'Italia',
+        'languageTranslated': 'Italiano',
+        'flag' : {
+            'url' : 'http://upload.wikimedia.org/wikipedia/commons/f/fb/Farm-Fresh_italy.png', /* url of flag image ��־ͼ��url */
+            'class' : 'italian-flag' /* (optional) class to assign to the flag (e.g., for css styling) �����������־(���磬����css��ʽ) */
+        }
+    },
+    'barletta-dialect' : {
+        'country': 'Barletta',
+        'language' : 'Barlettano',
+        'countryTranslated': 'Barlett',
+        'languageTranslated': "Barlett'n",
+        'flag': {
+            'url' : 'http://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_Barletta.png'
+        }
+    }
+},
+/* 
+ * Translate your strings below ����������ַ���
+ */
+'strings' : {
+
+}
+};
+
+var languagesList_winBaseFrame = {
+'defaultLanguage' : 'zh_CN', /* (optional) although must be defined if you don't want en_GB */
+'showFlag': true,            /* (optional) show/hide the flag ��ʾ/�������� */
+'showCountry': true,         /* (optional) show/hide the country name ��ʾ/���ع������� */
+'showLanguage': true,        /* (optional) show/hide the country language ��ʾ/���ع������� */
+'languages' : {              /* (optional) define **ADDITIONAL** custom languages ����**�����**�Զ������� */
+    'italian' : {
+        'country': 'Italy',
+        'language' : 'Italian',
+        'countryTranslated': 'Italia',
+        'languageTranslated': 'Italiano',
+        'flag' : {
+            'url' : 'http://upload.wikimedia.org/wikipedia/commons/f/fb/Farm-Fresh_italy.png', /* url of flag image ��־ͼ��url */
+            'class' : 'italian-flag' /* (optional) class to assign to the flag (e.g., for css styling) �����������־(���磬����css��ʽ) */
+        }
+    },
+    'barletta-dialect' : {
+        'country': 'Barletta',
+        'language' : 'Barlettano',
+        'countryTranslated': 'Barlett',
+        'languageTranslated': "Barlett'n",
+        'flag': {
+            'url' : 'http://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_Barletta.png'
+        }
+    }
+},
+/* 
+ * Translate your strings below ����������ַ���
+ */
+'strings' : {
+
+}
+};
 
 /**
  * uiStyle.js
@@ -5194,658 +10562,100 @@ shortcut = {
 }
 
 /**
- * common.js
+ * websocket.js
  */
 
-//-------------------------------------------------------------------------------------------------------------
-
-/**
- * @summary 使线程进入休眠模式
- * @async
- * @param {UINT} ms 毫秒数
- * @example
- * await sleep(1000); //使当前线程等待1s后继续执行
- */
-function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-}
-/**
- * @summary 判断页面是移动端还是pc端
- * @return {Boolean} 如果是移动端返回true, 如果是pc端返回false
- */
-function opinion() {
-        if ((navigator.userAgent.match(
-                        /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
-                ))) {
-                return true; //移动端
-        } else {
-                return false; //pc端
-        }
-}
-/**
- * @summary 判断是否是非负整数
- * @param {int} val 待判断的整数
- * @return {Boolean} 是则返回true，否则返回false
- */
-function isIntNum(val){ //
-    var regPos = /^\d+$/; // 非负整数
-    if(regPos.test(val)){
-        return true;
-    }else{
-        return false;
-    }
-}
-/**
- * @summary 解析JSON字符串
- * @param {String} jsonText JSON字符串
- * @return {Object} JSON对象
- */
-function JSON_processing_parsing_JsObj(jsonText){ //
-        var JSON_jsObj;
-        if (jsonText == "")
-                return;
-        
-        //console.log("待处理数据:");
-        //console.log(jsonText);
-        JSON_jsObj = JSON.parse(jsonText);
-        console.log("解析后数据:");
-        console.log(JSON_jsObj);
-        return JSON_jsObj;
-}
-/**
- * @summary 添加新的CSS样式
- * @param {String} id 新的<style>标签id, 可用于修改和删除等
- * @param {String} newStyle 待添加的CSS样式字符串
- */
-function addNewStyle(id, newStyle) {
-        var styleElement = document.getElementById(id);
-
-        if (!styleElement) {
-                styleElement = document.createElement('style');
-                styleElement.type = 'text/css';
-                styleElement.id = id;
-                document.getElementsByTagName('head')[0].appendChild(styleElement);
-        }
-        styleElement.appendChild(document.createTextNode(newStyle));
-}
-/**
- * @summary 添加新的JS脚本
- * @param {String} id 新的<script>标签id, 可用于修改和删除等
- * @param {String} newScript 待添加的JS脚本字符串
- */
-function addNewScript(id, newScript) {
-        var styleElement = document.getElementById(id);
-
-        if (!styleElement) {
-                styleElement = document.createElement('script');
-                styleElement.type = 'text/javascript';
-                styleElement.id = id;
-                document.getElementsByTagName('head')[0].appendChild(styleElement);
-        }
-        styleElement.appendChild(document.createTextNode(newScript));
-}
-/**
- * @summary 添加新的JS脚本(拓展)
- * @param {String} id 新的<script>标签id, 可用于修改和删除等
- * @param {String} newScript 待添加的JS脚本字符串
- * @param {String} mode 添加模式(一般来说是<script>标签的格外标识符, 目前有 "async" 和 "defer" )
- */
-function addNewScriptEx(id, newScript,mode) {
-        var styleElement = document.getElementById(id);
-        
-        if (!styleElement) {
-                styleElement = document.createElement('script');
-                styleElement.type = 'text/javascript';
-                styleElement.id = id;
-                
-                if(mode == "async"){
-                        styleElement.setAttribute('async');
-                }else if(mode == "defer"){
-                        styleElement.setAttribute('defer');
-                }
-                document.getElementsByTagName('head')[0].appendChild(styleElement);
-        }
-        styleElement.appendChild(document.createTextNode(newScript));
-}
-/**
- * @summary 添加新的JS模块(实验)
- * @param {String} id 新的<script>标签id, 可用于修改和删除等
- * @param {String} newScript
- */
-function addNewModule(id, newScript){
-        var styleElement = document.getElementById(id);
-        
-        if (!styleElement) {
-                styleElement = document.createElement('script');
-                styleElement.type = 'module';
-                styleElement.id = id;
-                document.getElementsByTagName('head')[0].appendChild(styleElement);
-        }
-        styleElement.appendChild(document.createTextNode(newScript));
-}
-/**
- * 动态加载一个js/css文件, 位于<head>标签最后面新的<script>标签里, 通过src引入指定的url
- * @summary 动态加载一个js/css文件
- * @param {String} filePath 文件路径
- * @param {String} filetype 文件类型
- */
-function loadjscssFile(filePath, filetype) {
-        if (filetype == "js") {
-                var fileref = document.createElement('script')
-                fileref.setAttribute("type", "text/javascript")
-                fileref.setAttribute("src", filePath)
-        } else if (filetype == "css") {
-                var fileref = document.createElement("link")
-                fileref.setAttribute("rel", "stylesheet")
-                fileref.setAttribute("type", "text/css")
-                fileref.setAttribute("href", filePath)
-        }
-
-        if (typeof fileref != "undefined") {
-                document.getElementsByTagName("head")[0].appendChild(fileref); //向元素添加新的子节点，作为最后一个子节点
-        }
-}
-/**
- * 动态加载一个js/css文件(此方法可以添加id和media类型), 位于<head>标签最后面新的<script>标签里, 通过src引入指定的url
- * @summary 动态加载一个js/css文件(拓展)
- * @param {String} filePath  文件路径
- * @param {String} id        节点id
- * @param {String} filetype  文件类型
- */
-function loadjscssFile_media(filePath,id, filetype) { //动态加载一个js/css文件
-        if (filetype == "js") {
-                var fileref = document.createElement('script')
-                fileref.setAttribute("type", "text/javascript")
-                fileref.setAttribute("src", filePath)
-        } else if (filetype == "css") {
-                var fileref = document.createElement("link")
-                if(id != "" || id != null || id != undefined){
-                        fileref.setAttribute("id", id)
-                }
-                fileref.setAttribute("rel", "stylesheet")
-                fileref.setAttribute("type", "text/css")
-                fileref.setAttribute("href", filePath)
-                fileref.setAttribute("media", "all")
-        }
-
-        if (typeof fileref != "undefined") {
-                document.getElementsByTagName("head")[0].appendChild(fileref); //向元素添加新的子节点，作为最后一个子节点
-        }
-}
-/**
- * 获取URL对应的资源数据(伪同步, 会阻塞当前线程, 配合 async 和 await 使用)
- * @summary 获取URL对应的资源数据
- * @async
- * @param {String} resourceURL 资源url
- * @param {Boolean} retDataMode 返回的数据方式
- * @return {String} 返回获取到的数据
- */
-async function getResourceByURL(resourceURL,retDataMode){
-        var retData = null;
-        var waitStatus = true;
-        
-        GM_xmlhttpRequest({
-                method: 'GET',
-                url: resourceURL,
-                headers: {
-                        'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
-                        //'Accept': 'application/atom+xml,application/xml,text/xml',
-                        //"Content-Type": "application/x-www-form-urlencoded",
-                },
-                onload: function(response) {
-                        if (response.status === 200) {
-                                console.log('getResourceByURL()请求成功!');
-                                
-                                if(retDataMode == true)
-                                        retData = response.responseText;
-                                else
-                                        retData = response;
-                                
-                                waitStatus = false; //不等待
-                        } else {
-                                console.log('getResourceByURL()请求失败! 状态码:' + response.status);
-                                //console.log(response);
-                                //console.log(response.responseText);
-                        }
-                },
-                onerror: function(err) {
-                        console.log('getResourceByURL()请求错误!', err);
-                        //waitStatus = false; //不等待
-                },
-                onabort: function(err) {
-                        console.log('getResourceByURL()请求被中止!', err);
-                        //waitStatus = false; //不等待
-                },
-                ontimeout: function(err) {
-                        console.log('getResourceByURL()请求超时!', err);
-                        //waitStatus = false; //不等待
-                }
-        });
-        
-        while (waitStatus){ //强制等待异步函数执行完毕后再执行
-                console.log("wait...");
-                await sleep(100); //延迟0.1秒
-        }
-        //console.log(retData);
-        return retData;
-}
-
-/**
- * @async
- * @param {String} resourceURL 资源url
- */
-async function getResourceByURL_original(resourceURL) {
-        var retData;
-        var waitStatus = true;
-        
-        jQuery.ajax({
-                type: "Get", //请求方式
-                //async: false,
-                //contentType: "application/json;charset=UTF-8",//请求的媒体类型
-                url: resourceURL, //请求地址
-                // headers: {
-                //      'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
-                //      //'Accept': 'application/atom+xml,application/xml,text/xml',
-                //      //"Content-Type": "application/x-www-form-urlencoded",
-                // },
-                //data: JSON.stringify(list),                           //数据，json字符串
-                success: function(result) { //请求成功
-                        retData = result;
-                        console.log("请求成功了!",retData);
-                        //let nIstart = Data.indexOf('StartTradeOffer(');
-                        //let nIend = Data.indexOf(');', nIstart);
-                        //let AccountID = Data.slice(nIstart + 'StartTradeOffer('.length + 1, nIend - 1);
-                        //nIstart = Data.indexOf('"steamid":"');
-                        //nIend = Data.indexOf('",', nIstart);
-                        //let profileID = Data.slice(nIstart + '"steamid":"'.length, nIend);
-                        //console.log("getgetProfilesID() i:", i, "AccountID:", AccountID, "profileID:", profileID);
-
-                        // for (let i = 0; i < waitStatus1.length; i++) {
-                        //      if (waitStatus1[i][0] == profileID) //是否是同一个用户
-                        //      {
-                        //              if (waitStatus1[i][1] == false) //这个用户是否已经获取过了(测试多个相同用户信息的获取)
-                        //                      continue;
-                        //              waitStatus1[i][1] = false;
-                        //              //returnData1.push(AccountID); //存储数据
-                        //              returnData1[i] = AccountID; //存储数据到对应的位置(受网络影响,响应顺序可能会不同)
-                        //              //console.log("getgetProfilesID() 成功存储数据 AccountID:",AccountID);
-                        //              return;
-                        //              //console.log("waitStatus1[i][1] break",i,waitStatus1[i][1]);
-                        //      }
-                        // }
-                        // console.log("getgetProfilesID 数据错误!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                        // console.log("waitStatus1:", waitStatus1, 'returnData1:', returnData1);
-                        // console.log('profileID:', profileID, 'AccountID:', AccountID);
-                        return;
-                        //console.log("DBG!",nIstart,nIend);
-                },
-                error: function(e) { //请求失败，包含具体的错误信息
-                        console.log("请求失败了!", e.status);
-                        console.log("请求失败了!", e.responseText);
-                }
-        });
-        //console.log("getgetProfilesID() i:",i,"waitStatus1:",waitStatus1);
-        while (waitStatus){ //强制等待异步函数执行完毕后再执行
-                console.log("wait...");
-                await sleep(50); //延迟0.1秒
-        }
-        //console.log("waitStatus1[i][1]:",waitStatus1[i][1],"returnData1[i]:",returnData1[i]);
-        return retData;
-
-        // jQuery.get(URL, {
-        //      // "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        //      // // "Content-Type": "application/x-www-form-urlencoded", //非常重要
-        //      // "Accept-Encoding": "gzip, deflate, br",
-        //      // "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
-        //      // "Cache-Control": "max-age=0",
-        //      // "Connection": "keep-alive",
-        //      // "Cookie": "sessionid=6f84a0f48cddb56ad66394b6; steamCountry=HK%7Cda7daa2682f7a361e594f8dad55fe9df; timezoneOffset=28800,0",
-        //      // "Host": "steamcommunity.com",
-        //      // "Upgrade-Insecure-Requests": "1",
-        //      'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36',
-        // }, function(response) {
-        //      if (response.status === 200) {
-        //              console.log("获取失败!",response.responseText);
-        //      } else {
-        //              console.log("获取成功!",response.responseText);
-        //      }
-        // }).fail(function() {
-        //      console.log("无法获取!");
-        // }).always(function() {
-        //      //console.log("当前处理了 " + (i + 1) + "个, 总计 " + total + " 个好友.");
-        // });
-}
-//-------------------------------------------------------------------------------------------------------------
-function WriteLog() {
-        // eslint-disable-next-line no-console
-        console.log('%c[SteamDB]%c', 'color:#2196F3; font-weight:bold;', '', ...arguments);
-}
-//console.log("%c百度2020校园招聘简历提交：http://dwz.cn/XpoFdepe", "color:red"))
-//color:#00a1d6
-
-//-------------------------------------------------------------------------------------------------------------
-
-class Arguments {
-        static getArgumentsAllValue(argumentsObj) { //解析函数的参数并进行合并为字符串
-                let str = "";
-                for (let i = 0; i < argumentsObj.length; i++) {
-                        str += argumentsObj[i] + " ";
-                }
-                return str;
-        }
-        static getArgumentsAllValue_noFunction(argumentsObj) { //解析函数的参数并进行合并为字符串
-                let str = "";
-                for (let i = 0; i < argumentsObj.length; i++) {
-                        if (typeof argumentsObj[i] == 'function') { //如果是函数则跳过
-                                continue;
-                        }
-                        str += argumentsObj[i] + " ";
-                }
-                return str;
-        }
-        static getArgumentsAllValueByDebug(argumentsObj) { //解析函数的参数并进行合并为字符串 //返回数组[track,str]
-                let str = "";
-                let track = "";
-                console.log(arguments);
-                //console.log(arguments.callee.name);
-                for (let i = 0; i < argumentsObj.length; i++) {
-                        if (typeof argumentsObj[i] == 'number') { //如果是数字则转为字符串
-                                //argumentsObj[i] = argumentsObj[i].toString();
-                                str += argumentsObj[i] + " ";
-                                continue;
-                        }
-                        let s = argumentsObj[i].match(/\s*[A-Za-z\$\_][A-Za-z\$\_\.0-9]+\s*\(/);
-                        if (s != null) {
-                                if (null != s[0]) { //提取出' 函数名 ('这样的字符串
-                                        track = s[0].slice(0, -1); //去掉最后的(，得到函数名
-                                        let s1 = argumentsObj[i].replace(/\s*[A-Za-z\$\_][A-Za-z\$\_\.0-9]+\s*\(/, ""); //从字符串中删除函数名，然后剩下的部分
-                                        str += s1.slice(1, s1.length) + " "; //去掉最前面的)，得到提示信息
-                                        continue;
-                                }
-                        }
-                        str += argumentsObj[i] + " ";
-                }
-                return [track, str];
-        }
-}
-
-//-------------------------------------------------------------------------------------------------------------
-
-/**
- * @class
- * @classdesc 用于输出和记录调试信息的类
- * 
- */
-class Log {
-         /**
-          * @constructs 构造方法(模块名称,调试状态) //默认开启调试
-          * @param {String} moduleName 模块名称 (当输出调试信息时会在最前面显示出来)
-          * @param {Boolean} debugStatus 调试状态
-          */
-        constructor(moduleName, debugStatus = true) {
-                this.m_moduleNamel = moduleName; //设置模块名称
-                this.arrlogContent = []; //日志内容(数组)
-                g_conf[0].is_Debug = debugStatus; //设置调试状态
-        }
-        /**
-         *  @param {Boolean} debugStatus 调试状态
-         */
-        setDebugStatus(debugStatus = true) {
-                g_conf[0].is_Debug = debugStatus;
-        }
-        /**
-         * 清除控制台输出
-         */
-        clear() {
-                console.clear();
-        }
-        /**
-         * @param {String} mode 释放资源模式
-         */
-        release(mode){
-                this.arrlogContent = [];
-        }
-        /**
-         * 用于对此类进行测试
-         * @param {Object} strTestInfo 需要进行测试输出的字符串
-         */
-        test(strTestInfo) { //用于对Log类进行输出测试
-                if (strTestInfo == undefined)
-                        strTestInfo = "默认测试内容";
-                log.out("模块名称:", this.m_moduleNamel);
-                log.out("是否开启调试:", g_conf[0].is_Debug);
-                log.debug(strTestInfo);
-                log.info(strTestInfo);
-                log.warn(strTestInfo);
-                log.error(strTestInfo);
-                log.fatal(strTestInfo);
-        }
-        /**
-         * @param {Object} strLog 需要直接输出的字符串
-         */
-        out(strLog) {
-                console.log('%c[' + this.m_moduleNamel + ' out]%c' + Arguments.getArgumentsAllValue(arguments),
-                        'color:#000000; font-weight:bold;', 'color:#000000;');
-        }
-        /**
-         * 输出Debug等级的日志信息
-         * @param {String} $funcName 需要输出的函数名称
-         * @param {String} $strDebugInfo 需要输出的字符串
-         */
-        //伪重载实现，两种版本
-        //log.debug("getArgumentsAllValueByDebug() 111");
-        //log.debug(getArgumentsAllValueByDebug,"111");
-        debug($funcName, $strDebugInfo) {
-                //var This = this;
-                //debugger;
-                let fontStyle =
-                        'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
-                let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
-                let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #1475b2;color: #fff;' + fontStyle;
-                let arr;
-                if (typeof $funcName == 'function') { //
-                        if (g_conf[0].is_Debug) {
-                                //debugger;
-                                console.log($funcName);
-                                $funcName = '.' + $funcName.name;
-
-                                arr = Arguments.getArgumentsAllValue_noFunction(arguments);
-                                console.log('%c[' + this.m_moduleNamel + ' Debug-B]%c' + $funcName + '%c' + arr,
-                                        'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
-                        }
-                } else {
-                        if (g_conf[0].is_Debug) {
-                                arr = Arguments.getArgumentsAllValueByDebug(arguments);
-                                console.log('%c[' + this.m_moduleNamel + ' Debug-A]%c' + arr[0] + '%c' + arr[1],
-                                        'color:#2196F3; font-weight:bold;', titleStyle, contentStyle);
-                        }
-                }
-        }
-        /**
-         * 输出Info等级的日志信息
-         * @param {String} $funcName 需要输出的函数名称
-         * @param {String} $strDebugInfo 需要输出的字符串
-         */
-        info($strLogInfo) {
-                if (g_conf[0].is_Debug) {
-                        let fontStyle =
-                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
-                        let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
-                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #42c02e;color: #fff;' + fontStyle;
-                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
-
-                        console.log('%c[' + this.m_moduleNamel + ' Info]%c' + arr[0] + '%c' + arr[1], 'color:#00edc3; font-weight:bold;',
-                                titleStyle, contentStyle);
-                }
-        }
-        /**
-         * 输出Warn等级的日志信息
-         * @param {String} $funcName 需要输出的函数名称
-         * @param {String} $strDebugInfo 需要输出的字符串
-         */
-        warn($strWarnInfo) {
-                if (g_conf[0].is_Debug) {
-                        let fontStyle =
-                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
-                        let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
-                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #ff7800;color: #fff;' + fontStyle;
-                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
-
-                        console.log('%c[' + this.m_moduleNamel + ' Warn]%c' + arr[0] + '%c' + arr[1], 'color:#ffa800; font-weight:bold;',
-                                titleStyle, contentStyle);
-                }
-        }
-        /**
-         * 输出Error等级的日志信息
-         * @param {String} $funcName 需要输出的函数名称
-         * @param {String} $strDebugInfo 需要输出的字符串
-         */
-        error($strErrInfo) {
-                if (g_conf[0].is_Debug) {
-                        let fontStyle =
-                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
-                        let titleStyle = 'padding: 2px 6px; border-radius: 3px 0 0 3px; background: #606060;color: #fff;' + fontStyle;
-                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #ff00a2;color: #fff;' + fontStyle;
-                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
-
-                        console.trace('%c[' + this.m_moduleNamel + ' Error]%c' + arr[0] + '%c' + arr[1], 'color:#ff00c0; font-weight:bold;',
-                                titleStyle, contentStyle);
-                }
-        }
-        /**
-         * 输出Fatal等级的日志信息
-         * @param {String} $funcName 需要输出的函数名称
-         * @param {String} $strDebugInfo 需要输出的字符串
-         */
-        fatal($strFatalInfo) {
-                if (g_conf[0].is_Debug) {
-                        let fontStyle =
-                                'font-family:-apple-system,BlinkMacSystemFont,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;';
-                        let titleStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #606060;color: #fff;' + fontStyle;
-                        let contentStyle = 'padding: 2px 6px; border-radius: 0 3px 3px 0; background: #ff5252;color: #fff;' + fontStyle;
-                        let arr = Arguments.getArgumentsAllValueByDebug(arguments);
-
-                        console.trace('%c[' + this.m_moduleNamel + ' Fatal]%c' + arr[0] + '%c' + arr[1], 'color:#ff0000; font-weight:bold;',
-                                titleStyle, contentStyle);
-                }
-        }
-}
-var log = new Log("Main");
-log.info("Test");
-//log.test("Arguments.getArgumentsAllValueByDebug() successed!");
-//log.debug("Arguments.getArgumentsAllValueByDebug() 111");
-//log.debug(Arguments.getArgumentsAllValueByDebug, "111");
-
-// /**
-//  */
-// function getRuntimeEnviInfo(){
-//      var naObj = window.navigator;
-//      document.write("浏览器的信息如下: <hr>");
-//      for (var i in naObj) {
-//              console.log(i + " : <span style='color:blue;'>" + typeof naObj[i] + '</span><br><span style=\'color:red;\'>' + naObj[i] + "</span><br>");
-//      }
-
-// /**
-//  */
-// function getRuntimeEnviInfo(){
-//      var naObj = window.navigator;
-//      document.write("浏览器的信息如下: <hr>");
-//      for (var i in naObj) {
-//              document.write(i + " : <span style='color:blue;'>" + typeof naObj[i] + '</span><br><span style=\'color:red;\'>' + naObj[i] + "</span><br>");
-//      }
-
-
-//      function openWin(url,name,width,height){
-//              var str = 'width=' + width + ',height=' + height;
-//              return window.open(url,name,str);
-//      }
-
-//      function closeWin(winObj){
-//              return winObj.close();
-//      }
-// }
-
-
-// var textNode = '<div style="z-index: 999;position: relative;"><a href="https://www.baidu.com/" target="newWin">百度</a><button id="open">打开窗口</button><button id="close">关闭窗口</button></div>';
-
-// function createNode(template){
-//      var start = Date.now();
-//      //var tempNode = document.createElement('div');
-//      //tempNode.innerHTML = template;
-//      //var node = tempNode;
-//      var node = document.createRange().createContextualFragment(textNode);
-//      console.log(Date.now() - start);
-//      return node;
-// }
-// document.getElementsByTagName('body')[0].appendChild(createNode(textNode));
-
-// document.getElementById('open').onclick = ()=>{
-//      openWin('','newWin',320,240);
-// };
-// document.getElementById('close').onclick = ()=>{
-//      closeWin(newWin);
-// };
-
-/**
- * 通知类
- * https://developer.mozilla.org/zh-CN/docs/Web/API/notification/Using_Web_Notifications
- */
-class Notifications{
+// //https://blog.csdn.net/CaptainJava/article/details/102853088
+class Socket {
         constructor(arg) {
-                this.enabled = true; //是否启用通知
-                this.defaultWaitTime = 2000; //通知默认等待时间 (x秒后关闭通知)
-        }
-        init(){
-                // 检查浏览器是否支持通知
-                if (!("Notification" in window)) {
-                        console.log("此浏览器不支持桌面通知!");
-                }
-                
-                // 检查是否已经授予通知权限
-                else if (Notification.permission === "granted") {
-                        // 如果用户已经同意了通知权限
-                        var notification = new Notification("通知已启用.");
-                        return true;
-                }
-                
-                // 否则，需要请求用户的许可
-                else if (Notification.permission !== 'denied' || Notification.permission === "default") {
-                        Notification.requestPermission(function (permission) {
-                                // 如果用户许可了，则创建一个通知进行测试
-                                if (permission === "granted") {
-                                        var notification = new Notification("通知已启用.");
-                                        return true;
-                                }
-                        });
-                }
-                return false;
+                this.webSocketObj = null;
+                this.fRecvCallBack = null;
         }
         /**
-         * 输出一条通知
-         * @param {String} strNotifications
+         * @param {String} url 目标通讯url
+         * @param {Function} recvCallBack 接收到数据后的回调函数(处理函数)
+         * @return {Boolean} true: webSocket初始化成功，false: webSocket初始化失败
          */
-        show(strNotifications){
-                if(this.enabled){
-                        var notification = new Notification(strNotifications);
+        init(url,recvCallBack){
+                var URL;
+                if(url){
+                        URL = url;
+                }
+                else{
+                        URL = "ws://" + window.location.host + "/websocket/message";
                 }
                 
+                if(recvCallBack){
+                        this.fRecvCallBack = recvCallBack;
+                }
+                
+                
+                //判断当前浏览器是否支持WebSocket
+                if ('WebSocket' in window) {
+                        this.webSocketObj = new WebSocket(URL);
+                } else {
+                        alert('Dont support websocket!');
+                        return false;
+                }
+                
+                //连接发生错误的回调方法
+                this.webSocketObj.onerror = function () {
+                        console.log("webSocket error!");
+                };
+                
+                //连接成功建立的回调方法
+                this.webSocketObj.onopen = function () {
+                        console.log("webSocket connected.");
+                };
+                
+                //接收到消息的回调方法
+                this.webSocketObj.onmessage = function (event) {
+                        console.log("webSocket收到数据!");
+                        
+                        if(this.fRecvCallBack){
+                                 this.fRecvCallBack();
+                        }
+                };
+                
+                //连接关闭的回调方法
+                this.webSocketObj.onclose = function () {
+                        console.log("webSocket close");
+                };
+                
+                window.addEventListener("beforeunload", function(event) {
+                        this.webSocketObj.close();
+                });
+                return true;
         }
-        /**
-         * 设置通知状态
-         * @param {Boolean} notificationsStatus 通知状态
-         */
-        setNotificationsStatus(notificationsStatus = true){
-                this.enabled = notificationsStatus;
+        
+        //关闭连接
+        close() {
+                return this.webSocketObj.close();
         }
-        /**
-         * 设置默认等待时间
-         * @param {Number} defaultWaitTime 通知默认等待时间 (x秒后关闭通知)
-         */
-        setNotificationsDefaultWaitTime(defaultWaitTime = 2000){
-                this.defaultWaitTime = defaultWaitTime;
+        
+        //发送消息
+        send(message) {
+                return this.webSocketObj.send(message);
         }
 }
 
+function recvHander(){
+        var obj = JSON.parse(event.data);
+        if(obj && "message" == obj.type){
+                console.log(obj.data);
+                // table.reload('test', {
+                //      elem: '#test'
+                //      ,data: JSON.parse(obj.data)
+                // });
+        }
+}
+
+function test_websocket(){
+        var socket = new Socket();
+        socket.init("",recvHander);
+        socket.send("Hello!");
+        socket.close();
+}
 /**
  * translateApis.js
  */
@@ -5896,8 +10706,17 @@ async function GoogleTranslateRequest(origLanguage, newLanguage, strText) {
         var _tk = tk(strText, _tkk);
         //console.log("_tk:",_tk);
 
+        //https://translate.google.cn/#view=home&op=translate&sl=auto&tl=zh-CN&text=12312
+        //https://translate.google.com.hk/?hl=zh-CN&tab=TT#view=home&op=translate&sl=auto&tl=zh-CN&text=123123
+        //https://translate.google.com/?hl=zh-CN#view=home&op=translate&sl=auto&tl=zh-CN&text=111
+        //https://translate.google.com.tw/#view=home&op=translate&sl=auto&tl=ja&text=%E4%BD%A0%E5%A5%BD
+        //谷歌翻译app抓包
+        //第三方getpost请求代发送
+        //https://translate.google.cn/translate_a/single?client=t
+
         //需要拼接的url序列
         var baseURL = "https://translate.google.cn/translate_a/single?";
+        var baseURL1 = "https://translate.google.com/translate_a/single?";
         var client = "client=" + "webapp";
         var sl = "&sl=" + origLanguage; //待翻译的原始语言      //默认为auto,即自动检测语言
         var tl = "&tl=" + newLanguage; //需要翻译成什么语言    //默认为zh-CN,即默认翻译为中文
@@ -6034,7 +10853,8 @@ async function GoogleTranslateRequest(origLanguage, newLanguage, strText) {
 }
 
 
-async function CNTranslateRequest(newLanguage, strText) {
+
+async function CNTranslateRequest(newLanguage, strText) { //简体转各类繁体，各类繁体转简体
         waitStatus_cn = true;
 
         var baseURL = "https://brushes8.com/zhong-wen-jian-ti-fan-ti-zhuan-huan";
@@ -6077,6 +10897,105 @@ async function CNTranslateRequest(newLanguage, strText) {
         }
         return returnData_cn;
 }
+
+
+//---------------------------------
+// DEEP翻译API
+//---------------------------------
+
+var default_request_pack = { //默认请求包
+        "jsonrpc": "2.0",
+        "method": "LMT_handle_jobs", //方法
+        "params": { //参数
+                "jobs": [ //工作
+                        {
+                                "kind": "default", //种类
+                                "raw_en_sentence": "你好世界", //原始句子
+                                "raw_en_context_before": [],  //之前的原始环境(上下文)
+                                "raw_en_context_after": [],   //之后的原始环境(上下文)
+                                "preferred_num_beams": 4, //首选数字
+                                "quality": "fast", //质量
+                        },
+                ],
+                "lang": { //语言
+                        "user_preferred_langs": ["EN", "ZH"], //用户首选语言
+                        "source_lang_user_selected": "auto", //源语言(用户选择)
+                        "target_lang": "EN", //目标语言
+                },
+                "priority": -1, //优先级
+                "commonJobParams": {}, //常见的工作参数
+                "timestamp": 1591090077383, //时间戳
+        },
+        "id": 92910013,
+};
+
+var default_split_pack = { //默认分解包(句子拆分再请求)
+        "jsonrpc": "2.0",
+        "method": "LMT_split_into_sentences", //方法
+        "params": { //参数
+                "lang": { //语言
+                        "lang_user_selected": "auto",        //用户选择语言
+                        "user_preferred_langs": ["EN", "ZH"] //用户首选语言
+                }
+        },
+        "id": 92910016
+};
+
+var default_split_request_pack = { //默认分解请求包
+        "jsonrpc": "2.0",
+        "method": "LMT_handle_jobs", //方法
+        "params": { //参数
+                "jobs": [ //工作
+                                        {
+                                                "kind": "default", //种类
+                                                "raw_en_sentence": "没有人富有得可以不要别人的帮助，也没有人穷得不能在某方面给他人帮助。", //原始句子
+                                                "raw_en_context_before": [],                                                       //之前的原始环境(上下文)
+                                                "raw_en_context_after": ["凡真心尝试助人者，没有不帮到自己的。"],                      //之后的原始环境(上下文)
+                                                "preferred_num_beams": 1 //首选数字
+                                        }, 
+                                        {
+                                        "kind": "default", //种类
+                                        "raw_en_sentence": "凡真心尝试助人者，没有不帮到自己的。",                                     //原始句子
+                                        "raw_en_context_before": ["没有人富有得可以不要别人的帮助，也没有人穷得不能在某方面给他人帮助。"], //之前的原始环境(上下文)
+                                        "raw_en_context_after": [],                                                                //之后的原始环境(上下文)
+                                        "preferred_num_beams": 1 //首选数字
+                                        },
+                                ],
+                "lang": { //语言
+                        "user_preferred_langs": ["EN", "ZH"], //用户首选语言
+                        "source_lang_computed": "ZH", //源语言(计算后的)
+                        "target_lang": "EN" //目标语言
+                },
+                "priority": 1, //优先级
+                "commonJobParams": {}, //常见的工作参数
+                "timestamp": 1591091506769 //时间戳
+        },
+        "id": 92910017
+};
+
+var default_verification_pack = { //默认验证包
+        "jsonrpc": "2.0",
+        "method": "getClientState", //方法
+        "params": { //参数
+                "v": "20180814", //版本
+                "clientVars": { //客户端值
+                        "userCountry": "CN", //用户国家
+                        "showAppPopup": true, //显示应用程序弹出
+                        "uid": "a3eb6359-c34e-4f9f-b39d-f7dc71187afc", //用户唯一标识符
+                        "testGroupId": 6243, //测试组Id
+                        "testGroupIdIsNew": true, //测试组Id是新的
+                        "useStatisticsApiV2": true, //使用统计Api V2
+                },
+        },
+        "id": 92910010,
+};
+
+
+
+function deepTranslateRequest() {
+        
+}
+
 
 /**
  * externalApis.js
@@ -8494,6 +13413,72 @@ function downFile(type,data,fileName) {
 //-------------------------------------------------------------------------------------------------------------
 
 /**
+ */
+class multiLanguage{
+        constructor(arg) {
+                this.l_en = 'en_GB';
+                this.l_cn = 'zh_CN';
+                this.l_tw = 'zh_TW';
+                this.l_jp = 'jp_JP';
+                this.l_auto = 'auto_detected';
+        }
+        /**
+         * 初始化
+         */
+        init(){
+                jQuery('#selectLanguageDropdown').localizationTool(languagesList_mainUI_html); //初始化
+                this.readConfig(); //读取当前语言配置
+        }
+        /**
+         * 读取当前语言配置
+         */
+        readConfig(){
+                if(g_conf[0].language == "auto_detected"){
+                        this.setAutoDetected();
+                }
+                else{
+                        jQuery('#selectLanguageDropdown').localizationTool('translate',g_conf[0].language);
+                }
+        }
+        /**
+         * 保存当前语言配置
+         */
+        saveConfig(lang){
+                g_conf[0].language = lang;
+        }
+        /**
+         * 设置为自动检测
+         */
+        setAutoDetected(){
+                var arrLang = navigator.languages;
+                for (let i = 0; i < arrLang.length; i++) {
+                        
+                        if(arrLang[i].indexOf('en') != -1){ //英语系 "en-US", "en"等变种语言
+                                jQuery('#selectLanguageDropdown').localizationTool('translate',this.l_en);
+                                return true;
+                        }
+                        
+                        switch (arrLang[i]){
+                                case "zh-CN": //简体
+                                        jQuery('#selectLanguageDropdown').localizationTool('translate',this.l_cn);
+                                        return true;
+                                        break;
+                                case "zh-TW": //繁体
+                                        jQuery('#selectLanguageDropdown').localizationTool('translate',this.l_tw);
+                                        return true;
+                                        break;
+                                case "ja": //日语
+                                        jQuery('#selectLanguageDropdown').localizationTool('translate',this.l_jp);
+                                        return true;
+                                        break;
+                        }
+                }
+                jQuery('#selectLanguageDropdown').localizationTool('translate',this.l_en);
+                return false;
+        }
+        
+}
+/**
  * ui.js
  */
 
@@ -8521,6 +13506,7 @@ class UI {
                 this.isDomLoaded = false; //dom是否加载完毕
                 registeMenu(); //注册脚本快捷菜单
                 //registeNotification(); //注册事件完成通知
+                if(gc_multiLanguage == null) gc_multiLanguage = new multiLanguage();      //多语言支持
         }
         
         showLoadUI(){ //
@@ -8634,57 +13620,57 @@ var isReCreateUi = ()=>{ //是否重新创建Ui(url正则表达式,回调函数)
                                         g_conf[0].isFriendToGroupRunStatus = false; /*是否正在设置好友分组*/
                                 };
                                 //https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
-                                if(g_friendUrlRegExp.test(url)){
+                                if(URLs.g_friendUrlRegExp.test(url)){
                                         _fn();
                                         console.log("重新构建UI-您的好友.");
                                         gc_menu_friends_ui && typeof gc_menu_friends_ui.reCreateUI === 'function' && gc_menu_friends_ui.reCreateUI(); //调用回调
                                 }
                                 
-                                else if(g_otherUrlRegExp1_1.test(url)){
+                                else if(URLs.g_otherUrlRegExp1_1.test(url)){
                                         _fn();
                                         console.log("不处理-添加好友.");
                                         //不处理
                                         return;
                                 }
-                                else if(g_otherUrlRegExp1_2.test(url)){
+                                else if(URLs.g_otherUrlRegExp1_2.test(url)){
                                         _fn();
                                         console.log("不处理-好友待处理邀请.");
                                         //暂时 不处理
                                         return;
                                 }
-                                else if(g_otherUrlRegExp1_3.test(url)){
+                                else if(URLs.g_otherUrlRegExp1_3.test(url)){
                                         _fn();
                                         console.log("重新构建UI-已屏蔽.");
                                         gc_menu_shielding_ui && typeof gc_menu_shielding_ui.reCreateUI === 'function' && gc_menu_shielding_ui.reCreateUI(); //调用回调
                                         return;
                                 }
-                                else if(g_otherUrlRegExp1_4.test(url)){
+                                else if(URLs.g_otherUrlRegExp1_4.test(url)){
                                         _fn();
                                         console.log("不处理-近期共同游戏的玩家.");
                                         //暂时 不处理
                                         return;
                                 }
-                                else if(g_otherUrlRegExp1_5.test(url)){
+                                else if(URLs.g_otherUrlRegExp1_5.test(url)){
                                         _fn();
                                         console.log("重新构建UI-直播版主.");
                                         gc_menu_liveAdmin_ui && typeof gc_menu_liveAdmin_ui.reCreateUI === 'function' && gc_menu_liveAdmin_ui.reCreateUI(); //调用回调
                                         return;
                                 }
                                 
-                                else if(g_otherUrlRegExp2_1.test(url)){
+                                else if(URLs.g_otherUrlRegExp2_1.test(url)){
                                         _fn();
                                         console.log("重新构建UI-关注的玩家.");
                                         gc_menu_following_Players_ui && typeof gc_menu_following_Players_ui.reCreateUI === 'function' && gc_menu_following_Players_ui.reCreateUI(); //调用回调
                                         return;
                                 }
-                                else if(g_otherUrlRegExp2_2.test(url)){
+                                else if(URLs.g_otherUrlRegExp2_2.test(url)){
                                         //_fn();
                                         //console.log("重新构建UI-您的组.");
                                         window.location.reload(true); //重新加载当前页面
                                         //gc_menu_groups_ui && typeof gc_menu_groups_ui.reCreateUI === 'function' && gc_menu_groups_ui.reCreateUI(); //调用回调
                                         return;
                                 }
-                                else if(g_otherUrlRegExp2_3.test(url)){
+                                else if(URLs.g_otherUrlRegExp2_3.test(url)){
                                         _fn();
                                         console.log("不处理UI-组待处理邀请!");
                                         //window.location.reload(true); //重新加载当前页面
@@ -8692,7 +13678,7 @@ var isReCreateUi = ()=>{ //是否重新创建Ui(url正则表达式,回调函数)
                                         return;
                                 }
                                 
-                                // else if(g_otherUrlRegExp3.test(url)){
+                                // else if(URLs.g_otherUrlRegExp3.test(url)){
                                 //      console.log("重新构建UI-您的好友.");
                                 //      gc_menu_friends_ui && typeof gc_menu_friends_ui.reCreateUI === 'function' && gc_menu_friends_ui.reCreateUI(); //调用回调
                                 // }
@@ -8856,6 +13842,9 @@ class menu_friends_ui extends UI {
                         //快捷导航栏
                         jQuery(".responsive_page_template_content").after(ExpandUI_QuickNavigationBar_html);
                 }
+                
+                gc_multiLanguage.init(); //初始化多语言支持
+                
                 UI.prototype.uiHandler(); //UI与UI事件等相关的处理程序
         }
         
@@ -14016,12 +19005,17 @@ async function registeredAllEvents() //注册所有的事件
 
 /**
  * app.js
- * @file 主程序类
  */
 
 class App{
-        constructor(arg) {
+        /**
+         * 主程序运行环境初始化
+         * @param {Object} yunMode 运行模式: 保留，当前未使用
+         */
+        constructor(yunMode) {
+                //初始化 资源(必要)
                 if(gc_res == null) gc_res = new resource();
+                //初始化 UI(必要)
                 if(gc_menu_friends_ui == null) gc_menu_friends_ui = new menu_friends_ui();            //您的好友
                 if(gc_menu_friends_invite_ui == null) gc_menu_friends_invite_ui = new menu_friends_invite_ui();     //待处理邀请
                 if(gc_menu_shielding_ui == null) gc_menu_shielding_ui = new menu_shielding_ui();          //已屏蔽
@@ -14030,8 +19024,11 @@ class App{
                 if(gc_menu_following_Players_ui == null) gc_menu_following_Players_ui = new menu_following_Players_ui();  //关注的玩家
                 if(gc_menu_groups_ui == null) gc_menu_groups_ui = new menu_groups_ui();             //您的组
                 if(gc_menu_groups_invite_ui == null) gc_menu_groups_invite_ui = new menu_groups_invite_ui();      //待处理邀请
+                
+                //初始化 外部API(可选)
                 if(gc_exApis == null) gc_exApis = new externalApis();
                 
+                //初始化 拓展功能(测试)
                 // if(!gc_steamdb)
                 // {
                 //      gc_steamdb = new SteamDB();
@@ -14071,57 +19068,57 @@ class App{
                 
                 var url = window.location.origin + window.location.pathname; //window.location.href //去除参数和锚点后的url
                 //https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
-                if(g_friendUrlRegExp.test(url)){
+                if(URLs.g_friendUrlRegExp.test(url)){
                         console.log("重新构建UI-您的好友.");
                         if(gc_menu_friends_ui && typeof gc_menu_friends_ui.initUI === 'function')
                                 return await gc_menu_friends_ui.initUI(true); //调用回调s
                 }
                 
-                else if(g_otherUrlRegExp1_1.test(url)){
+                else if(URLs.g_otherUrlRegExp1_1.test(url)){
                         console.log("不处理-添加好友.");
                         //不处理
                         return false;
                 }
-                else if(g_otherUrlRegExp1_2.test(url)){
+                else if(URLs.g_otherUrlRegExp1_2.test(url)){
                         console.log("不处理-好友待处理邀请.");
                         //暂时 不处理
                         return false;
                 }
-                else if(g_otherUrlRegExp1_3.test(url)){
+                else if(URLs.g_otherUrlRegExp1_3.test(url)){
                         console.log("重新构建UI-已屏蔽.");
                         if(gc_menu_shielding_ui && typeof gc_menu_shielding_ui.initUI === 'function')
                                 return await gc_menu_shielding_ui.initUI(true); //调用回调
                 }
-                else if(g_otherUrlRegExp1_4.test(url)){
+                else if(URLs.g_otherUrlRegExp1_4.test(url)){
                         console.log("不处理-近期共同游戏的玩家.");
                         //暂时 不处理
                         return false;
                 }
-                else if(g_otherUrlRegExp1_5.test(url)){
+                else if(URLs.g_otherUrlRegExp1_5.test(url)){
                         console.log("重新构建UI-直播版主.");
                         if(gc_menu_liveAdmin_ui && typeof gc_menu_liveAdmin_ui.initUI === 'function')
                                 return await gc_menu_liveAdmin_ui.initUI(true); //调用回调
                 }
                 
-                else if(g_otherUrlRegExp2_1.test(url)){
+                else if(URLs.g_otherUrlRegExp2_1.test(url)){
                         console.log("重新构建UI-关注的玩家.");
                         if(gc_menu_following_Players_ui && typeof gc_menu_following_Players_ui.initUI === 'function')
                                 return await gc_menu_following_Players_ui.initUI(true); //调用回调
                 }
-                else if(g_otherUrlRegExp2_2.test(url)){
+                else if(URLs.g_otherUrlRegExp2_2.test(url)){
                         console.log("重新构建UI-您的组.");
                         //window.location.reload(false); //重新加载当前页面
                         if(gc_menu_groups_ui && typeof gc_menu_groups_ui.initUI === 'function')
                                 return await gc_menu_groups_ui.initUI(true); //调用回调
                 }
-                else if(g_otherUrlRegExp2_3.test(url)){
+                else if(URLs.g_otherUrlRegExp2_3.test(url)){
                         console.log("不处理UI-组待处理邀请!");
                         //window.location.reload(false); //重新加载当前页面
                         //暂时 不处理
                         return false;
                 }
                 
-                // else if(g_otherUrlRegExp3.test(url)){
+                // else if(URLs.g_otherUrlRegExp3.test(url)){
                 //      console.log("重新构建UI-您的好友.");
                 // if(gc_menu_friends_ui && typeof gc_menu_friends_ui.initUI === 'function')
                 //      return await gc_menu_friends_ui.initUI(true); //调用回调s
@@ -14146,57 +19143,57 @@ class App{
                 
                 var url = window.location.origin + window.location.pathname; //window.location.href //去除参数和锚点后的url
                 //https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
-                if(g_friendUrlRegExp.test(url)){
+                if(URLs.g_friendUrlRegExp.test(url)){
                         console.log("重新构建UI-您的好友.");
                         if(gc_menu_friends_ui && typeof gc_menu_friends_ui.initUI === 'function')
                                 return await gc_menu_friends_ui.createUI(); //调用回调
                 }
                 
-                else if(g_otherUrlRegExp1_1.test(url)){
+                else if(URLs.g_otherUrlRegExp1_1.test(url)){
                         console.log("不处理-添加好友.");
                         //不处理
                         return false;
                 }
-                else if(g_otherUrlRegExp1_2.test(url)){
+                else if(URLs.g_otherUrlRegExp1_2.test(url)){
                         console.log("不处理-好友待处理邀请.");
                         //暂时 不处理
                         return false;
                 }
-                else if(g_otherUrlRegExp1_3.test(url)){
+                else if(URLs.g_otherUrlRegExp1_3.test(url)){
                         console.log("重新构建UI-已屏蔽.");
                         if(gc_menu_shielding_ui && typeof gc_menu_shielding_ui.initUI === 'function')
                                 return await gc_menu_shielding_ui.createUI(); //调用回调
                 }
-                else if(g_otherUrlRegExp1_4.test(url)){
+                else if(URLs.g_otherUrlRegExp1_4.test(url)){
                         console.log("不处理-近期共同游戏的玩家.");
                         //暂时 不处理
                         return false;
                 }
-                else if(g_otherUrlRegExp1_5.test(url)){
+                else if(URLs.g_otherUrlRegExp1_5.test(url)){
                         console.log("重新构建UI-直播版主.");
                         if(gc_menu_liveAdmin_ui && typeof gc_menu_liveAdmin_ui.initUI === 'function')
                                 return await gc_menu_liveAdmin_ui.createUI(); //调用回调
                 }
                 
-                else if(g_otherUrlRegExp2_1.test(url)){
+                else if(URLs.g_otherUrlRegExp2_1.test(url)){
                         console.log("重新构建UI-关注的玩家.");
                         if(gc_menu_following_Players_ui && typeof gc_menu_following_Players_ui.initUI === 'function')
                                 return await gc_menu_following_Players_ui.createUI(); //调用回调
                 }
-                else if(g_otherUrlRegExp2_2.test(url)){
+                else if(URLs.g_otherUrlRegExp2_2.test(url)){
                         console.log("重新构建UI-您的组.");
                         //window.location.reload(false); //重新加载当前页面
                         if(gc_menu_groups_ui && typeof gc_menu_groups_ui.initUI === 'function')
                                 return await gc_menu_groups_ui.createUI(); //调用回调
                 }
-                else if(g_otherUrlRegExp2_3.test(url)){
+                else if(URLs.g_otherUrlRegExp2_3.test(url)){
                         console.log("不处理UI-组待处理邀请!");
                         //window.location.reload(false); //重新加载当前页面
                         //暂时 不处理
                         return false;
                 }
                 
-                // else if(g_otherUrlRegExp3.test(url)){
+                // else if(URLs.g_otherUrlRegExp3.test(url)){
                 //      console.log("重新构建UI-您的好友.");
                 //      gc_menu_friends_ui && typeof gc_menu_friends_ui.initUI === 'function' && return await gc_menu_friends_ui.createUI(); //调用回调s
                 // }

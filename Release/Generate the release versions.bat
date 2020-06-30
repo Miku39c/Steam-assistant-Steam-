@@ -21,32 +21,34 @@ ren Release1.js Release.js
 REM »»ÐÐ
 echo=>> Release.js
 more ..\config\databaseConf.js >> Release.js
-more ..\config\confMerge_handle.js >> Release.js
+more ..\config\_AutoGeneration_ConfS.js >> Release.js
+more ..\common.js >> Release.js
 more ..\resource.js >> Release.js
-more ..\res\CSSs.js >> Release.js
-more ..\res\HTMLs.js >> Release.js
-more ..\res\JSs.js >> Release.js
-more ..\ui\uiStyle.js >> Release.js
+more ..\res\_AutoGeneration_CSSs.js >> Release.js
+more ..\res\_AutoGeneration_HTMLs.js >> Release.js
+more ..\res\_AutoGeneration_JSs.js >> Release.js
+more ..\res\language\languagesList.js >> Release.js
+more ..\ui\_UI_Style.js >> Release.js
 more ..\steamData.js >> Release.js
 more ..\src\shortcuts.js >> Release.js
-REM more ..\webSocket.js >> Release.js
-more ..\common.js >> Release.js
+more ..\webSocket.js >> Release.js
 more ..\translateApis.js >> Release.js
 more ..\externalApis.js >> Release.js
 more ..\steamApis.js >> Release.js
 more ..\steamApps.js >> Release.js
 more ..\steamExtend.js >> Release.js
 more ..\utility.js >> Release.js
+more ..\ui\_UI_multi_language_support.js >> Release.js
 more ..\ui\ui.js >> Release.js
-more ..\ui\menu_friends_ui.js >> Release.js
-more ..\ui\menu_friends_invite_ui.js >> Release.js
-more ..\ui\menu_shielding_ui.js >> Release.js
-more ..\ui\menu_gameFriend_ui.js >> Release.js
-more ..\ui\menu_liveAdmin_ui.js >> Release.js
-more ..\ui\menu_following_Players_ui.js >> Release.js
-more ..\ui\menu_groups_ui.js >> Release.js
-more ..\ui\menu_groups_invite_ui.js >> Release.js
-more ..\ui\uiHandler.js >> Release.js
+more ..\ui\ui_menu_friends.js >> Release.js
+more ..\ui\ui_menu_friends_invite.js >> Release.js
+more ..\ui\ui_menu_shielding.js >> Release.js
+more ..\ui\ui_menu_gameFriend.js >> Release.js
+more ..\ui\ui_menu_liveAdmin.js >> Release.js
+more ..\ui\ui_menu_following_Players.js >> Release.js
+more ..\ui\ui_menu_groups.js >> Release.js
+more ..\ui\ui_menu_groups_invite.js >> Release.js
+more ..\ui\_UI_Handler.js >> Release.js
 more ..\event.js >> Release.js
 REM more ..\src\cityList.js >> Release.js
 more ..\app.js >> Release.js

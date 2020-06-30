@@ -2,7 +2,7 @@
 
 const g_default_configuration = {
 	steamID: ""
-	,language: "automatic" /*语言: 自动检测*/
+	,language: "auto_detected" /*语言: 自动检测*/
 	,delay: 4 /*设置你的留言时间间隔,单位秒*/
 	,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/
 	,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/

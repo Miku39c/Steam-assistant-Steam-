@@ -8,27 +8,30 @@
  var g_db,g_db1,g_db2,g_db3,g_db4;
  //----------------------------------------------------------------------------------------------------------------------------------------------------
  //模块: databaseConf.js -> ui.js UI::initUI()
- /* 判断是否是目标运行页面的正则 */
- //您的好友
- const g_friendUrlRegExp = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/;
- //添加好友
- const g_otherUrlRegExp1_1 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/add?\/?$/;
- //待处理邀请
- const g_otherUrlRegExp1_2 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/pending?\/?$/;
- //已屏蔽
- const g_otherUrlRegExp1_3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/blocked?\/?$/;
- //近期共同游戏的玩家
- const g_otherUrlRegExp1_4 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/coplay?\/?$/;
- //直播版主
- const g_otherUrlRegExp1_5 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/broadcast_moderator?\/?$/;
- //关注的玩家
- const g_otherUrlRegExp2_1 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/following\/?$/;
- //您的组
- const g_otherUrlRegExp2_2 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/?$/;
- //待处理邀请
- const g_otherUrlRegExp2_3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/pending\/?$/;
  
- const g_otherUrlRegExp3 = /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/;
+ /* 判断是否是目标运行页面的正则 */
+ const URLs = {
+	 //您的好友
+	 g_friendUrlRegExp: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?$/,
+	 //添加好友
+	 g_otherUrlRegExp1_1: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/add?\/?$/,
+	 //待处理邀请
+	 g_otherUrlRegExp1_2: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/pending?\/?$/,
+	 //已屏蔽
+	 g_otherUrlRegExp1_3: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/blocked?\/?$/,
+	 //近期共同游戏的玩家
+	 g_otherUrlRegExp1_4: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/coplay?\/?$/,
+	 //直播版主
+	 g_otherUrlRegExp1_5: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/broadcast_moderator?\/?$/,
+	 //关注的玩家
+	 g_otherUrlRegExp2_1: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/following\/?$/,
+	 //您的组
+	 g_otherUrlRegExp2_2: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/?$/,
+	 //待处理邀请
+	 g_otherUrlRegExp2_3: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/groups\/pending\/?$/,
+	 //
+	 g_otherUrlRegExp3: /^https?:\/\/steamcommunity.com\/(id\/+[A-Za-z0-9$-_.+!*'(),]+|profiles\/7656119[0-9]{10})\/friends\/?([A-Za-z0-9$/-_.+!*'(),])+$/,
+ };
  //----------------------------------------------------------------------------------------------------------------------------------------------------
  //模块: databaseConf.js -> ui.js UI::initUI()
  /* 判断是否是目标变量的正则 */
@@ -38,6 +41,7 @@
  /* 全局对象 */
  var gc_res = null;
  
+
  
  var gc_ai = null;
  var gc_steamdb = null;

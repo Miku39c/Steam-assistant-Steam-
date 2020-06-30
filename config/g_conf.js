@@ -1,8 +1,10 @@
 /*保存了全局配置信息的对象，支持多用户，第0个默认为当前的用户配置信息(运行时读取到第0个，非长期存储)，从第1个开始是存储的用户长期配置信息表*/
 
+var gc_multiLanguage = null;
+
 var g_conf = [
 	{steamID: ""
-	,language: "automatic" /*语言: 自动检测*/
+	,language: "auto_detected" /*语言: 自动检测*/
 	,delay: 4 /*设置你的留言时间间隔,单位秒*/
 	,strNoOperate: "(不留言)" /*设置你的不留言的标识符: 如果不需要留言,则需在备注中添加这个不留言的标识符*/
 	,strRemarkPlaceholder: "{name}" /*设置你的称呼占位符: 同上*/

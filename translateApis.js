@@ -50,8 +50,18 @@ async function GoogleTranslateRequest(origLanguage, newLanguage, strText) {
 	var _tk = tk(strText, _tkk);
 	//console.log("_tk:",_tk);
 
+	//https://translate.google.cn/#view=home&op=translate&sl=auto&tl=zh-CN&text=12312
+	//https://translate.google.com.hk/?hl=zh-CN&tab=TT#view=home&op=translate&sl=auto&tl=zh-CN&text=123123
+	//https://translate.google.com/?hl=zh-CN#view=home&op=translate&sl=auto&tl=zh-CN&text=111
+	//https://translate.google.com.tw/#view=home&op=translate&sl=auto&tl=ja&text=%E4%BD%A0%E5%A5%BD
+	//谷歌翻译：浏览器插件下载使用的.crx
+	//谷歌翻译app抓包
+	//第三方getpost请求代发送
+	//https://translate.google.cn/translate_a/single?client=t
+
 	//需要拼接的url序列
 	var baseURL = "https://translate.google.cn/translate_a/single?";
+	var baseURL1 = "https://translate.google.com/translate_a/single?";
 	var client = "client=" + "webapp";
 	var sl = "&sl=" + origLanguage; //待翻译的原始语言      //默认为auto,即自动检测语言
 	var tl = "&tl=" + newLanguage; //需要翻译成什么语言    //默认为zh-CN,即默认翻译为中文
@@ -188,7 +198,8 @@ async function GoogleTranslateRequest(origLanguage, newLanguage, strText) {
 }
 
 
-async function CNTranslateRequest(newLanguage, strText) {
+
+async function CNTranslateRequest(newLanguage, strText) { //简体转各类繁体，各类繁体转简体
 	waitStatus_cn = true;
 
 	var baseURL = "https://brushes8.com/zhong-wen-jian-ti-fan-ti-zhuan-huan";
@@ -231,4 +242,104 @@ async function CNTranslateRequest(newLanguage, strText) {
 	}
 	return returnData_cn;
 }
+
+
+//---------------------------------
+// DEEP翻译API
+//---------------------------------
+
+var default_request_pack = { //默认请求包
+	"jsonrpc": "2.0",
+	"method": "LMT_handle_jobs", //方法
+	"params": { //参数
+		"jobs": [ //工作
+			{
+				"kind": "default", //种类
+				"raw_en_sentence": "你好世界", //原始句子
+				"raw_en_context_before": [],  //之前的原始环境(上下文)
+				"raw_en_context_after": [],   //之后的原始环境(上下文)
+				"preferred_num_beams": 4, //首选数字
+				"quality": "fast", //质量
+			},
+		],
+		"lang": { //语言
+			"user_preferred_langs": ["EN", "ZH"], //用户首选语言
+			"source_lang_user_selected": "auto", //源语言(用户选择)
+			"target_lang": "EN", //目标语言
+		},
+		"priority": -1, //优先级
+		"commonJobParams": {}, //常见的工作参数
+		"timestamp": 1591090077383, //时间戳
+	},
+	"id": 92910013,
+};
+
+var default_split_pack = { //默认分解包(句子拆分再请求)
+	"jsonrpc": "2.0",
+	"method": "LMT_split_into_sentences", //方法
+	"params": { //参数
+		"texts": ["没有人富有得可以不要别人的帮助，也没有人穷得不能在某方面给他人帮助。凡真心尝试助人者，没有不帮到自己的。"], //源语言
+		"lang": { //语言
+			"lang_user_selected": "auto",        //用户选择语言
+			"user_preferred_langs": ["EN", "ZH"] //用户首选语言
+		}
+	},
+	"id": 92910016
+};
+
+var default_split_request_pack = { //默认分解请求包
+	"jsonrpc": "2.0",
+	"method": "LMT_handle_jobs", //方法
+	"params": { //参数
+		"jobs": [ //工作
+					{
+						"kind": "default", //种类
+						"raw_en_sentence": "没有人富有得可以不要别人的帮助，也没有人穷得不能在某方面给他人帮助。", //原始句子
+						"raw_en_context_before": [],                                                       //之前的原始环境(上下文)
+						"raw_en_context_after": ["凡真心尝试助人者，没有不帮到自己的。"],                      //之后的原始环境(上下文)
+						"preferred_num_beams": 1 //首选数字
+					}, 
+					{
+					"kind": "default", //种类
+					"raw_en_sentence": "凡真心尝试助人者，没有不帮到自己的。",                                     //原始句子
+					"raw_en_context_before": ["没有人富有得可以不要别人的帮助，也没有人穷得不能在某方面给他人帮助。"], //之前的原始环境(上下文)
+					"raw_en_context_after": [],                                                                //之后的原始环境(上下文)
+					"preferred_num_beams": 1 //首选数字
+					},
+				],
+		"lang": { //语言
+			"user_preferred_langs": ["EN", "ZH"], //用户首选语言
+			"source_lang_computed": "ZH", //源语言(计算后的)
+			"target_lang": "EN" //目标语言
+		},
+		"priority": 1, //优先级
+		"commonJobParams": {}, //常见的工作参数
+		"timestamp": 1591091506769 //时间戳
+	},
+	"id": 92910017
+};
+
+var default_verification_pack = { //默认验证包
+	"jsonrpc": "2.0",
+	"method": "getClientState", //方法
+	"params": { //参数
+		"v": "20180814", //版本
+		"clientVars": { //客户端值
+			"userCountry": "CN", //用户国家
+			"showAppPopup": true, //显示应用程序弹出
+			"uid": "a3eb6359-c34e-4f9f-b39d-f7dc71187afc", //用户唯一标识符
+			"testGroupId": 6243, //测试组Id
+			"testGroupIdIsNew": true, //测试组Id是新的
+			"useStatisticsApiV2": true, //使用统计Api V2
+		},
+	},
+	"id": 92910010,
+};
+
+
+
+function deepTranslateRequest() {
+	
+}
+
 

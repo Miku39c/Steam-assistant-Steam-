@@ -2,5 +2,8 @@
 js.bat处理所有.js文件和手动注入代码的合并任务
 但是一般情况下，只需要运行Generate merge JS code.bat这个即可，内部会调用css.bat和html.bat和js.bat
 
+html文件夹内部有一个yun.bat的文件，调用java程序yun.jar处理生成多语言支持文件，会生成两个文件，一个对应多语言的.js和修改后的.html文件
+.js文件储存翻译，.html文件记录
+
 当没有修改内容时，只改动了其他文件的代码，然后需要生成Release版本时，
 由Release目录的Generate the release versions.bat自动生成并添加到Release.js里(不需要手动运行)

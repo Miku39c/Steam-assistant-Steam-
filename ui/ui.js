@@ -29,6 +29,7 @@ class UI {
 		this.isDomLoaded = false; //dom是否加载完毕
 		registeMenu(); //注册脚本快捷菜单
 		//registeNotification(); //注册事件完成通知
+		if(gc_multiLanguage == null) gc_multiLanguage = new multiLanguage();      //多语言支持
 	}
 	
 	showLoadUI(){ //
@@ -143,57 +144,57 @@ var isReCreateUi = ()=>{ //是否重新创建Ui(url正则表达式,回调函数)
 					g_conf[0].isFriendToGroupRunStatus = false; /*是否正在设置好友分组*/
 				};
 				//https://steamcommunity.com/id/miku-39/friends?l=english#state_online => https://steamcommunity.com/id/miku-39/friends
-				if(g_friendUrlRegExp.test(url)){
+				if(URLs.g_friendUrlRegExp.test(url)){
 					_fn();
 					console.log("重新构建UI-您的好友.");
 					gc_menu_friends_ui && typeof gc_menu_friends_ui.reCreateUI === 'function' && gc_menu_friends_ui.reCreateUI(); //调用回调
 				}
 				
-				else if(g_otherUrlRegExp1_1.test(url)){
+				else if(URLs.g_otherUrlRegExp1_1.test(url)){
 					_fn();
 					console.log("不处理-添加好友.");
 					//不处理
 					return;
 				}
-				else if(g_otherUrlRegExp1_2.test(url)){
+				else if(URLs.g_otherUrlRegExp1_2.test(url)){
 					_fn();
 					console.log("不处理-好友待处理邀请.");
 					//暂时 不处理
 					return;
 				}
-				else if(g_otherUrlRegExp1_3.test(url)){
+				else if(URLs.g_otherUrlRegExp1_3.test(url)){
 					_fn();
 					console.log("重新构建UI-已屏蔽.");
 					gc_menu_shielding_ui && typeof gc_menu_shielding_ui.reCreateUI === 'function' && gc_menu_shielding_ui.reCreateUI(); //调用回调
 					return;
 				}
-				else if(g_otherUrlRegExp1_4.test(url)){
+				else if(URLs.g_otherUrlRegExp1_4.test(url)){
 					_fn();
 					console.log("不处理-近期共同游戏的玩家.");
 					//暂时 不处理
 					return;
 				}
-				else if(g_otherUrlRegExp1_5.test(url)){
+				else if(URLs.g_otherUrlRegExp1_5.test(url)){
 					_fn();
 					console.log("重新构建UI-直播版主.");
 					gc_menu_liveAdmin_ui && typeof gc_menu_liveAdmin_ui.reCreateUI === 'function' && gc_menu_liveAdmin_ui.reCreateUI(); //调用回调
 					return;
 				}
 				
-				else if(g_otherUrlRegExp2_1.test(url)){
+				else if(URLs.g_otherUrlRegExp2_1.test(url)){
 					_fn();
 					console.log("重新构建UI-关注的玩家.");
 					gc_menu_following_Players_ui && typeof gc_menu_following_Players_ui.reCreateUI === 'function' && gc_menu_following_Players_ui.reCreateUI(); //调用回调
 					return;
 				}
-				else if(g_otherUrlRegExp2_2.test(url)){
+				else if(URLs.g_otherUrlRegExp2_2.test(url)){
 					//_fn();
 					//console.log("重新构建UI-您的组.");
 					window.location.reload(true); //重新加载当前页面
 					//gc_menu_groups_ui && typeof gc_menu_groups_ui.reCreateUI === 'function' && gc_menu_groups_ui.reCreateUI(); //调用回调
 					return;
 				}
-				else if(g_otherUrlRegExp2_3.test(url)){
+				else if(URLs.g_otherUrlRegExp2_3.test(url)){
 					_fn();
 					console.log("不处理UI-组待处理邀请!");
 					//window.location.reload(true); //重新加载当前页面
@@ -201,7 +202,7 @@ var isReCreateUi = ()=>{ //是否重新创建Ui(url正则表达式,回调函数)
 					return;
 				}
 				
-				// else if(g_otherUrlRegExp3.test(url)){
+				// else if(URLs.g_otherUrlRegExp3.test(url)){
 				// 	console.log("重新构建UI-您的好友.");
 				// 	gc_menu_friends_ui && typeof gc_menu_friends_ui.reCreateUI === 'function' && gc_menu_friends_ui.reCreateUI(); //调用回调
 				// }

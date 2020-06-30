@@ -15,7 +15,7 @@ set /p before=请输入字符串标识符"或者':
 
 echo 正在生成文件...
 
-call html.bat
+call "html multi-language.bat"
 call css.bat
 call js.bat
 
